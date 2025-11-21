@@ -641,7 +641,7 @@ void ProcTree::updateTwigAttributes() {
 		}
 
 		twig.nor->setUniformData(Vec3f::up());
-		twig.tan->setUniformData(Vec4f(Vec3f::right(), 1.0f));
+		twig.tan->setUniformData(Vec4f::create(Vec3f::right(), 1.0f));
 
 		// create 2 LOD levels, one for each silhouette map
 		lodLevels.resize(2);
@@ -675,7 +675,7 @@ void ProcTree::updateTwigAttributes() {
 #undef PROC_DATA_PTR_
 
 		twig.nor->setUniformData(Vec3f::up());
-		twig.tan->setUniformData(Vec4f(Vec3f::right(), 1.0f));
+		twig.tan->setUniformData(Vec4f::create(Vec3f::right(), 1.0f));
 
 		if (twig.basePos.get()) {
 			twig.basePos->setVertexData(nv);

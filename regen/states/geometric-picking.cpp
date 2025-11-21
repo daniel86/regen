@@ -83,12 +83,12 @@ void GeomPicking::updateMouse() {
 	// find view space mouse ray intersecting the frustum
 	Vec2f mouseNDC = mouse.r * 2.0 - Vec2f::one();
 	// in NDC space the ray starts at (mx,my,0) and ends at (mx,my,1)
-	Vec4f mouseRayNear = inverseProjectionMatrix ^ Vec4f(mouseNDC, 0.0, 1.0);
-	Vec4f mouseRayFar = inverseProjectionMatrix ^ Vec4f(mouseNDC, 1.0, 1.0);
-	mouseRayNear.xyz_() /= mouseRayNear.w;
-	mouseRayFar.xyz_() /= mouseRayFar.w;
-	mousePosVS_->setVertex(0, mouseRayNear.xyz_());
-	mouseDirVS_->setVertex(0, mouseRayNear.xyz_() - mouseRayFar.xyz_());
+	Vec4f mouseRayNear = inverseProjectionMatrix ^ Vec4f::create(mouseNDC, 0.0, 1.0);
+	Vec4f mouseRayFar = inverseProjectionMatrix ^ Vec4f::create(mouseNDC, 1.0, 1.0);
+	mouseRayNear.xyz() /= mouseRayNear.w;
+	mouseRayFar.xyz() /= mouseRayFar.w;
+	mousePosVS_->setVertex(0, mouseRayNear.xyz());
+	mouseDirVS_->setVertex(0, mouseRayNear.xyz() - mouseRayFar.xyz());
 }
 
 void GeomPicking::traverse(RenderState *rs) {

@@ -111,7 +111,7 @@ bool Light::updateConeMatrix() {
 			auto x = 2.0f * radius * tan(acos(coneAngle));
 			auto val = q.calculateMatrix();
 			val.scale(Vec3f(x, x, radius));
-			val.translate(lightPosition_->getVertexClamped(i).r.xyz_());
+			val.translate(lightPosition_->getVertexClamped(i).r.xyz());
 			m_coneMatrix.w[i] = val;
 		}
 	}
@@ -268,7 +268,7 @@ LightNode::LightNode(
 		const ref_ptr<Light> &light,
 		const ref_ptr<BoneNode> &n)
 		: State(), light_(light), animNode_(n) {
-	lightPosition_ = light->positionStaged(0).r.xyz_();
+	lightPosition_ = light->positionStaged(0).r.xyz();
 }
 
 void LightNode::update(GLdouble /*dt*/) {

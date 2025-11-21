@@ -91,10 +91,10 @@ void GrassPatch::generateLODLevel(uint32_t lodLevel) {
 			Vec3f p1(local0.x + localSize.x*0.5f, local0.y - localSize.y*0.5f + 0.5f, 0.0f);
 			Vec3f p2(local0.x + localSize.x*0.5f, local0.y + localSize.y*0.5f + 0.5f, 0.0f);
 			Vec3f p3(local0.x - localSize.x*0.5f, local0.y + localSize.y*0.5f + 0.5f, 0.0f);
-			p0.xy_() *= grassQuadSize;
-			p1.xy_() *= grassQuadSize;
-			p2.xy_() *= grassQuadSize;
-			p3.xy_() *= grassQuadSize;
+			p0.xy() *= grassQuadSize;
+			p1.xy() *= grassQuadSize;
+			p2.xy() *= grassQuadSize;
+			p3.xy() *= grassQuadSize;
 
 			// Start with the 4 vertices of the quad.
 			grass_p[vOffset + 0] = basePos + p0;

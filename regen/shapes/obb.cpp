@@ -84,10 +84,10 @@ void OBB::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 
 void OBB::applyTransform(const Mat4f &tf) {
 	REGEN_OBB_BATCH_DATA_AXES_array(g, globalBatchData_);
-	tfOrigin_ = (tf ^ Vec4f(Vec3f::right(), 0.0f)).xyz_(); _set_axis(0, tfOrigin_);
-	tfOrigin_ = (tf ^ Vec4f(Vec3f::up(),    0.0f)).xyz_(); _set_axis(1, tfOrigin_);
-	tfOrigin_ = (tf ^ Vec4f(Vec3f::front(), 0.0f)).xyz_(); _set_axis(2, tfOrigin_);
-	tfOrigin_ = (tf ^ Vec4f(basePosition_, 1.0f)).xyz_();
+	tfOrigin_ = (tf ^ Vec4f::create(Vec3f::right(), 0.0f)).xyz(); _set_axis(0, tfOrigin_);
+	tfOrigin_ = (tf ^ Vec4f::create(Vec3f::up(),    0.0f)).xyz(); _set_axis(1, tfOrigin_);
+	tfOrigin_ = (tf ^ Vec4f::create(Vec3f::front(), 0.0f)).xyz(); _set_axis(2, tfOrigin_);
+	tfOrigin_ = (tf ^ Vec4f::create(basePosition_, 1.0f)).xyz();
 }
 
 void OBB::updateOBB() {
@@ -106,7 +106,7 @@ void OBB::updateOBB() {
 			tfOrigin_ = basePosition_;
 		}
 		if (transform_->hasModelOffset()) {
-			tfOrigin_ += transform_->modelOffset()->getVertexClamped(transformIndex_).r.xyz_();
+			tfOrigin_ += transform_->modelOffset()->getVertexClamped(transformIndex_).r.xyz();
 		}
 	} else if (localStamp_ != 1) {
 		// use local transform if no model transformation is set.

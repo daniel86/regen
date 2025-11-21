@@ -967,7 +967,7 @@ namespace regen {
 
 		void setVertex3(GLuint i, const Vec3f &val) {
 			auto mapped = mapClientVertex<Vec4f>(BUFFER_GPU_WRITE, i);
-			mapped.w.xyz_() = val;
+			mapped.w.xyz() = val;
 		}
 	};
 

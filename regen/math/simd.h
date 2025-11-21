@@ -262,8 +262,6 @@ namespace regen {
 	struct BatchOf_float {
 		simd::Register c;
 
-		BatchOf_float() = default;
-
 		/**
 		 * Construct a batch from a single scalar float value.
 		 * All elements in the batch will be set to this value.
@@ -271,9 +269,7 @@ namespace regen {
 		 * @return A BatchOf_float with all elements set to v.
 		 */
 		static BatchOf_float fromScalar(float v) {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::set1_ps(v);
-			return batch;
+			return BatchOf_float{simd::set1_ps(v)};
 		}
 
 		/**
@@ -282,9 +278,7 @@ namespace regen {
 		 * @return A BatchOf_float loaded from the aligned array.
 		 */
 		static BatchOf_float loadAligned(const float *src) {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::load_ps(src);
-			return batch;
+			return BatchOf_float{simd::load_ps(src)};
 		}
 
 		/**
@@ -293,9 +287,7 @@ namespace regen {
 		 * @return A BatchOf_float loaded from the unaligned array.
 		 */
 		static BatchOf_float loadUnaligned(const float *src) {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::loadu_ps(src);
-			return batch;
+			return BatchOf_float{simd::loadu_ps(src)};
 		}
 
 		/**
@@ -305,27 +297,21 @@ namespace regen {
 		 * @return A BatchOf_float loaded from the gathered indices.
 		 */
 		static BatchOf_float loadGather(const float *basePtr, simd::Register_i indices) {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::i32gather_ps(basePtr, indices);
-			return batch;
+			return BatchOf_float{simd::i32gather_ps(basePtr, indices)};
 		}
 
 		/**
 		 * @return A batch where all elements are set to 1.0f.
 		 */
 		static BatchOf_float allOnes() {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = _mm256_setzero_ps();
-			return batch.cmp_lt(1.0f);
+			return BatchOf_float{_mm256_setzero_ps()}.cmp_lt(1.0f);
 		}
 
 		/**
 		 * @return A batch where all elements are set to 0.0f.
 		 */
 		static BatchOf_float allZeros() {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = _mm256_setzero_ps();
-			return batch;
+			return BatchOf_float{_mm256_setzero_ps()};
 		}
 
 		/**
@@ -345,32 +331,22 @@ namespace regen {
 		}
 
 		BatchOf_float operator+(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::add_ps(c, other.c);
-			return batch;
+			return BatchOf_float{simd::add_ps(c, other.c)};
 		}
 
 		BatchOf_float operator-(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::sub_ps(c, other.c);
-			return batch;
+			return BatchOf_float{simd::sub_ps(c, other.c)};
 		}
 
 		BatchOf_float operator/(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::div_ps(c, other.c);
-			return batch;
+			return BatchOf_float{simd::div_ps(c, other.c)};
 		}
 
 		BatchOf_float operator*(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::mul_ps(c, other.c);
-			return batch;
+			return BatchOf_float{simd::mul_ps(c, other.c)};
 		}
 		BatchOf_float operator*(float scalar) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::mul_ps(c, simd::set1_ps(scalar));
-			return batch;
+			return BatchOf_float{simd::mul_ps(c, simd::set1_ps(scalar))};
 		}
 
 		void operator+=(const BatchOf_float &other) {
@@ -421,9 +397,7 @@ namespace regen {
 		 * @return A BatchOf_float containing the minimum values.
 		 */
 		static BatchOf_float min(const BatchOf_float &a, const BatchOf_float &b) {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::min_ps(a.c, b.c);
-			return batch;
+			return BatchOf_float{simd::min_ps(a.c, b.c)};
 		}
 
 		/**
@@ -433,9 +407,7 @@ namespace regen {
 		 * @return A BatchOf_float containing the maximum values.
 		 */
 		static BatchOf_float max(const BatchOf_float &a, const BatchOf_float &b) {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::max_ps(a.c, b.c);
-			return batch;
+			return BatchOf_float{simd::max_ps(a.c, b.c)};
 		}
 
 		/**
@@ -450,9 +422,7 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is positive, else 0.0f.
 		 */
 		BatchOf_float isPositive() const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_gt(c, _mm256_setzero_ps());
-			return batch;
+			return BatchOf_float{simd::cmp_gt(c, _mm256_setzero_ps())};
 		}
 
 		/**
@@ -460,9 +430,7 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is negative, else 0.0f.
 		 */
 		BatchOf_float isNegative() const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_lt(c, _mm256_setzero_ps());
-			return batch;
+			return BatchOf_float{simd::cmp_lt(c, _mm256_setzero_ps())};
 		}
 
 		/**
@@ -482,9 +450,7 @@ namespace regen {
 			// then reinterpret the integer bits as floats
 			__m256 mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
 			// AND the mask with the float values to clear the sign bits
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = _mm256_and_ps(this->c, mask);
-			return batch;
+			return BatchOf_float{_mm256_and_ps(this->c, mask)};
 		}
 
 		/**
@@ -502,9 +468,7 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is less than the other batch, else 0.0f.
 		 */
 		BatchOf_float cmp_lt(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_lt(c, other.c);
-			return batch;
+			return BatchOf_float{simd::cmp_lt(c, other.c)};
 		}
 		/**
 		 * Less-than comparison with a scalar float.
@@ -512,9 +476,7 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is less than the scalar, else 0.0f.
 		 */
 		BatchOf_float cmp_lt(float other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_lt(c, simd::set1_ps(other));
-			return batch;
+			return BatchOf_float{simd::cmp_lt(c, simd::set1_ps(other))};
 		}
 
 		/**
@@ -523,9 +485,7 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is greater than the other batch, else 0.0f.
 		 */
 		BatchOf_float cmp_gt(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_gt(c, other.c);
-			return batch;
+			return BatchOf_float{simd::cmp_gt(c, other.c)};
 		}
 		/**
 		 * Greater-than comparison with a scalar float.
@@ -533,31 +493,21 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is greater than the scalar, else 0.0f.
 		 */
 		BatchOf_float cmp_gt(float other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_gt(c, simd::set1_ps(other));
-			return batch;
+			return BatchOf_float{simd::cmp_gt(c, simd::set1_ps(other))};
 		}
 
 		BatchOf_float cmp_and(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_and(c, other.c);
-			return batch;
+			return BatchOf_float{simd::cmp_and(c, other.c)};
 		}
 		BatchOf_float cmp_and(float other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_and(c, simd::set1_ps(other));
-			return batch;
+			return BatchOf_float{simd::cmp_and(c, simd::set1_ps(other))};
 		}
 
 		BatchOf_float cmp_or(const BatchOf_float &other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_or(c, other.c);
-			return batch;
+			return BatchOf_float{simd::cmp_or(c, other.c)};
 		}
 		BatchOf_float cmp_or(float other) const {
-			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::cmp_or(c, simd::set1_ps(other));
-			return batch;
+			return BatchOf_float{simd::cmp_or(c, simd::set1_ps(other))};
 		}
 	};
 
@@ -567,8 +517,6 @@ namespace regen {
 	struct BatchOf_int32 {
 		simd::Register_i c;
 
-		BatchOf_int32() = default;
-
 		/**
 		 * Load batch from an array of unaligned int32_t.
 		 * @param v Pointer to array of int32_t.
@@ -576,9 +524,7 @@ namespace regen {
 		 */
 		template <typename IntType>
 		static BatchOf_int32 loadAligned(const IntType *v) {
-			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			x.c = simd::load_si256(v);
-			return x;
+			return BatchOf_int32{simd::load_si256(v)};
 		}
 
 		/**
@@ -588,9 +534,7 @@ namespace regen {
 		 */
 		template <typename IntType>
 		static BatchOf_int32 loadUnaligned(const IntType *v) {
-			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			x.c = simd::loadu_si256(v);
-			return x;
+			return BatchOf_int32{simd::loadu_si256(v)};
 		}
 
 		/**
@@ -601,15 +545,11 @@ namespace regen {
 		 */
 		template <typename IntType>
 		static BatchOf_int32 fromScalar(IntType v) {
-			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			x.c = simd::set1_epi32(v);
-			return x;
+			return BatchOf_int32{simd::set1_epi32(v)};
 		}
 
 		static BatchOf_int32 castFloatBatch(const BatchOf_float &v) {
-			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			x.c = _mm256_castps_si256(v.c);
-			return x;
+			return BatchOf_int32{_mm256_castps_si256(v.c)};
 		}
 
 		/**
@@ -619,9 +559,7 @@ namespace regen {
 		 * @return A BatchOf_int32 containing the element-wise minimums.
 		 */
 		static BatchOf_int32 min(const BatchOf_int32 &a, const BatchOf_int32 &b) {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::min_epi32(a.c, b.c);
-			return batch;
+			return BatchOf_int32{simd::min_epi32(a.c, b.c)};
 		}
 
 		/**
@@ -631,9 +569,7 @@ namespace regen {
 		 * @return A BatchOf_int32 containing the element-wise maximums.
 		 */
 		static BatchOf_int32 max(const BatchOf_int32 &a, const BatchOf_int32 &b) {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::max_epi32(a.c, b.c);
-			return batch;
+			return BatchOf_int32{simd::max_epi32(a.c, b.c)};
 		}
 
 		/**
@@ -669,45 +605,31 @@ namespace regen {
 		}
 
 		BatchOf_int32 operator*(const BatchOf_int32 &other) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::mul_epi32(c, other.c);
-			return batch;
+			return BatchOf_int32{simd::mul_epi32(c, other.c)};
 		}
 
 		BatchOf_int32 operator*(int32_t scalar) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::mul_epi32(c, simd::set1_epi32(scalar));
-			return batch;
+			return BatchOf_int32{simd::mul_epi32(c, simd::set1_epi32(scalar))};
 		}
 
 		BatchOf_int32 operator+(const BatchOf_int32 &other) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::add_epi32(c, other.c);
-			return batch;
+			return BatchOf_int32{simd::add_epi32(c, other.c)};
 		}
 
 		BatchOf_int32 operator+(int32_t scalar) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::add_epi32(c, simd::set1_epi32(scalar));
-			return batch;
+			return BatchOf_int32{simd::add_epi32(c, simd::set1_epi32(scalar))};
 		}
 
 		BatchOf_int32 operator-(const BatchOf_int32 &other) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::sub_epi32(c, other.c);
-			return batch;
+			return BatchOf_int32{simd::sub_epi32(c, other.c)};
 		}
 
 		BatchOf_int32 operator-(int32_t scalar) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = simd::sub_epi32(c, simd::set1_epi32(scalar));
-			return batch;
+			return BatchOf_int32{simd::sub_epi32(c, simd::set1_epi32(scalar))};
 		}
 
 		BatchOf_int32 operator&(const BatchOf_int32 &other) const {
-			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.c = _mm256_and_si256(c, other.c);
-			return batch;
+			return BatchOf_int32{_mm256_and_si256(c, other.c)};
 		}
 	};
 
@@ -717,17 +639,14 @@ namespace regen {
 	struct BatchOf_Vec2f {
 		BatchOf_float x, y;
 
-		BatchOf_Vec2f() = default;
-
 		/**
 		 * Constructor that initializes the batch with a single Vec2f value.
 		 * @param v The Vec2f value to initialize the batch with.
 		 */
 		static BatchOf_Vec2f fromScalar(const Vec2f &v) {
-			BatchOf_Vec2f b; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			b.x.c = simd::set1_ps(v.x);
-			b.y.c = simd::set1_ps(v.y);
-			return b;
+			return BatchOf_Vec2f{
+				BatchOf_float{simd::set1_ps(v.x)},
+				BatchOf_float{simd::set1_ps(v.y)}};
 		}
 
 		/**
@@ -746,8 +665,6 @@ namespace regen {
 	public:
 		BatchOf_int32 x, y, z;
 
-		BatchOf_Vec3i() = default;
-
 		/**
 		 * Constructor that initializes the batch with a single Vec3i value.
 		 * @param v The Vec3i value to initialize the batch with.
@@ -758,6 +675,10 @@ namespace regen {
 			batch.y.c = simd::set1_epi32(v.y);
 			batch.z.c = simd::set1_epi32(v.z);
 			return batch;
+			return BatchOf_Vec3i{
+				BatchOf_int32{simd::set1_epi32(v.x)},
+				BatchOf_int32{simd::set1_epi32(v.y)},
+				BatchOf_int32{simd::set1_epi32(v.z)}};
 		}
 
 		/**
@@ -766,43 +687,38 @@ namespace regen {
 		 * @return A new Vec3iBatch containing the minimum values.
 		 */
 		BatchOf_Vec3i min(const BatchOf_Vec3i &other) const {
-			BatchOf_Vec3i batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x.c = simd::min_epi32(x.c, other.x.c);
-			batch.y.c = simd::min_epi32(y.c, other.y.c);
-			batch.z.c = simd::min_epi32(z.c, other.z.c);
-			return batch;
+			return BatchOf_Vec3i{
+				BatchOf_int32{simd::min_epi32(x.c, other.x.c)},
+				BatchOf_int32{simd::min_epi32(y.c, other.y.c)},
+				BatchOf_int32{simd::min_epi32(z.c, other.z.c)}};
 		}
 
 		BatchOf_Vec3i operator-(const BatchOf_Vec3i &other) const {
-			BatchOf_Vec3i batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x.c = simd::sub_epi32(x.c, other.x.c);
-			batch.y.c = simd::sub_epi32(y.c, other.y.c);
-			batch.z.c = simd::sub_epi32(z.c, other.z.c);
-			return batch;
+			return BatchOf_Vec3i{
+				BatchOf_int32{simd::sub_epi32(x.c, other.x.c)},
+				BatchOf_int32{simd::sub_epi32(y.c, other.y.c)},
+				BatchOf_int32{simd::sub_epi32(z.c, other.z.c)}};
 		}
 
 		BatchOf_Vec3i operator-(const BatchOf_int32 &other) const {
-			BatchOf_Vec3i batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x.c = simd::sub_epi32(x.c, other.c);
-			batch.y.c = simd::sub_epi32(y.c, other.c);
-			batch.z.c = simd::sub_epi32(z.c, other.c);
-			return batch;
+			return BatchOf_Vec3i{
+				BatchOf_int32{simd::sub_epi32(x.c, other.c)},
+				BatchOf_int32{simd::sub_epi32(y.c, other.c)},
+				BatchOf_int32{simd::sub_epi32(z.c, other.c)}};
 		}
 
 		BatchOf_Vec3i operator-(const Vec3i& other) const {
-			BatchOf_Vec3i batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x.c = simd::sub_epi32(x.c, simd::set1_epi32(other.x));
-			batch.y.c = simd::sub_epi32(y.c, simd::set1_epi32(other.y));
-			batch.z.c = simd::sub_epi32(z.c, simd::set1_epi32(other.z));
-			return batch;
+			return BatchOf_Vec3i{
+				BatchOf_int32{simd::sub_epi32(x.c, simd::set1_epi32(other.x))},
+				BatchOf_int32{simd::sub_epi32(y.c, simd::set1_epi32(other.y))},
+				BatchOf_int32{simd::sub_epi32(z.c, simd::set1_epi32(other.z))}};
 		}
 
 		BatchOf_Vec3i operator-(int32_t scalar) const {
-			BatchOf_Vec3i batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x.c = simd::sub_epi32(x.c, simd::set1_epi32(scalar));
-			batch.y.c = simd::sub_epi32(y.c, simd::set1_epi32(scalar));
-			batch.z.c = simd::sub_epi32(z.c, simd::set1_epi32(scalar));
-			return batch;
+			return BatchOf_Vec3i{
+				BatchOf_int32{simd::sub_epi32(x.c, simd::set1_epi32(scalar))},
+				BatchOf_int32{simd::sub_epi32(y.c, simd::set1_epi32(scalar))},
+				BatchOf_int32{simd::sub_epi32(z.c, simd::set1_epi32(scalar))}};
 		}
 	};
 
@@ -811,20 +727,17 @@ namespace regen {
 	 */
 	class BatchOf_Vec3f {
 	public:
-		simd::Register x, y, z;
-
-		BatchOf_Vec3f() = default;
+		BatchOf_float x, y, z;
 
 		/**
 		 * Constructor that initializes the batch with a single Vec3f value.
 		 * @param v The Vec3f value to initialize the batch with.
 		 */
 		static BatchOf_Vec3f fromScalar(const Vec3f &v) {
-			BatchOf_Vec3f b; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			b.x = simd::set1_ps(v.x);
-			b.y = simd::set1_ps(v.y);
-			b.z = simd::set1_ps(v.z);
-			return b;
+			return BatchOf_Vec3f{
+				BatchOf_float{simd::set1_ps(v.x)},
+				BatchOf_float{simd::set1_ps(v.y)},
+				BatchOf_float{simd::set1_ps(v.z)}};
 		}
 
 		/**
@@ -835,11 +748,10 @@ namespace regen {
 		 * @return A BatchOf_Vec3f loaded from the arrays.
 		 */
 		static BatchOf_Vec3f loadAligned(const float *xs, const float *ys, const float *zs) {
-			BatchOf_Vec3f b; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			b.x = simd::load_ps(xs);
-			b.y = simd::load_ps(ys);
-			b.z = simd::load_ps(zs);
-			return b;
+			return BatchOf_Vec3f{
+				BatchOf_float{simd::load_ps(xs)},
+				BatchOf_float{simd::load_ps(ys)},
+				BatchOf_float{simd::load_ps(zs)}};
 		}
 
 		/**
@@ -850,11 +762,10 @@ namespace regen {
 		 * @return A BatchOf_Vec3f loaded from the unaligned arrays.
 		 */
 		static BatchOf_Vec3f loadUnaligned(const float *xs, const float *ys, const float *zs) {
-			BatchOf_Vec3f b; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			b.x = simd::loadu_ps(xs);
-			b.y = simd::loadu_ps(ys);
-			b.z = simd::loadu_ps(zs);
-			return b;
+			return BatchOf_Vec3f{
+				BatchOf_float{simd::loadu_ps(xs)},
+				BatchOf_float{simd::loadu_ps(ys)},
+				BatchOf_float{simd::loadu_ps(zs)}};
 		}
 
 		/**
@@ -868,11 +779,10 @@ namespace regen {
 		 */
 		static BatchOf_Vec3f loadGather(const float *xs, const float *ys, const float *zs,
 		                                 const simd::Register_i &indices) {
-			BatchOf_Vec3f b; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			b.x = simd::i32gather_ps(xs, indices);
-			b.y = simd::i32gather_ps(ys, indices);
-			b.z = simd::i32gather_ps(zs, indices);
-			return b;
+			return BatchOf_Vec3f{
+				BatchOf_float{simd::i32gather_ps(xs, indices)},
+				BatchOf_float{simd::i32gather_ps(ys, indices)},
+				BatchOf_float{simd::i32gather_ps(zs, indices)}};
 		}
 
 		/**
@@ -882,9 +792,9 @@ namespace regen {
 		 * @param zs Pointer to 4 floats representing z-components.
 		 */
 		void setUnaligned(const float *xs, const float *ys, const float *zs) {
-			x = simd::loadu_ps(xs);
-			y = simd::loadu_ps(ys);
-			z = simd::loadu_ps(zs);
+			x.c = simd::loadu_ps(xs);
+			y.c = simd::loadu_ps(ys);
+			z.c = simd::loadu_ps(zs);
 		}
 
 		/**
@@ -894,9 +804,9 @@ namespace regen {
 		 * @param zs Pointer to 4 floats representing z-components.
 		 */
 		void setAligned(const float *xs, const float *ys, const float *zs) {
-			x = simd::load_ps(xs);
-			y = simd::load_ps(ys);
-			z = simd::load_ps(zs);
+			x.c = simd::load_ps(xs);
+			y.c = simd::load_ps(ys);
+			z.c = simd::load_ps(zs);
 		}
 
 		/**
@@ -908,9 +818,9 @@ namespace regen {
 		 * @param indices SIMD register containing indices to gather.
 		 */
 		void setGathered(const float *xs, const float *ys, const float *zs, const simd::Register_i &indices) {
-			x = simd::i32gather_ps(xs, indices);
-			y = simd::i32gather_ps(ys, indices);
-			z = simd::i32gather_ps(zs, indices);
+			x.c = simd::i32gather_ps(xs, indices);
+			y.c = simd::i32gather_ps(ys, indices);
+			z.c = simd::i32gather_ps(zs, indices);
 		}
 
 		/**
@@ -919,9 +829,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		BatchOf_Vec3f &operator+=(const BatchOf_Vec3f &other) {
-			x = simd::add_ps(x, other.x);
-			y = simd::add_ps(y, other.y);
-			z = simd::add_ps(z, other.z);
+			x = (x + other.x);
+			y = (y + other.y);
+			z = (z + other.z);
 			return *this;
 		}
 
@@ -931,9 +841,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		BatchOf_Vec3f &operator+=(const BatchOf_float &other) {
-			x = simd::add_ps(x, other.c);
-			y = simd::add_ps(y, other.c);
-			z = simd::add_ps(z, other.c);
+			x = (x + other);
+			y = (y + other);
+			z = (z + other);
 			return *this;
 		}
 
@@ -943,9 +853,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		BatchOf_Vec3f &operator+=(const Vec3f &v) {
-			x = simd::add_ps(x, simd::set1_ps(v.x));
-			y = simd::add_ps(y, simd::set1_ps(v.y));
-			z = simd::add_ps(z, simd::set1_ps(v.z));
+			x = (x + BatchOf_float{simd::set1_ps(v.x)});
+			y = (y + BatchOf_float{simd::set1_ps(v.y)});
+			z = (z + BatchOf_float{simd::set1_ps(v.z)});
 			return *this;
 		}
 
@@ -954,9 +864,9 @@ namespace regen {
 		 * @param other Batch to add.
 		 */
 		void operator+(const BatchOf_Vec3f &other) {
-			x = simd::add_ps(x, other.x);
-			y = simd::add_ps(y, other.y);
-			z = simd::add_ps(z, other.z);
+			x = (x + other.x);
+			y = (y + other.y);
+			z = (z + other.z);
 		}
 
 		/**
@@ -964,9 +874,9 @@ namespace regen {
 		 * @param v Constant Vec3f to add.
 		 */
 		void operator+(const Vec3f &v) {
-			x = simd::add_ps(x, simd::set1_ps(v.x));
-			y = simd::add_ps(y, simd::set1_ps(v.y));
-			z = simd::add_ps(z, simd::set1_ps(v.z));
+			x = (x + BatchOf_float{simd::set1_ps(v.x)});
+			y = (y + BatchOf_float{simd::set1_ps(v.y)});
+			z = (z + BatchOf_float{simd::set1_ps(v.z)});
 		}
 
 		/**
@@ -975,9 +885,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		BatchOf_Vec3f &operator-=(const BatchOf_Vec3f &other) {
-			x = simd::sub_ps(x, other.x);
-			y = simd::sub_ps(y, other.y);
-			z = simd::sub_ps(z, other.z);
+			x = (x - other.x);
+			y = (y - other.y);
+			z = (z - other.z);
 			return *this;
 		}
 
@@ -987,9 +897,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		BatchOf_Vec3f &operator-=(const Vec3f &v) {
-			x = simd::sub_ps(x, simd::set1_ps(v.x));
-			y = simd::sub_ps(y, simd::set1_ps(v.y));
-			z = simd::sub_ps(z, simd::set1_ps(v.z));
+			x = (x - BatchOf_float{simd::set1_ps(v.x)});
+			y = (y - BatchOf_float{simd::set1_ps(v.y)});
+			z = (z - BatchOf_float{simd::set1_ps(v.z)});
 			return *this;
 		}
 
@@ -999,11 +909,10 @@ namespace regen {
 		 * @return New Vec3fBatch4 result.
 		 */
 		BatchOf_Vec3f operator*(const BatchOf_Vec3f &other) const {
-			BatchOf_Vec3f batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x = simd::mul_ps(x, other.x);
-			batch.y = simd::mul_ps(y, other.y);
-			batch.z = simd::mul_ps(z, other.z);
-			return batch;
+			return BatchOf_Vec3f{
+				(x * other.x),
+				(y * other.y),
+				(z * other.z)};
 		}
 
 		/**
@@ -1012,11 +921,10 @@ namespace regen {
 		 * @return New BatchOf_Vec3f result.
 		 */
 		BatchOf_Vec3f operator*(const BatchOf_float &other) const {
-			BatchOf_Vec3f batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x = simd::mul_ps(x, other.c);
-			batch.y = simd::mul_ps(y, other.c);
-			batch.z = simd::mul_ps(z, other.c);
-			return batch;
+			return BatchOf_Vec3f{
+				(x * other),
+				(y * other),
+				(z * other)};
 		}
 
 		/**
@@ -1025,9 +933,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		void operator*=(const BatchOf_float &other) {
-			x = simd::mul_ps(x, other.c);
-			y = simd::mul_ps(y, other.c);
-			z = simd::mul_ps(z, other.c);
+			x = (x * other);
+			y = (y * other);
+			z = (z * other);
 		}
 
 
@@ -1037,11 +945,10 @@ namespace regen {
 		 * @return New Vec3fBatch4 result.
 		 */
 		BatchOf_Vec3f operator-(const BatchOf_Vec3f &other) const {
-			BatchOf_Vec3f batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x = simd::sub_ps(x, other.x);
-			batch.y = simd::sub_ps(y, other.y);
-			batch.z = simd::sub_ps(z, other.z);
-			return batch;
+			return BatchOf_Vec3f{
+				BatchOf_float{x - other.x},
+				BatchOf_float{y - other.y},
+				BatchOf_float{z - other.z}};
 		}
 
 		/**
@@ -1050,11 +957,10 @@ namespace regen {
 		 * @return New Vec3fBatch result.
 		 */
 		BatchOf_Vec3f operator/(const BatchOf_float &other) const {
-			BatchOf_Vec3f batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x = simd::div_ps(x, other.c);
-			batch.y = simd::div_ps(y, other.c);
-			batch.z = simd::div_ps(z, other.c);
-			return batch;
+			return BatchOf_Vec3f{
+				BatchOf_float{x / other},
+				BatchOf_float{y / other},
+				BatchOf_float{z / other}};
 		}
 
 		/**
@@ -1063,9 +969,9 @@ namespace regen {
 		 * @return Reference to self.
 		 */
 		void operator/=(const BatchOf_float &other) {
-			x = simd::div_ps(x, other.c);
-			y = simd::div_ps(y, other.c);
-			z = simd::div_ps(z, other.c);
+			x = (x / other);
+			y = (y / other);
+			z = (z / other);
 		}
 
 		/**
@@ -1073,14 +979,7 @@ namespace regen {
 		 * @return __m128 containing the length squared for each vector.
 		 */
 		BatchOf_float lengthSquared() const {
-			// Calculate length squared for each component
-			simd::Register x2 = simd::mul_ps(x, x);
-			simd::Register y2 = simd::mul_ps(y, y);
-			simd::Register z2 = simd::mul_ps(z, z);
-			// Sum the squares
-			BatchOf_float sum; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			sum.c = simd::add_ps(simd::add_ps(x2, y2), z2);
-			return sum;
+			return x*x + y*y + z*z;
 		}
 
 		/**
@@ -1089,11 +988,10 @@ namespace regen {
 		 * @return New Vec3fBatch with clamped values.
 		 */
 		BatchOf_Vec3f max(const BatchOf_float &maxValue) const {
-			BatchOf_Vec3f batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x = simd::max_ps(x, maxValue.c);
-			batch.y = simd::max_ps(y, maxValue.c);
-			batch.z = simd::max_ps(z, maxValue.c);
-			return batch;
+			return BatchOf_Vec3f{
+				BatchOf_float::max(x, maxValue),
+				BatchOf_float::max(y, maxValue),
+				BatchOf_float::max(z, maxValue)};
 		}
 
 		/**
@@ -1102,9 +1000,9 @@ namespace regen {
 		 */
 		Vec3f hsum() const {
 			return {
-				simd::hsum_ps(x),
-				simd::hsum_ps(y),
-				simd::hsum_ps(z) };
+				simd::hsum_ps(x.c),
+				simd::hsum_ps(y.c),
+				simd::hsum_ps(z.c) };
 		}
 
 		/**
@@ -1113,14 +1011,13 @@ namespace regen {
 		 */
 		BatchOf_Vec3i floor() const {
 			// Convert to integer by truncating the decimal part
-			simd::Register_i ix = simd::cvttps_epi32(x);
-			simd::Register_i iy = simd::cvttps_epi32(y);
-			simd::Register_i iz = simd::cvttps_epi32(z);
-			BatchOf_Vec3i trunc; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			trunc.x.c = ix;
-			trunc.y.c = iy;
-			trunc.z.c = iz;
-			return trunc;
+			simd::Register_i ix = simd::cvttps_epi32(x.c);
+			simd::Register_i iy = simd::cvttps_epi32(y.c);
+			simd::Register_i iz = simd::cvttps_epi32(z.c);
+			return BatchOf_Vec3i{
+				BatchOf_int32{ix},
+				BatchOf_int32{iy},
+				BatchOf_int32{iz} };
 		}
 	};
 
@@ -1131,20 +1028,17 @@ namespace regen {
 	public:
 		BatchOf_float w, x, y, z;
 
-		BatchOf_Quaternion() = default;
-
 		/**
 		 * Multiplies this batch of quaternions by another batch of quaternions.
 		 * @param b The other batch of quaternions to multiply with.
 		 * @return A new BatchOf_Quaternion representing the product.
 		 */
 		BatchOf_Quaternion operator*(const BatchOf_Quaternion &b) const {
-			BatchOf_Quaternion batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			batch.x = ((w * b.w) - (x * b.x)) - ((y * b.z) + (z * b.y));
-			batch.y = ((w * b.x) + (x * b.w)) + ((y * b.y) - (z * b.z));
-			batch.z = ((w * b.y) + (y * b.w)) + ((z * b.x) + (x * b.z));
-			batch.w = ((w * b.z) + (z * b.w)) + ((x * b.y) - (y * b.x));
-			return batch;
+			return BatchOf_Quaternion{
+				((w * b.w) - (x * b.x)) - ((y * b.z) + (z * b.y)),
+				((w * b.x) + (x * b.w)) + ((y * b.y) - (z * b.z)),
+				((w * b.y) + (y * b.w)) + ((z * b.x) + (x * b.z)),
+				((w * b.z) + (z * b.w)) + ((x * b.y) - (y * b.x))};
 		}
 	};
 

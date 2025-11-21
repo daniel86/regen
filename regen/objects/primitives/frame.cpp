@@ -213,9 +213,9 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 
 				for (GLuint i = 0; i < 3; ++i) {
 					auto transformedVertex = (transformations[boxIndex] * (initialBoxScale * f[i].p));
-					minPosition_.setMin(transformedVertex.xyz_());
-					maxPosition_.setMax(transformedVertex.xyz_());
-					v_pos[vertexIndex + i] = transformedVertex.xyz_();
+					minPosition_.setMin(transformedVertex.xyz());
+					maxPosition_.setMax(transformedVertex.xyz());
+					v_pos[vertexIndex + i] = transformedVertex.xyz();
 				}
 				if (cfg.isNormalRequired) {
 					auto nor = transformations[boxIndex].rotateVector(normal);

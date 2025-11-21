@@ -1,9 +1,6 @@
 #ifndef REGEN_VECTOR_H_
 #define REGEN_VECTOR_H_
 
-#include <GL/glew.h>
-
-#include <iostream>
 #include <cmath>
 #include <cassert>
 #include <list>
@@ -12,127 +9,96 @@
 #include <regen/math/math.h>
 
 namespace regen {
+	/** \brief Traits to get base type of vector types. */
     template<typename T> struct VecTraits;
 
+	/** Traits specialization for scalar types. */
 	template<> struct VecTraits<float> { using BaseType = float; };
 	template<> struct VecTraits<double> { using BaseType = double; };
 	template<> struct VecTraits<int> { using BaseType = int; };
 	template<> struct VecTraits<uint32_t> { using BaseType = uint32_t; };
 	template<> struct VecTraits<bool> { using BaseType = bool; };
 
-	struct Vec {
-		template <typename VecType> static VecType create(VecTraits<VecType>::BaseType v) {
-			static constexpr int NumComponents = sizeof(VecType) / sizeof(typename VecTraits<VecType>::BaseType);
-			if constexpr (NumComponents == 1) {
-				return v;
-			} else {
-				return VecType::create(v);
-			}
-		}
-	};
 	/**
 	 * \brief A 2D vector.
 	 */
-	template<typename T>
-	class Vec2 {
-	public:
+	template<typename T> struct Vec2 {
+		using BaseType = T;
+
 		T x; /**< the x component. **/
 		T y; /**< the y component. **/
 
-		Vec2() : x(0), y(0) {}
-
-		/** Set-component constructor. */
-		Vec2(T _x, T _y) : x(_x), y(_y) {}
-
-		/** @param _x value that is applied to all components. */
-		//Vec2(T _x) : x(_x), y(_x) {}
-
-		explicit Vec2(T) = delete;
-
-		/** copy constructor. */
-		Vec2(const Vec2 &b) : x(b.x), y(b.y) {}
-
-		static Vec2 create(T v) {
+		static constexpr Vec2 create(T v) noexcept {
 			return Vec2(v, v);
-		}
-
-		/** copy operator. */
-		inline void operator=(const Vec2 &b) {
-			x = b.x;
-			y = b.y;
 		}
 
 		/**
 		 * @param b another vector
 		 * @return true if all values are equal
 		 */
-		inline bool operator==(const Vec2 &b) const { return x == b.x && y == b.y; }
+		constexpr bool operator==(const Vec2 &b) const { return x == b.x && y == b.y; }
 
 		/**
 		 * @param b another vector
 		 * @return false if all values are equal
 		 */
-		inline bool operator!=(const Vec2 &b) const { return !operator==(b); }
+		constexpr bool operator!=(const Vec2 &b) const { return !operator==(b); }
 
 		/**
 		 * Subscript operator.
 		 */
-		inline T &operator[](int i) {
-			return ((T *) this)[i];
-		}
+		constexpr T &operator[](int i) { return (&x)[i]; }
 
 		/**
 		 * Subscript operator.
 		 */
-		inline const T &operator[](int i) const {
-			return ((T *) this)[i];
-		}
+		constexpr const T &operator[](int i) const { return (&x)[i]; }
 
 		/**
 		 * @return vector with each component negated.
 		 */
-		inline Vec2 operator-() const { return Vec2(-x, -y); }
+		constexpr Vec2 operator-() const { return Vec2{-x, -y}; }
 
 		/**
 		 * @param b vector to add.
 		 * @return the vector sum.
 		 */
-		inline Vec2 operator+(const Vec2 &b) const { return Vec2(x + b.x, y + b.y); }
+		constexpr Vec2 operator+(const Vec2 &b) const { return Vec2{x + b.x, y + b.y}; }
 
 		/**
 		 * @param b vector to subtract.
 		 * @return the vector difference.
 		 */
-		inline Vec2 operator-(const Vec2 &b) const { return Vec2(x - b.x, y - b.y); }
+		constexpr Vec2 operator-(const Vec2 &b) const { return Vec2{x - b.x, y - b.y}; }
 
 		/**
 		 * @param b vector to multiply.
 		 * @return the vector product.
 		 */
-		inline Vec2 operator*(const Vec2 &b) const { return Vec2(x * b.x, y * b.y); }
+		constexpr Vec2 operator*(const Vec2 &b) const { return Vec2{x * b.x, y * b.y}; }
 
 		/**
 		 * @param b vector to divide.
 		 * @return the vector product.
 		 */
-		inline Vec2 operator/(const Vec2 &b) const { return Vec2(x / b.x, y / b.y); }
+		constexpr Vec2 operator/(const Vec2 &b) const { return Vec2{x / b.x, y / b.y}; }
 
 		/**
 		 * @param b scalar to multiply.
 		 * @return the vector product.
 		 */
-		inline Vec2 operator*(const T &b) const { return Vec2(x * b, y * b); }
+		constexpr Vec2 operator*(const T &b) const { return Vec2{x * b, y * b}; }
 
 		/**
 		 * @param b scalar to divide.
 		 * @return the vector product.
 		 */
-		inline Vec2 operator/(const T &b) const { return Vec2(x / b, y / b); }
+		constexpr Vec2 operator/(const T &b) const { return Vec2{x / b, y / b}; }
 
 		/**
 		 * @param b vector to add.
 		 */
-		inline void operator+=(const Vec2 &b) {
+		constexpr void operator+=(const Vec2 &b) {
 			x += b.x;
 			y += b.y;
 		}
@@ -140,7 +106,7 @@ namespace regen {
 		/**
 		 * @param b vector to subtract.
 		 */
-		inline void operator-=(const Vec2 &b) {
+		constexpr void operator-=(const Vec2 &b) {
 			x -= b.x;
 			y -= b.y;
 		}
@@ -148,7 +114,7 @@ namespace regen {
 		/**
 		 * @param b vector to multiply.
 		 */
-		inline void operator*=(const Vec2 &b) {
+		constexpr void operator*=(const Vec2 &b) {
 			x *= b.x;
 			y *= b.y;
 		}
@@ -156,7 +122,7 @@ namespace regen {
 		/**
 		 * @param b vector to divide.
 		 */
-		inline void operator/=(const Vec2 &b) {
+		constexpr void operator/=(const Vec2 &b) {
 			x /= b.x;
 			y /= b.y;
 		}
@@ -164,7 +130,7 @@ namespace regen {
 		/**
 		 * @param b scalar to multiply.
 		 */
-		inline void operator*=(const T &b) {
+		constexpr void operator*=(const T &b) {
 			x *= b;
 			y *= b;
 		}
@@ -172,31 +138,25 @@ namespace regen {
 		/**
 		 * @param b scalar to divide.
 		 */
-		inline void operator/=(const T &b) {
+		constexpr void operator/=(const T &b) {
 			x /= b;
 			y /= b;
 		}
 
 		/** @return minimum component reference. */
-		inline const T &min() const {
-			if (x < y) return x;
-			else return y;
-		}
+		constexpr const T &min() const { return (x < y) ? x : y; }
 
 		/** @return maximum component reference. */
-		inline const T &max() const {
-			if (x > y) return x;
-			else return y;
-		}
+		constexpr const T &max() const { return (x > y) ? x : y; }
 
 		/** Set maximum component. */
-		inline void setMax(const Vec2 &b) {
+		constexpr void setMax(const Vec2 &b) {
 			if (b.x > x) x = b.x;
 			if (b.y > y) y = b.y;
 		}
 
 		/** Set minimum component. */
-		inline void setMin(const Vec2 &b) {
+		constexpr void setMin(const Vec2 &b) {
 			if (b.x < x) x = b.x;
 			if (b.y < y) y = b.y;
 		}
@@ -204,22 +164,27 @@ namespace regen {
 		/**
 		 * @return vector length.
 		 */
-		inline float length() const { return sqrt(x * x + y * y); }
+		constexpr float length() const { return sqrt(x * x + y * y); }
 
 		/**
 		 * @return squared vector length.
 		 */
-		inline float lengthSquared() const { return x * x + y * y; }
+		constexpr float lengthSquared() const { return x * x + y * y; }
 
 		/**
 		 * Normalize this vector.
 		 */
-		inline const Vec2& normalize() { *this /= length(); return *this; }
+		constexpr const Vec2& normalize() {
+			*this /= length();
+			return *this;
+		}
 
 		/**
 		 * @return normalized vector.
 		 */
-		inline Vec2 normalized() const { return Vec2(x, y) / length(); }
+		constexpr Vec2 normalized() const {
+			return Vec2{x, y} / length();
+		}
 
 		/**
 		 * Computes the dot product between two vectors.
@@ -228,24 +193,24 @@ namespace regen {
 		 * @param b another vector.
 		 * @return the dot product.
 		 */
-		inline T dot(const Vec2 &b) const {
+		constexpr T dot(const Vec2 &b) const {
 			return x * b.x + y * b.y;
 		}
 
 		/**
 		 * @return static zero vector.
 		 */
-		static const Vec2 &zero() {
-			static Vec2 zero_(0,0);
-			return zero_;
+		static constexpr const Vec2 &zero() {
+			static constexpr Vec2 Zero(0,0);
+			return Zero;
 		}
 
 		/**
 		 * @return static one vector.
 		 */
-		static const Vec2 &one() {
-			static Vec2 one_(1,1);
-			return one_;
+		static constexpr const Vec2 &one() {
+			static constexpr Vec2 One(1,1);
+			return One;
 		}
 	};
 
@@ -261,12 +226,18 @@ namespace regen {
 		return in;
 	}
 
+	/** \brief Vector type for 2D float vectors. */
 	typedef Vec2<float> Vec2f;
+	/** \brief Vector type for 2D double vectors. */
 	typedef Vec2<double> Vec2d;
+	/** \brief Vector type for 2D int vectors. */
 	typedef Vec2<int> Vec2i;
+	/** \brief Vector type for 2D uint32_t vectors. */
 	typedef Vec2<uint32_t> Vec2ui;
+	/** \brief Vector type for 2D bool vectors. */
 	typedef Vec2<bool> Vec2b;
 
+	// Specializations of VecTraits for 2D vector types
 	template<> struct VecTraits<Vec2f> { using BaseType = float; };
 	template<> struct VecTraits<Vec2d> { using BaseType = double; };
 	template<> struct VecTraits<Vec2i> { using BaseType = int; };
@@ -276,133 +247,130 @@ namespace regen {
 	/**
 	 * \brief A 3D vector.
 	 */
-	template<typename T>
-	class Vec3 {
-	public:
+	template<typename T> struct Vec3 {
+		using BaseType = T;
+
 		T x; /**< the x component. **/
 		T y; /**< the y component. **/
 		T z; /**< the z component. **/
 
-		Vec3() : x(0), y(0), z(0) {}
-
-		/** Set-component constructor. */
-		Vec3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
-
-		/** @param _x value that is applied to all components. */
-		//Vec3(T _x) : x(_x), y(_x), z(_x) {}
-
-		explicit Vec3(T) = delete;
-
-		/** copy constructor. */
-		Vec3(const Vec3 &b) : x(b.x), y(b.y), z(b.z) {}
-
-		/** copy constructor. */
-		template<typename U>
-		explicit Vec3(const Vec3<U> &b) :
-			x(static_cast<T>(b.x)),
-			y(static_cast<T>(b.y)),
-			z(static_cast<T>(b.z)) {}
-
 		/** Construct from Vec2 and scalar. */
-		Vec3(const Vec2<T> &b, T _z) : x(b.x), y(b.y), z(_z) {}
-
-		/** Construct from Vec2 and scalar. */
-		Vec3(T _x, const Vec2<T> &b) : x(_x), y(b.x), z(b.y) {}
-
-		static Vec3 create(T v) {
-			return Vec3(v, v, v);
+		static constexpr Vec3 create(T v) {
+			return Vec3{v, v, v};
 		}
 
-		/** copy operator. */
-		inline void operator=(const Vec3 &b) {
-			x = b.x;
-			y = b.y;
-			z = b.z;
+		/** Construct from Vec2 and scalar. */
+		static constexpr Vec3 create(Vec2<T> &x1, T x2) {
+			return Vec3{x1.x, x1.y, x2};
+		}
+
+		/** Construct from Vec2 and scalar. */
+		static constexpr Vec3 create(T x1, Vec2<T> &x2) {
+			return Vec3{x1, x2.x, x2.y};
+		}
+
+		/** Construct from another vector type. */
+		template<typename U> static constexpr Vec3 create(const Vec3<U> &b) {
+			return Vec3{
+				static_cast<T>(b.x),
+				static_cast<T>(b.y),
+				static_cast<T>(b.z)};
 		}
 
 		/**
 		 * @param b another vector
 		 * @return true if all values are equal
 		 */
-		inline bool operator==(const Vec3 &b) const { return x == b.x && y == b.y && z == b.z; }
+		constexpr bool operator==(const Vec3 &b) const {
+			return x == b.x && y == b.y && z == b.z;
+		}
 
 		/**
 		 * @param b another vector
 		 * @return false if all values are equal
 		 */
-		inline bool operator!=(const Vec3 &b) const { return !operator==(b); }
-
-		/**
-		 * Subscript operator.
-		 */
-		inline T &operator[](int i) {
-			return ((T *) this)[i];
+		constexpr bool operator!=(const Vec3 &b) const {
+			return !operator==(b);
 		}
 
 		/**
 		 * Subscript operator.
 		 */
-		inline const T &operator[](int i) const {
-			return ((T *) this)[i];
-		}
+		constexpr T &operator[](int i) { return (&x)[i]; }
+
+		/**
+		 * Subscript operator.
+		 */
+		constexpr const T &operator[](int i) const { return (&x)[i]; }
 
 		/**
 		 * @return vector with each component negated.
 		 */
-		inline Vec3 operator-() const { return Vec3(-x, -y, -z); }
+		constexpr Vec3 operator-() const { return Vec3{-x, -y, -z}; }
 
 		/**
 		 * @param b vector to add.
 		 * @return the vector sum.
 		 */
-		inline Vec3 operator+(const Vec3 &b) const { return Vec3(x + b.x, y + b.y, z + b.z); }
+		constexpr Vec3 operator+(const Vec3 &b) const {
+			return Vec3{x + b.x, y + b.y, z + b.z};
+		}
 
 		/**
 		 * @param b vector to add.
 		 * @return the vector sum.
 		 */
-		template<class U>
-		inline Vec3<T> operator+(const Vec3<U> &b) const {
-			return Vec3<T>(
+		template<class U> Vec3<T> constexpr operator+(const Vec3<U> &b) const {
+			return Vec3<T>{
 				x + static_cast<T>(b.x),
 				y + static_cast<T>(b.y),
-				z + static_cast<T>(b.z));
+				z + static_cast<T>(b.z)};
 		}
 
 		/**
 		 * @param b vector to subtract.
 		 * @return the vector difference.
 		 */
-		inline Vec3 operator-(const Vec3 &b) const { return Vec3(x - b.x, y - b.y, z - b.z); }
+		constexpr Vec3 operator-(const Vec3 &b) const {
+			return Vec3{x - b.x, y - b.y, z - b.z};
+		}
 
 		/**
 		 * @param b vector to multiply.
 		 * @return the vector product.
 		 */
-		inline Vec3 operator*(const Vec3 &b) const { return Vec3(x * b.x, y * b.y, z * b.z); }
+		constexpr Vec3 operator*(const Vec3 &b) const {
+			return Vec3{x * b.x, y * b.y, z * b.z};
+		}
 
 		/**
 		 * @param b vector to divide.
 		 * @return the vector product.
 		 */
-		inline Vec3 operator/(const Vec3 &b) const { return Vec3(x / b.x, y / b.y, z / b.z); }
+		constexpr Vec3 operator/(const Vec3 &b) const {
+			return Vec3{x / b.x, y / b.y, z / b.z};
+		}
 
 		/**
 		 * @param b scalar to multiply.
 		 * @return the vector product.
 		 */
-		inline Vec3 operator*(const T &b) const { return Vec3(x * b, y * b, z * b); }
+		constexpr Vec3 operator*(const T &b) const {
+			return Vec3{x * b, y * b, z * b};
+		}
 
 		/**
 		 * @param b scalar to divide.
 		 * @return the vector product.
 		 */
-		inline Vec3 operator/(const T &b) const { return Vec3(x / b, y / b, z / b); }
+		constexpr Vec3 operator/(const T &b) const {
+			return Vec3{x / b, y / b, z / b};
+		}
 
 		/**
 		 * @param b vector to add.
 		 */
-		inline void operator+=(const Vec3 &b) {
+		constexpr void operator+=(const Vec3 &b) {
 			x += b.x;
 			y += b.y;
 			z += b.z;
@@ -411,7 +379,7 @@ namespace regen {
 		/**
 		 * @param b vector to subtract.
 		 */
-		inline void operator-=(const Vec3 &b) {
+		constexpr void operator-=(const Vec3 &b) {
 			x -= b.x;
 			y -= b.y;
 			z -= b.z;
@@ -420,7 +388,7 @@ namespace regen {
 		/**
 		 * @param b vector to multiply.
 		 */
-		inline void operator*=(const Vec3 &b) {
+		constexpr void operator*=(const Vec3 &b) {
 			x *= b.x;
 			y *= b.y;
 			z *= b.z;
@@ -429,7 +397,7 @@ namespace regen {
 		/**
 		 * @param b vector to divide.
 		 */
-		inline void operator/=(const Vec3 &b) {
+		constexpr void operator/=(const Vec3 &b) {
 			x /= b.x;
 			y /= b.y;
 			z /= b.z;
@@ -438,7 +406,7 @@ namespace regen {
 		/**
 		 * @param b scalar to multiply.
 		 */
-		inline void operator*=(const T &b) {
+		constexpr void operator*=(const T &b) {
 			x *= b;
 			y *= b;
 			z *= b;
@@ -447,7 +415,7 @@ namespace regen {
 		/**
 		 * @param b scalar to divide.
 		 */
-		inline void operator/=(const T &b) {
+		constexpr void operator/=(const T &b) {
 			x /= b;
 			y /= b;
 			z /= b;
@@ -456,24 +424,31 @@ namespace regen {
 		/**
 		 * @return vector with each component as absolute value.
 		 */
-		inline Vec3 abs() const {
-			return Vec3(std::abs(x), std::abs(y), std::abs(z));
+		constexpr Vec3 abs() const {
+			return Vec3{std::abs(x), std::abs(y), std::abs(z)};
 		}
 
 		/**
 		 * @return vector length.
 		 */
-		inline float length() const { return sqrt(x * x + y * y + z * z); }
+		constexpr float length() const {
+			return sqrt(x * x + y * y + z * z);
+		}
 
 		/**
 		 * @return squared vector length.
 		 */
-		inline float lengthSquared() const { return x * x + y * y + z * z; }
+		constexpr float lengthSquared() const {
+			return x * x + y * y + z * z;
+		}
 
 		/**
 		 * Normalize this vector.
 		 */
-		inline Vec3& normalize() { *this /= length(); return *this; }
+		constexpr Vec3& normalize() {
+			*this /= length();
+			return *this;
+		}
 
 		/**
 		 * Computes the cross product between two vectors.
@@ -482,8 +457,11 @@ namespace regen {
 		 * @return the cross product.
 		 * @see http://en.wikipedia.org/wiki/Cross_product
 		 */
-		inline Vec3 cross(const Vec3 &b) const {
-			return Vec3(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
+		constexpr Vec3 cross(const Vec3 &b) const {
+			return Vec3{
+				y * b.z - z * b.y,
+				z * b.x - x * b.z,
+				x * b.y - y * b.x};
 		}
 
 		/**
@@ -493,7 +471,7 @@ namespace regen {
 		 * @param b another vector.
 		 * @return the dot product.
 		 */
-		inline T dot(const Vec3 &b) const {
+		constexpr T dot(const Vec3 &b) const {
 			return x * b.x + y * b.y + z * b.z;
 		}
 
@@ -505,82 +483,80 @@ namespace regen {
 		 * @param oz z component pointer.
 		 * @return the dot product.
 		 */
-		inline T dot(const T *ox, const T *oy, const T *oz) const {
+		constexpr T dot(const T *ox, const T *oy, const T *oz) const {
 			return x * (*ox) + y * (*oy) + z * (*oz);
 		}
 
 		/**
 		 * Rotates this vector around x/y/z axis.
-		 * @param angle
-		 * @param x_
-		 * @param y_
-		 * @param z_
+		 * @param angle rotation angle in radians.
+		 * @param rx x component of rotation axis.
+		 * @param ry y component of rotation axis.
+		 * @param rz z component of rotation axis.
 		 */
-		inline void rotate(GLfloat angle, GLfloat x_, GLfloat y_, GLfloat z_) {
-			GLfloat c = cos(angle);
-			GLfloat s = sin(angle);
-			Vec3<GLfloat> rotated(
-					(x_ * x_ * (1 - c) + c) * x
-					+ (x_ * y_ * (1 - c) - z_ * s) * y
-					+ (x_ * z_ * (1 - c) + y_ * s) * z,
-					(y_ * x_ * (1 - c) + z_ * s) * x
-					+ (y_ * y_ * (1 - c) + c) * y
-					+ (y_ * z_ * (1 - c) - x_ * s) * z,
-					(x_ * z_ * (1 - c) - y_ * s) * x
-					+ (y_ * z_ * (1 - c) + x_ * s) * y
-					+ (z_ * z_ * (1 - c) + c) * z
-			);
-			x = rotated.x;
-			y = rotated.y;
-			z = rotated.z;
+		constexpr void rotate(float angle, float rx, float ry, float rz) {
+			float c = cosf(angle);
+			float s = sinf(angle);
+			x = (rx * rx * (1 - c) + c) * x
+				+ (rx * ry * (1 - c) - rz * s) * y
+				+ (rx * rz * (1 - c) + ry * s) * z;
+			y = (ry * rx * (1 - c) + rz * s) * x
+				+ (ry * ry * (1 - c) + c) * y
+				+ (ry * rz * (1 - c) - rx * s) * z;
+			z = (rx * rz * (1 - c) - ry * s) * x
+				+ (ry * rz * (1 - c) + rx * s) * y
+				+ (rz * rz * (1 - c) + c) * z;
 		}
 
 		/** @return xy component reference. */
-		inline Vec2<T> &xy_() { return *((Vec2<T> *) this); }
+		constexpr Vec2<T>& xy() {
+			return *((Vec2<T> *) this);
+		}
 
 		/** @return yz component reference. */
-		inline Vec2<T> &yz_() { return *((Vec2<T> *) (((T *) this) + 1)); }
-
-		/** @return x component reference. */
-		inline T &x_() { return *((T *) this); }
-
-		/** @return y component reference. */
-		inline T &y_() { return *(((T *) this) + 1); }
-
-		/** @return z component reference. */
-		inline T &z_() { return *(((T *) this) + 2); }
+		constexpr Vec2<T>& yz() {
+			return *((Vec2<T> *) (((T *) this) + 1));
+		}
 
 		/** @return minimum component reference. */
-		inline const T &min() const {
+		constexpr const T &min() const {
 			if (x < y && x < z) return x;
 			else if (y < z) return y;
 			else return z;
 		}
 
 		/** @return maximum component reference. */
-		inline const T &max() const {
+		constexpr const T &max() const {
 			if (x > y && x > z) return x;
 			else if (y > z) return y;
 			else return z;
 		}
 
-		static inline Vec3 min(const Vec3 &a, const Vec3 &b) {
-			return Vec3(std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z));
+		/** Return vector with minimum components of a and b. */
+		static constexpr Vec3 min(const Vec3 &a, const Vec3 &b) {
+			return Vec3{
+				std::min(a.x, b.x),
+				std::min(a.y, b.y),
+				std::min(a.z, b.z)};
 		}
 
-		static inline Vec3 max(const Vec3 &a, const Vec3 &b) {
-			return Vec3(std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z));
+		/** Return vector with maximum components of a and b. */
+		static constexpr Vec3 max(const Vec3 &a, const Vec3 &b) {
+			return Vec3{
+				std::max(a.x, b.x),
+				std::max(a.y, b.y),
+				std::max(a.z, b.z)};
 		}
 
 		/** Set maximum component. */
-		inline void setMax(const Vec3 &b) {
+		constexpr void setMax(const Vec3 &b) {
 			x = std::max(x, b.x);
 			y = std::max(y, b.y);
 			z = std::max(z, b.z);
 		}
 
 		/** Set minimum component. */
-		inline void setMin(const Vec3 &b) {
+		constexpr void setMin(const Vec3 &b) {
 			x = std::min(x, b.x);
 			y = std::min(y, b.y);
 			z = std::min(z, b.z);
@@ -589,7 +565,7 @@ namespace regen {
 		/**
 		 * Sets each component to its absolute value.
 		 */
-		inline void setAbs() {
+		constexpr void setAbs() {
 			x = std::abs(x);
 			y = std::abs(y);
 			z = std::abs(z);
@@ -599,117 +575,121 @@ namespace regen {
 		 * Compares vectors components.
 		 * @return true if all components are nearly equal.
 		 */
-		inline bool isApprox(const Vec3 &b, T delta) const {
-			return std::abs(x - b.x) < delta && std::abs(y - b.y) < delta && std::abs(z - b.z) < delta;
+		constexpr bool isApprox(const Vec3 &b, T delta) const {
+			return
+				std::abs(x - b.x) < delta &&
+				std::abs(y - b.y) < delta &&
+				std::abs(z - b.z) < delta;
 		}
 
 		/**
 		 * @return static zero vector.
 		 */
-		static const Vec3 &zero() {
-			static Vec3 zero_(0,0,0);
-			return zero_;
+		static constexpr const Vec3 &zero() {
+			static constexpr Vec3 Zero(0,0,0);
+			return Zero;
 		}
 
 		/**
 		 * @return static one vector.
 		 */
-		static const Vec3 &one() {
-			static Vec3 one_(1,1,1);
-			return one_;
+		static constexpr const Vec3 &one() {
+			static constexpr Vec3 One(1,1,1);
+			return One;
 		}
 
 		/**
 		 * @return static positive max vector.
 		 */
-		static const Vec3& posMax() {
-			static constexpr float maxFloat = std::numeric_limits<T>::max();
-			static Vec3 posMax_(maxFloat,maxFloat,maxFloat);
-			return posMax_;
+		static constexpr const Vec3& posMax() {
+			static constexpr Vec3 PosMax = Vec3::create(std::numeric_limits<T>::max());
+			return PosMax;
 		}
 
 		/**
 		 * @return static negative max vector.
 		 */
-		static const Vec3& negMax() {
-			static constexpr float minFloat = std::numeric_limits<T>::lowest();
-			static Vec3 negMax_(minFloat, minFloat, minFloat);
-			return negMax_;
+		static constexpr const Vec3& negMax() {
+			static constexpr Vec3 NegMax = Vec3::create(std::numeric_limits<T>::lowest());
+			return NegMax;
 		}
 
 		/**
 		 * @return static up vector.
 		 */
-		static const Vec3 &up() {
-			static Vec3 up_(0, 1, 0);
-			return up_;
+		static constexpr const Vec3& up() {
+			static constexpr Vec3 Up(0, 1, 0);
+			return Up;
 		}
 
 		/**
 		 * @return static down vector.
 		 */
-		static const Vec3 &down() {
-			static Vec3 up_(0, -1, 0);
-			return up_;
+		static constexpr const Vec3& down() {
+			static constexpr Vec3 Down(0, -1, 0);
+			return Down;
 		}
 
 		/**
 		 * @return static front vector.
 		 */
-		static const Vec3 &front() {
-			static Vec3 up_(0, 0, 1);
-			return up_;
+		static constexpr const Vec3& front() {
+			static constexpr Vec3 Front(0, 0, 1);
+			return Front;
 		}
 
 		/**
 		 * @return static back vector.
 		 */
-		static const Vec3 &back() {
-			static Vec3 up_(0, 0, -1);
-			return up_;
+		static constexpr const Vec3& back() {
+			static constexpr Vec3 Back(0, 0, -1);
+			return Back;
 		}
 
 		/**
 		 * @return static right vector.
 		 */
-		static const Vec3 &right() {
-			static Vec3 up_(1, 0, 0);
-			return up_;
+		static constexpr const Vec3& right() {
+			static constexpr Vec3 Right(1, 0, 0);
+			return Right;
 		}
 
 		/**
 		 * @return static left vector.
 		 */
-		static const Vec3 &left() {
-			static Vec3 up_(-1, 0, 0);
-			return up_;
+		static constexpr const Vec3& left() {
+			static constexpr Vec3 Left(-1, 0, 0);
+			return Left;
 		}
 
 		/**
 		 * @return a random vector.
 		 */
-		static Vec3 random() {
-			return Vec3(math::random<T>(), math::random<T>(), math::random<T>());
+		static constexpr Vec3 random() {
+			return Vec3{
+				math::random<T>(),
+				math::random<T>(),
+				math::random<T>()};
 		}
 
 		/**
 		 * @return this vector as a Vec3f.
 		 */
-		Vec3<GLfloat> asVec3f() const {
+		constexpr Vec3<float> asVec3f() const {
 			return {
-				static_cast<GLfloat>(x),
-				static_cast<GLfloat>(y),
-				static_cast<GLfloat>(z) };
+				static_cast<float>(x),
+				static_cast<float>(y),
+				static_cast<float>(z) };
 		}
 
 		/**
 		 * @return this vector as a Vec3f.
 		 */
-		Vec3<GLint> asVec3i() const {
+		constexpr Vec3<int> asVec3i() const {
 			return {
-					static_cast<GLint>(x),
-					static_cast<GLint>(y),
-					static_cast<GLint>(z) };
+					static_cast<int>(x),
+					static_cast<int>(y),
+					static_cast<int>(z) };
 		}
 	};
 
@@ -726,12 +706,18 @@ namespace regen {
 		return in;
 	}
 
+	/** \brief Vector type for 3D float vectors. */
 	typedef Vec3<float> Vec3f;
+	/** \brief Vector type for 3D double vectors. */
 	typedef Vec3<double> Vec3d;
+	/** \brief Vector type for 3D int vectors. */
 	typedef Vec3<int> Vec3i;
+	/** \brief Vector type for 3D uint32_t vectors. */
 	typedef Vec3<uint32_t> Vec3ui;
+	/** \brief Vector type for 3D bool vectors. */
 	typedef Vec3<bool> Vec3b;
 
+	// Specializations of VecTraits for 3D vector types
 	template<> struct VecTraits<Vec3f> { using BaseType = float; };
 	template<> struct VecTraits<Vec3d> { using BaseType = double; };
 	template<> struct VecTraits<Vec3i> { using BaseType = int; };
@@ -744,125 +730,131 @@ namespace regen {
 	template<typename T>
 	class Vec4 {
 	public:
+		using BaseType = T;
+
 		T x; /**< the x component. **/
 		T y; /**< the y component. **/
 		T z; /**< the z component. **/
 		T w; /**< the w component. **/
 
-		Vec4() : x(0), y(0), z(0), w(0) {}
-
-		/** Set-component constructor. */
-		Vec4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
-
-		/** @param _x value that is applied to all components. */
-		//Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
-
-		explicit Vec4(T) = delete;
-
-		/** copy constructor. */
-		Vec4(const Vec4 &b) : x(b.x), y(b.y), z(b.z), w(b.w) {}
-
 		/** Construct from two Vec2's. */
-		Vec4(const Vec2<T> &a, const Vec2<T> &b) : x(a.x), y(a.y), z(b.x), w(b.y) {}
-
-		/** Construct from Vec2 and two scalars. */
-		Vec4(T _x, T _y, const Vec2<T> &b) : x(_x), y(_y), z(b.x), w(b.y) {}
-
-		/** Construct from Vec2 and two scalars. */
-		Vec4(T _x, const Vec2<T> &b, T _w) : x(_x), y(b.x), z(b.y), w(_w) {}
-
-		/** Construct from Vec2 and two scalars. */
-		Vec4(const Vec2<T> &b, T _z, T _w) : x(b.x), y(b.y), z(_z), w(_w) {}
-
-		/** Construct from Vec3 and scalar. */
-		Vec4(const Vec3<T> &b, T _w) : x(b.x), y(b.y), z(b.z), w(_w) {}
-
-		/** Construct from Vec3 and scalar. */
-		Vec4(T _x, const Vec3<T> &b) : x(_x), y(b.x), z(b.y), w(b.z) {}
-
-		static Vec4 create(T v) {
-			return Vec4(v, v, v, v);
+		static constexpr Vec4 create(const Vec2<T> &a, const Vec2<T> &b) {
+			return Vec4{a.x, a.y, b.x, b.y};
 		}
 
-		/** copy operator. */
-		inline void operator=(const Vec4 &b) {
-			x = b.x;
-			y = b.y;
-			z = b.z;
-			w = b.w;
+		/** Construct from Vec2 and two scalars. */
+		static constexpr Vec4 create(T x, T y, const Vec2<T> &b) {
+			return Vec4{x, y, b.x, b.y};
+		}
+
+		/** Construct from Vec2 and two scalars. */
+		static constexpr Vec4 create(T x, const Vec2<T> &b, T w) {
+			return Vec4{x, b.x, b.y, w};
+		}
+
+		/** Construct from Vec2 and two scalars. */
+		static constexpr Vec4 create(const Vec2<T> &b, T z, T w) {
+			return Vec4{b.x, b.y, z, w};
+		}
+
+		/** Construct from Vec3 and scalar. */
+		static constexpr Vec4 create(const Vec3<T> &b, T w) {
+			return Vec4{b.x, b.y, b.z, w};
+		}
+
+		/** Construct from Vec3 and scalar. */
+		static constexpr Vec4 create(T x, const Vec3<T> &b) {
+			return Vec4{x, b.x, b.y, b.z};
+		}
+
+		/** Construct from a scalar. */
+		static constexpr Vec4 create(T v) {
+			return Vec4{v, v, v, v};
 		}
 
 		/**
 		 * @param b another vector
 		 * @return true if all values are equal
 		 */
-		inline bool operator==(const Vec4 &b) const { return x == b.x && y == b.y && z == b.z && w == b.w; }
+		constexpr bool operator==(const Vec4 &b) const {
+			return x == b.x && y == b.y && z == b.z && w == b.w;
+		}
 
 		/**
 		 * @param b another vector
 		 * @return false if all values are equal
 		 */
-		inline bool operator!=(const Vec4 &b) const { return !operator==(b); }
-
-		/**
-		 * Subscript operator.
-		 */
-		inline T &operator[](int i) {
-			return ((T *) this)[i];
+		constexpr bool operator!=(const Vec4 &b) const {
+			return !operator==(b);
 		}
 
 		/**
 		 * Subscript operator.
 		 */
-		inline const T &operator[](int i) const {
-			return ((T *) this)[i];
-		}
+		constexpr T &operator[](int i) { return (&x)[i]; }
+
+		/**
+		 * Subscript operator.
+		 */
+		constexpr const T &operator[](int i) const { return (&x)[i]; }
 
 		/**
 		 * @return vector with each component negated.
 		 */
-		inline Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
+		constexpr Vec4 operator-() const { return Vec4{-x, -y, -z, -w}; }
 
 		/**
 		 * @param b vector to add.
 		 * @return the vector sum.
 		 */
-		inline Vec4 operator+(const Vec4 &b) const { return Vec4(x + b.x, y + b.y, z + b.z, w + b.w); }
+		constexpr Vec4 operator+(const Vec4 &b) const {
+			return Vec4{x + b.x, y + b.y, z + b.z, w + b.w};
+		}
 
 		/**
 		 * @param b vector to subtract.
 		 * @return the vector sum.
 		 */
-		inline Vec4 operator-(const Vec4 &b) const { return Vec4(x - b.x, y - b.y, z - b.z, w - b.w); }
+		constexpr Vec4 operator-(const Vec4 &b) const {
+			return Vec4{x - b.x, y - b.y, z - b.z, w - b.w};
+		}
 
 		/**
 		 * @param b vector to multiply.
 		 * @return the vector product.
 		 */
-		inline Vec4 operator*(const Vec4 &b) const { return Vec4(x * b.x, y * b.y, z * b.z, w * b.w); }
+		constexpr Vec4 operator*(const Vec4 &b) const {
+			return Vec4{x * b.x, y * b.y, z * b.z, w * b.w};
+		}
 
 		/**
 		 * @param b vector to divide.
 		 * @return the vector product.
 		 */
-		inline Vec4 operator/(const Vec4 &b) const { return Vec4(x / b.x, y / b.y, z / b.z, w / b.w); }
+		constexpr Vec4 operator/(const Vec4 &b) const {
+			return Vec4{x / b.x, y / b.y, z / b.z, w / b.w};
+		}
 
 		/**
 		 * @param b scalar to multiply.
 		 * @return the vector-scalar product.
 		 */
-		inline Vec4 operator*(const T &b) const { return Vec4(x * b, y * b, z * b, w * b); }
+		constexpr Vec4 operator*(const T &b) const {
+			return Vec4{x * b, y * b, z * b, w * b};
+		}
 
 		/**
 		 * @param b scalar to divide.
 		 * @return the vector-scalar product.
 		 */
-		inline Vec4 operator/(const T &b) const { return Vec4(x / b, y / b, z / b, w / b); }
+		constexpr Vec4 operator/(const T &b) const {
+			return Vec4{x / b, y / b, z / b, w / b};
+		}
 
 		/**
 		 * @param b vector to add.
 		 */
-		inline void operator+=(const Vec4 &b) {
+		constexpr void operator+=(const Vec4 &b) {
 			x += b.x;
 			y += b.y;
 			z += b.z;
@@ -872,7 +864,7 @@ namespace regen {
 		/**
 		 * @param b vector to subtract.
 		 */
-		inline void operator-=(const Vec4 &b) {
+		constexpr void operator-=(const Vec4 &b) {
 			x -= b.x;
 			y -= b.y;
 			z -= b.z;
@@ -882,7 +874,7 @@ namespace regen {
 		/**
 		 * @param b vector to multiply.
 		 */
-		inline void operator*=(const Vec4 &b) {
+		constexpr void operator*=(const Vec4 &b) {
 			x *= b.x;
 			y *= b.y;
 			z *= b.z;
@@ -892,7 +884,7 @@ namespace regen {
 		/**
 		 * @param b vector to divide.
 		 */
-		inline void operator/=(const Vec4 &b) {
+		constexpr void operator/=(const Vec4 &b) {
 			x /= b.x;
 			y /= b.y;
 			z /= b.z;
@@ -902,7 +894,7 @@ namespace regen {
 		/**
 		 * @param b scalar to multiply.
 		 */
-		inline void operator*=(const T &b) {
+		constexpr void operator*=(const T &b) {
 			x *= b;
 			y *= b;
 			z *= b;
@@ -912,7 +904,7 @@ namespace regen {
 		/**
 		 * @param b scalar to divide.
 		 */
-		inline void operator/=(const T &b) {
+		constexpr void operator/=(const T &b) {
 			x /= b;
 			y /= b;
 			z /= b;
@@ -920,81 +912,80 @@ namespace regen {
 		}
 
 		/** @return xyz component reference. */
-		inline Vec3<T> &xyz_() { return *((Vec3<T> *) this); }
+		constexpr Vec3<T> &xyz() {
+			return *((Vec3<T> *) this);
+		}
 
 		/** @return xyz component reference. */
-		inline const Vec3<T> &xyz_() const { return *((Vec3<T> *) this); }
+		constexpr const Vec3<T> &xyz() const {
+			return *((Vec3<T> *) this);
+		}
 
 		/** @return yzw component reference. */
-		inline Vec3<T> &yzw_() { return *((Vec3<T> *) (((T *) this) + 1)); }
+		constexpr Vec3<T> &yzw() {
+			return *((Vec3<T> *) (((T *) this) + 1));
+		}
 
 		/** @return yzw component reference. */
-		inline const Vec3<T> &yzw_() const { return *((Vec3<T> *) (((T *) this) + 1)); }
+		constexpr const Vec3<T> &yzw() const {
+			return *((Vec3<T> *) (((T *) this) + 1));
+		}
 
 		/** @return xy component reference. */
-		inline Vec2<T> &xy_() { return *((Vec2<T> *) this); }
+		constexpr Vec2<T> &xy() {
+			return *((Vec2<T> *) this);
+		}
 
 		/** @return xy component reference. */
-		inline const Vec2<T> &xy_() const { return *((Vec2<T> *) this); }
+		constexpr const Vec2<T> &xy() const {
+			return *((Vec2<T> *) this);
+		}
 
 		/** @return yz component reference. */
-		inline Vec2<T> &yz_() { return *((Vec2<T> *) (((T *) this) + 1)); }
+		constexpr Vec2<T> &yz() {
+			return *((Vec2<T> *) (((T *) this) + 1));
+		}
 
 		/** @return yz component reference. */
-		inline const Vec2<T> &yz_() const { return *((Vec2<T> *) (((T *) this) + 1)); }
+		constexpr const Vec2<T> &yz() const {
+			return *((Vec2<T> *) (((T *) this) + 1));
+		}
 
 		/** @return zw component reference. */
-		inline Vec2<T> &zw_() { return *((Vec2<T> *) (((T *) this) + 2)); }
+		constexpr Vec2<T> &zw() {
+			return *((Vec2<T> *) (((T *) this) + 2));
+		}
 
 		/** @return zw component reference. */
-		inline const Vec2<T> &zw_() const { return *((Vec2<T> *) (((T *) this) + 2)); }
-
-		/** @return x component reference. */
-		inline T &x_() { return *((T *) this); }
-
-		/** @return x component reference. */
-		inline const T &x_() const { return *((T *) this); }
-
-		/** @return y component reference. */
-		inline T &y_() { return *(((T *) this) + 1); }
-
-		/** @return y component reference. */
-		inline const T &y_() const { return *(((T *) this) + 1); }
-
-		/** @return z component reference. */
-		inline T &z_() { return *(((T *) this) + 2); }
-
-		/** @return z component reference. */
-		inline const T &z_() const { return *(((T *) this) + 2); }
-
-		/** @return w component reference. */
-		inline T &w_() { return *(((T *) this) + 3); }
-
-		/** @return w component reference. */
-		inline const T &w_() const { return *(((T *) this) + 3); }
+		constexpr const Vec2<T> &zw() const {
+			return *((Vec2<T> *) (((T *) this) + 2));
+		}
 
 		/**
 		 * Compares vectors components.
 		 * @return true if all components are nearly equal.
 		 */
-		inline GLboolean isApprox(const Vec4 &b, T delta) const {
-			return abs(x - b.x) < delta && abs(y - b.y) < delta && abs(z - b.z) < delta && abs(w - b.w) < delta;
+		constexpr bool isApprox(const Vec4 &b, T delta) const {
+			return abs(x - b.x) < delta &&
+				abs(y - b.y) < delta &&
+				abs(z - b.z) < delta &&
+				abs(w - b.w) < delta;
 		}
 
 		/**
 		 * @return static zero vector.
 		 */
-		static const Vec4 &zero() {
-			static Vec4 zero_(0,0,0,0);
-			return zero_;
+		static constexpr const Vec4 &zero() {
+			static constexpr Vec4 Zero(0,0,0,0);
+			return Zero;
 		}
 
 		/**
 		 * @return static one vector.
 		 */
-		static const Vec4 &one() {
-			static Vec4 one_(1,1,1,1);
-			return one_;
+		static constexpr const Vec4 &one() {
+			static constexpr Vec4 One(1,1,1,1);
+			return One;
 		}
 	};
 
@@ -1014,12 +1005,18 @@ namespace regen {
 		return in;
 	}
 
+	/** \brief Vector type for 4D float vectors. */
 	typedef Vec4<float> Vec4f;
+	/** \brief Vector type for 4D double vectors. */
 	typedef Vec4<double> Vec4d;
+	/** \brief Vector type for 4D int vectors. */
 	typedef Vec4<int> Vec4i;
+	/** \brief Vector type for 4D uint32_t vectors. */
 	typedef Vec4<uint32_t> Vec4ui;
+	/** \brief Vector type for 4D bool vectors. */
 	typedef Vec4<bool> Vec4b;
 
+	// Specializations of VecTraits for 4D vector types
 	template<> struct VecTraits<Vec4f> { using BaseType = float; };
 	template<> struct VecTraits<Vec4d> { using BaseType = double; };
 	template<> struct VecTraits<Vec4i> { using BaseType = int; };
@@ -1029,34 +1026,59 @@ namespace regen {
 	/**
 	 * \brief A 6D vector.
 	 */
-	template<typename T>
-	class Vec6 {
-	public:
+	template<typename T> struct Vec6 {
+		using BaseType = T;
+
 		T x0; /**< the 1. component. **/
 		T x1; /**< the 2. component. **/
 		T x2; /**< the 3. component. **/
 		T x3; /**< the 4. component. **/
 		T x4; /**< the 5. component. **/
 		T x5; /**< the 6. component. **/
-		Vec6() : x0(0), x1(0), x2(0), x3(0), x4(0), x5(0) {}
 
 		/** Construct from two Vec3's. */
-		Vec6(const Vec3f &v1, const Vec3f &v2)
-				: x0(v1.x), x1(v1.y), x2(v1.z), x3(v2.x), x4(v2.y), x5(v2.z) {}
+		static constexpr Vec6<float> create(const Vec3f &v1, const Vec3f &v2) {
+			return Vec6{v1.x, v1.y, v1.z, v2.x, v2.y, v2.z};
+		}
 	};
 
+	/** \brief Vector type for 6D float vectors. */
 	typedef Vec6<float> Vec6f;
+	/** \brief Vector type for 6D double vectors. */
 	typedef Vec6<double> Vec6d;
+	/** \brief Vector type for 6D int vectors. */
 	typedef Vec6<int> Vec6i;
+	/** \brief Vector type for 6D uint32_t vectors. */
 	typedef Vec6<uint32_t> Vec6ui;
+	/** \brief Vector type for 6D bool vectors. */
 	typedef Vec6<bool> Vec6b;
 
+	// Specializations of VecTraits for 6D vector types
 	template<> struct VecTraits<Vec6f> { using BaseType = float; };
 	template<> struct VecTraits<Vec6d> { using BaseType = double; };
 	template<> struct VecTraits<Vec6i> { using BaseType = int; };
 	template<> struct VecTraits<Vec6ui> { using BaseType = uint32_t; };
 	template<> struct VecTraits<Vec6b> { using BaseType = bool; };
 
+	/** \brief Helper to create vectors. Needed for scalar special case. */
+	struct Vec {
+		template <typename VecType> static VecType create(VecTraits<VecType>::BaseType v) {
+			static constexpr int NumComponents = sizeof(VecType) / sizeof(typename VecTraits<VecType>::BaseType);
+			if constexpr (NumComponents == 1) {
+				return v;
+			} else {
+				return VecType::create(v);
+			}
+		}
+	};
+
+	/**
+	 * Calculate tangent vector for a triangle.
+	 * @param vertices array of three triangle vertices.
+	 * @param texco array of three triangle texture coordinates.
+	 * @param normal triangle normal vector.
+	 * @return tangent vector as Vec4f where w is the handedness.
+	 */
 	Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal);
 } // namespace
 

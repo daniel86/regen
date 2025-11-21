@@ -114,7 +114,7 @@ BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset)
 	priv_->sortedGridIndices_.setToZero();
 #endif
 	for (uint32_t i = 0; i < numBoids_; ++i) {
-		setBoidPosition(i, modelOffset->getVertex(i).r.xyz_());
+		setBoidPosition(i, modelOffset->getVertex(i).r.xyz());
 	}
 }
 
@@ -420,9 +420,9 @@ void BoidsCPU::updateGrid() {
 			// x = (x - gridBounds_.min) / cellSize
 			boidBatch = (boidBatch - gridMin) / simd_cellSize;
 			// clamp to 0+
-			boidBatch.x = simd::max_ps(boidBatch.x, _mm256_setzero_ps());
-			boidBatch.y = simd::max_ps(boidBatch.y, _mm256_setzero_ps());
-			boidBatch.z = simd::max_ps(boidBatch.z, _mm256_setzero_ps());
+			boidBatch.x.c = simd::max_ps(boidBatch.x.c, _mm256_setzero_ps());
+			boidBatch.y.c = simd::max_ps(boidBatch.y.c, _mm256_setzero_ps());
+			boidBatch.z.c = simd::max_ps(boidBatch.z.c, _mm256_setzero_ps());
 
 			// floor to integer grid indices
 			BatchOf_Vec3i gridIndices = boidBatch.floor();
@@ -886,11 +886,11 @@ bool BoidsCPU::avoidCollisions(
 		if (collisionMapType_ == COLLISION_VECTOR_FIELD) {
 			Vec3f sample0 = collisionMap_->sampleLinear<Vec3f,3>(uv0, collisionMap_->textureData());
 			Vec3f sample1 = collisionMap_->sampleLinear<Vec3f,3>(uv1, collisionMap_->textureData());
-			Vec2f collisionFlow = sample0.xy_();
+			Vec2f collisionFlow = sample0.xy();
 			float collisionStrength = sample0.z;
 			if (sample1.z > collisionStrength) {
 				collisionStrength = sample1.z;
-				collisionFlow = sample1.xy_();
+				collisionFlow = sample1.xy();
 			}
 
 			if (collisionStrength > 0.01f) {

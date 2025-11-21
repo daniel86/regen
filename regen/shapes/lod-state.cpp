@@ -566,17 +566,17 @@ void LODState::createComputeShader() {
 		else if (boundingShape->shapeType() == BoundingShapeType::AABB) {
 			auto *box = static_cast<AABB*>(boundingShape.get());
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
-					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));
+					"shapeAABBMin", Vec4f::create(box->baseBounds().min,0.0f)));
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
-					"shapeAABBMax", Vec4f(box->baseBounds().max,0.0f)));
+					"shapeAABBMax", Vec4f::create(box->baseBounds().max,0.0f)));
 			shaderCfg.define("SHAPE_TYPE", "AABB");
 		}
 		else if (boundingShape->shapeType() == BoundingShapeType::OBB) {
 			auto *box = static_cast<OBB*>(boundingShape.get());
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
-					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));
+					"shapeAABBMin", Vec4f::create(box->baseBounds().min,0.0f)));
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
-					"shapeAABBMax", Vec4f(box->baseBounds().max,0.0f)));
+					"shapeAABBMax", Vec4f::create(box->baseBounds().max,0.0f)));
 			shaderCfg.define("SHAPE_TYPE", "OBB");
 		}
 		auto &tf = cullShape_->boundingShape()->transform();

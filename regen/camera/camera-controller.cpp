@@ -101,7 +101,7 @@ void CameraController::updateCameraPosition() {
 		if (attachedToMesh_.get()) {
 			camPos_ += attachedToMesh_->centerPosition();
 		}
-		camPos_ = (matVal_ ^ Vec4f(camPos_, 1.0)).xyz_();
+		camPos_ = (matVal_ ^ Vec4f::create(camPos_, 1.0)).xyz();
 	} else {
 		camPos_ = pos_;
 	}

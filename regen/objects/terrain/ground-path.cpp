@@ -153,8 +153,8 @@ void GroundPath::updateAttributes(const Config &cfg) {
 	}
 	indices_ = createIndexInput(numIndices, numVertices);
 
-	minPosition_ = Vec3f::create(std::numeric_limits<float>::max());
-	maxPosition_ = Vec3f::create(std::numeric_limits<float>::lowest());
+	minPosition_ = Vec3f::posMax();
+	maxPosition_ = Vec3f::negMax();
 	for (auto i = 0u; i < numSamplesPerLOD.size(); ++i) {
 		generateLODLevel(cfg, numSamplesPerLOD[i],
 						 meshLODs_[i].d->vertexOffset,

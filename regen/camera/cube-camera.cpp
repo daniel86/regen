@@ -36,7 +36,7 @@ CubeCamera::CubeCamera(int hiddenFacesMask)
 	sh_direction_->setUniformUntyped();
 	for (auto i = 0; i < 6; ++i) {
 		// Set the cube face directions
-		direction_[i] = Vec4f(Mat4f::cubeDirections()[i], 0.0f);
+		direction_[i] = Vec4f::create(Mat4f::cubeDirections()[i], 0.0f);
 		sh_direction_->setVertex(i, direction_[i]);
 		if (!isCubeFaceVisible(i)) {
 			shaderDefine(REGEN_STRING("SKIP_LAYER" << i), "1");

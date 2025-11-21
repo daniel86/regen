@@ -320,7 +320,7 @@ static void interpolateTangent(LODAttribute &attr, uint32_t i1, uint32_t i2, flo
 	auto &data = ((LODAttributeT<Vec4f> *) (&attr))->data;
 	auto &x1 = data[i1];
 	auto &x2 = data[i2];
-	auto interp = (x1.xyz_() * w1 + x2.xyz_() * w2);
+	auto interp = (x1.xyz() * w1 + x2.xyz() * w2);
 	interp.normalize();
 	data.emplace_back(
 			interp.x,

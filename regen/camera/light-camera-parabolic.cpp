@@ -46,7 +46,7 @@ bool LightCamera_Parabolic::updateLightView() {
 	lightPosStamp_ = light_->position()->stampOfReadData();
 	lightDirStamp_ = light_->direction()->stampOfReadData();
 	// Set the position of the light camera
-	setPosition(0, light_->positionStaged(0).r.xyz_());
+	setPosition(0, light_->positionStaged(0).r.xyz());
 	setDirection(0, -dir.r);
 	if (hasBackFace_) {
 		setDirection(1, dir.r);

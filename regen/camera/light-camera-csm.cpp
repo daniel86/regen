@@ -13,9 +13,7 @@ LightCamera_CSM::LightCamera_CSM(
 		  userCamera_(userCamera),
 		  userCameraFrustum_(numLayer),
 		  userFrustumCentroids_(numLayer),
-		  lightSpaceBounds_(numLayer, Bounds<Vec3f>::create(
-			Vec3f::create(std::numeric_limits<float>::max()),
-			Vec3f::create(std::numeric_limits<float>::lowest()))) {
+		  lightSpaceBounds_(numLayer, Bounds<Vec3f>::create(Vec3f::posMax(), Vec3f::negMax())) {
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
 	shaderDefine("RENDER_TARGET_MODE", "CASCADE");
 
@@ -193,17 +191,17 @@ bool LightCamera_CSM::updateLightProjection() {
 	for (unsigned int layerIndex = 0; layerIndex < numLayer_; ++layerIndex) {
 		auto &u_frustum = userCameraFrustum_[layerIndex];
 		auto &bounds = lightSpaceBounds_[layerIndex];
-		bounds.min = Vec3f::create(std::numeric_limits<float>::max());
-		bounds.max = Vec3f::create(std::numeric_limits<float>::lowest());
+		bounds.min = Vec3f::posMax();
+		bounds.max = Vec3f::negMax();
 		for (int frustumIndex = 0; frustumIndex < 8; ++frustumIndex) {
 			// TODO: matrix multiplication can probably be avoided here.
 #ifdef CSM_USE_SINGLE_VIEW
 			auto point_ls = view_[0] ^ Vec4f(u_frustum.points[frustumIndex], 1.0f);
 #else
-			auto point_ls = view(layerIndex) ^ Vec4f(u_frustum.points[frustumIndex], 1.0f);
+			auto point_ls = view(layerIndex) ^ Vec4f::create(u_frustum.points[frustumIndex], 1.0f);
 #endif
-			bounds.min.setMin(point_ls.xyz_());
-			bounds.max.setMax(point_ls.xyz_());
+			bounds.min.setMin(point_ls.xyz());
+			bounds.max.setMax(point_ls.xyz());
 			zRange.x = std::min(zRange.x, point_ls.z);
 			zRange.y = std::max(zRange.y, point_ls.z);
 		}

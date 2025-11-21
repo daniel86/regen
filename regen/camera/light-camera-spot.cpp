@@ -49,7 +49,7 @@ bool LightCamera_Spot::updateLightView() {
 		lightDirStamp_ == light_->direction()->stampOfReadData()) { return false; }
 	lightPosStamp_ = light_->position()->stampOfReadData();
 	lightDirStamp_ = light_->direction()->stampOfReadData();
-	setPosition(0, light_->positionStaged(0).r.xyz_());
+	setPosition(0, light_->positionStaged(0).r.xyz());
 	setDirection(0, light_->directionStaged(0).r);
 	return updateView();
 }

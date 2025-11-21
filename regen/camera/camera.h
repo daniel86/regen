@@ -180,7 +180,7 @@ namespace regen {
 		 * @param idx the layer index.
 		 * @return the camera position for the specified layer.
 		 */
-		const Vec3f &position(uint32_t idx) const { return position_[idx].xyz_(); }
+		const Vec3f &position(uint32_t idx) const { return position_[idx].xyz(); }
 
 		/**
 		 * Get the stamp indicating when the camera position was last updated.
@@ -220,7 +220,7 @@ namespace regen {
 		 * @param idx the layer index.
 		 * @return the camera direction for the specified layer.
 		 */
-		const Vec3f &direction(uint32_t idx) const { return direction_[idx].xyz_(); }
+		const Vec3f &direction(uint32_t idx) const { return direction_[idx].xyz(); }
 
 		/**
 		 * Get the stamp indicating when the camera direction was last updated.
@@ -244,7 +244,7 @@ namespace regen {
 		 * @param idx the layer index.
 		 * @return the camera velocity for the specified layer.
 		 */
-		const Vec3f &velocity() const { return vel_.xyz_(); }
+		const Vec3f &velocity() const { return vel_.xyz(); }
 
 		/**
 		 * Get the stamp indicating when the camera velocity was last updated.
@@ -609,7 +609,7 @@ namespace regen {
 				uint32_t &stamp,
 				uint32_t idx,
 				const Vec3f &value) {
-			vec[idx].xyz_() = value;
+			vec[idx].xyz() = value;
 			stamp += 1;
 			camStamp_ += 1;
 		}

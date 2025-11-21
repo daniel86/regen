@@ -1,10 +1,3 @@
-/*
- * matrix.cpp
- *
- *  Created on: 20.10.2012
- *      Author: daniel
- */
-
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <fstream>

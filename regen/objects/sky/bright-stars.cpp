@@ -114,7 +114,7 @@ void BrightStars::set_brightStarsFile(const std::string &brightStars) {
 		equ.right_ascension = _rightascd(stars[i].RA, 0, 0);
 		equ.declination = stars[i].DE;
 
-		pos_->setVertex(i, Vec4f(equ.toEuclidean(), static_cast<float>(i)));
+		pos_->setVertex(i, Vec4f::create(equ.toEuclidean(), static_cast<float>(i)));
 		col_->setVertex(i, Vec4f(
 				stars[i].sRGB_R,
 				stars[i].sRGB_G,

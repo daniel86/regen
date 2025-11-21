@@ -14,7 +14,8 @@ static Vec3f computeBasePosition(const ref_ptr<Mesh> &mesh, const std::vector<re
 	if (mesh.get() && parts.empty()) {
 		return mesh->centerPosition();
 	}
-	Vec3f min, max;
+	Vec3f min = Vec3f::posMax();
+	Vec3f max = Vec3f::negMax();
 	if (mesh.get()) {
 		min = mesh->minPosition();
 		max = mesh->maxPosition();
@@ -59,7 +60,8 @@ void BoundingSphere::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 }
 
 float BoundingSphere::computeRadius(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts) const {
-	Vec3f min, max;
+	Vec3f min = Vec3f::posMax();
+	Vec3f max = Vec3f::negMax();
 	if (mesh_.get()) {
 		if (parts.empty()) {
 			if (auto sphereMesh = dynamic_cast<Sphere *>(mesh.get())) {

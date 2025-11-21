@@ -1,8 +1,3 @@
-/*
- * This file is part of KnowRob, please consult
- * https://github.com/knowrob/knowrob for license details.
- */
-
 #ifndef REGEN_BEZIER_H
 #define REGEN_BEZIER_H
 

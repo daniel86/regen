@@ -37,11 +37,11 @@ namespace regen {
 			if (modelOffset && modelMatrix) {
 				tmpPos_ =
 					((const Mat4f *) rawData_mat.r)[vertexIndex].position() +
-					((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
+					((const Vec4f *) rawData_offset.r)[vertexIndex].xyz();
 				return tmpPos_;
 			}
 			if (modelOffset) {
-				return ((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
+				return ((const Vec4f *) rawData_offset.r)[vertexIndex].xyz();
 			}
 			if (modelMatrix) {
 				return ((const Mat4f *) rawData_mat.r)[vertexIndex].position();

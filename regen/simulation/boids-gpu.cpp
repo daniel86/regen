@@ -66,7 +66,7 @@ void BoidsGPU::createResource() {
 	}
 	else if(tf_->hasModelOffset()) {
 		for (uint32_t i = 0; i < numBoids_; ++i) {
-			initialPositions[i] = tf_->modelOffset()->getVertex(i).r.xyz_();
+			initialPositions[i] = tf_->modelOffset()->getVertex(i).r.xyz();
 #ifdef BOID_USE_HALF_VELOCITY
 			initialVelocities[i] = Vec2ui::zero();
 #else

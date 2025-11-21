@@ -7,26 +7,23 @@ namespace regen {
 	/**
 	 * Infinite plane in 3D space.
 	 */
-	class Plane {
-	public:
+	struct Plane {
 		// the coefficients (a, b, c, d) of the plane equation ax + by + cz + d = 0.
 		Vec4f coefficients;
-
-		Plane() = default;
 
 		/**
 		 * Set plane coefficients based on 3 arbitrary points on the plane.
 		 */
 		void set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) {
-			coefficients.xyz_() = (p1 - p0).cross(p2 - p0);
-			coefficients.xyz_().normalize();
-			coefficients.w = coefficients.xyz_().dot(p0);
+			coefficients.xyz() = (p1 - p0).cross(p2 - p0);
+			coefficients.xyz().normalize();
+			coefficients.w = coefficients.xyz().dot(p0);
 		}
 
 		/**
 		 * @return Normal vector of the plane.
 		 */
-		const Vec3f& normal() const { return coefficients.xyz_(); }
+		const Vec3f& normal() const { return coefficients.xyz(); }
 
 		/**
 		 * @return Minimum distance between this plane and a point.

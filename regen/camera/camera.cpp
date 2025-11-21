@@ -126,14 +126,14 @@ void Camera::updateShaderData(float dt) {
 
 	// Update velocity
 	if (dt > 0.0f) {
-		vel_.xyz_() = (position_[0].xyz_() - lastPosition_) / dt;
+		vel_.xyz() = (position_[0].xyz() - lastPosition_) / dt;
 	}
-	lastPosition_ = position_[0].xyz_();
+	lastPosition_ = position_[0].xyz();
 
 	if (isAudioListener()) {
 		AudioListener::set3f(AL_POSITION, position(0));
 		AudioListener::set3f(AL_VELOCITY, velocity());
-		AudioListener::set6f(AL_ORIENTATION, Vec6f(direction(0), Vec3f::up()));
+		AudioListener::set6f(AL_ORIENTATION, Vec6f::create(direction(0), Vec3f::up()));
 	}
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
@@ -317,15 +317,15 @@ bool Camera::updateView() {
 	auto numViewLayers = view_.size();
 	for (unsigned int i = 0; i < numViewLayers; ++i) {
 		auto &dir = getClamped(direction_, i);
-		if (std::abs(dir.xyz_().dot(Vec3f::up())) > 0.999f) {
+		if (std::abs(dir.xyz().dot(Vec3f::up())) > 0.999f) {
 			view_[i] = Mat4f::lookAtMatrix(
-					getClamped(position_, i).xyz_(),
-					dir.xyz_(), localUp_);
+					getClamped(position_, i).xyz(),
+					dir.xyz(), localUp_);
 			viewInv_[i] = view_[i].lookAtInverse();
 		} else {
 			view_[i] = Mat4f::lookAtMatrix(
-					getClamped(position_, i).xyz_(),
-					dir.xyz_(), Vec3f::up());
+					getClamped(position_, i).xyz(),
+					dir.xyz(), Vec3f::up());
 			viewInv_[i] = view_[i].lookAtInverse();
 		}
 	}
@@ -352,8 +352,8 @@ void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int vie
 	viewProj_[maxIndex] = view_[viewIndex] * proj_[projectionIndex];
 	viewProjInv_[maxIndex] = projInv_[projectionIndex] * viewInv_[viewIndex];
 	frustum_[maxIndex].update(
-			getClamped(position_, maxIndex).xyz_(),
-			getClamped(direction_, maxIndex).xyz_());
+			getClamped(position_, maxIndex).xyz(),
+			getClamped(direction_, maxIndex).xyz());
 	viewProjStamp_ += 1u;
 	camStamp_ += 1u;
 }
@@ -412,10 +412,10 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	isAudioListener_ = isAudioListener;
 	if (isAudioListener_) {
-		AudioListener::set3f(AL_POSITION, position_[0].xyz_());
-		AudioListener::set3f(AL_VELOCITY, vel_.xyz_());
-		AudioListener::set6f(AL_ORIENTATION, Vec6f(
-				direction_[0].xyz_(),
+		AudioListener::set3f(AL_POSITION, position_[0].xyz());
+		AudioListener::set3f(AL_VELOCITY, vel_.xyz());
+		AudioListener::set6f(AL_ORIENTATION, Vec6f::create(
+				direction_[0].xyz(),
 				Vec3f::up()));
 	}
 }

@@ -46,6 +46,6 @@ bool LightCamera_Cube::updateLightProjection() {
 bool LightCamera_Cube::updateLightView() {
 	if (lightPosStamp_ == light_->position()->stampOfReadData()) { return false; }
 	lightPosStamp_ = light_->position()->stampOfReadData();
-	setPosition(0, light_->positionStaged(0).r.xyz_());
+	setPosition(0, light_->positionStaged(0).r.xyz());
 	return updateView();
 }

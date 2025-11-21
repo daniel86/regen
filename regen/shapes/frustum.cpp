@@ -448,7 +448,7 @@ void Frustum::batchTest_OBBs(BatchedIntersectionCase &td) {
 		bool isOutside = false;
 		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES && !isOutside; ++planeIdx) {
 			const auto &plane = frustum->planes[planeIdx];
-			const Vec3f &n = plane.xyz_();
+			const Vec3f &n = plane.xyz();
 			// center-to-plane distance + projected radius
 			float dr = n.dot(obbCenter) - plane.w +
 				d_obbHalfSizeX[queuedIdx] * std::abs(n.dot(axis0X, axis0Y, axis0Z)) +
