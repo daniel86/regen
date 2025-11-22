@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 	// configure OpenAL for the video player
 	AudioListener::set3f(AL_POSITION, Vec3f::zero());
 	AudioListener::set3f(AL_VELOCITY, Vec3f::zero());
-	AudioListener::set6f(AL_ORIENTATION, Vec6f(Vec3f(0.0, 0.0, 1.0), Vec3f::up()));
+	AudioListener::set6f(AL_ORIENTATION, Vec6f::create(Vec3f{0.0f, 0.0f, 1.0f}, Vec3f::up()));
 
 	int exitCode = app->mainLoop();
 
