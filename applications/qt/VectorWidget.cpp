@@ -8,7 +8,7 @@ static GLfloat readInputValue(const ref_ptr<ShaderInput> &input, const byte *val
 			return ((GLfloat *) value)[i];
 		}
 		case GL_INT: {
-			return static_cast<GLfloat>((((GLint *) value)[i]));
+			return static_cast<GLfloat>((((int *) value)[i]));
 		}
 		case GL_UNSIGNED_INT: {
 			return static_cast<GLfloat>((((uint32_t *) value)[i]));
@@ -140,7 +140,7 @@ void VectorWidget::valueUpdated() {
 			changedData = createData<GLfloat>(input_, valueWidgets, valueTexts, count);
 			break;
 		case GL_INT:
-			changedData = createData<GLint>(input_, valueWidgets, valueTexts, count);
+			changedData = createData<int>(input_, valueWidgets, valueTexts, count);
 			break;
 		case GL_UNSIGNED_INT:
 			changedData = createData<uint32_t>(input_, valueWidgets, valueTexts, count);

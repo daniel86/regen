@@ -82,26 +82,26 @@ namespace regen {
 		return v;
 	}
 
-	GLint getGLInteger(GLenum e) {
-		GLint i = 0;
+	int glGetInteger(GLenum e) {
+		int i = 0;
 		glGetIntegerv(e, &i);
 		return i;
 	}
 
-	GLint getGLInteger(const std::string &ext, GLenum key, GLint defaultValue) {
-		GLint i = defaultValue;
+	int glGetInteger(const std::string &ext, GLenum key, int defaultValue) {
+		int i = defaultValue;
 		if (glewIsSupported(ext.c_str())) { glGetIntegerv(key, &i); }
 		return i;
 	}
 
-	GLfloat getGLFloat(GLenum e) {
+	GLfloat glGetFloat(GLenum e) {
 		GLfloat i = 0;
 		glGetFloatv(e, &i);
 		return i;
 	}
 
-	GLint getGLBufferInteger(GLenum target, GLenum e) {
-		GLint i = 0;
+	int getGLBufferInteger(GLenum target, GLenum e) {
+		int i = 0;
 		glGetBufferParameteriv(target, e, &i);
 		return i;
 	}

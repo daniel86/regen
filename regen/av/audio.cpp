@@ -235,7 +235,7 @@ AudioSource::AudioSource(uint32_t cachedBytesLimit)
 	alGenSources(1, &id_);
 }
 
-AudioSource::AudioSource(AVStream *stream, GLint index, uint32_t cachedBytesLimit)
+AudioSource::AudioSource(AVStream *stream, int index, uint32_t cachedBytesLimit)
 		: AudioVideoStream(cachedBytesLimit),
 		  id_(0),
 		  alType_(AL_NONE),
@@ -323,7 +323,7 @@ void AudioSource::pop() {
 //////////////
 //////////////
 
-void AudioSource::openAudioStream(AVStream *stream, GLint index, GLboolean initial) {
+void AudioSource::openAudioStream(AVStream *stream, int index, GLboolean initial) {
 	if (!initial) {
 #ifdef HAS_LIBSWRESAMPLE
 		if (resampleContext_) swr_free(&resampleContext_);

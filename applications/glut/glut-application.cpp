@@ -87,7 +87,7 @@ GLUTApplication::GLUTApplication(
 
   lastButtonTime_ = lastMotionTime_;
 
-  for(GLint i=0; i<NUM_KEYS; ++i) { keyState_[i] = false; }
+  for(int i=0; i<NUM_KEYS; ++i) { keyState_[i] = false; }
 
   glutInit(&argc, argv);
 }

@@ -33,7 +33,7 @@ namespace regen {
 		GLenum func_;
 		/** specifies the reference value for the stencil test.
 		 * The initial value is 0. */
-		GLint ref_;
+		int ref_;
 		/** specifies a mask that is ANDed with both the reference value
 		 * and the stored stencil value when the test is done.
 		 * The initial value is all 1's. */
@@ -639,13 +639,13 @@ namespace regen {
 		 * either GL_LOWER_LEFT or GL_UPPER_LEFT.
 		 * The default value is GL_UPPER_LEFT.
 		 */
-		inline KeyedStateStack<GLint> &pointSpriteOrigin() { return pointSpriteOrigin_; }
+		inline KeyedStateStack<int> &pointSpriteOrigin() { return pointSpriteOrigin_; }
 
 		/**
 		 * Specifies the number of vertices that
 		 * will be used to make up a single patch primitive.
 		 */
-		inline KeyedStateStack<GLint> &patchVertices() { return patchVertices_; }
+		inline KeyedStateStack<int> &patchVertices() { return patchVertices_; }
 
 		/**
 		 * Specifies the default outer or inner tessellation levels
@@ -678,15 +678,15 @@ namespace regen {
 		inline ByValueStateStack<GLenum> &logicOp() { return logicOp_; }
 
 	protected:
-		GLint maxDrawBuffers_;
-		GLint maxTextureUnits_;
-		GLint maxViewports_;
-		GLint maxAttributes_;
-		GLint maxFeedbackBuffers_;
-		GLint maxUniformBuffers_;
-		GLint maxAtomicCounterBuffers_;
-		GLint maxShaderStorageBuffers_;
-		GLint feedbackCount_;
+		int maxDrawBuffers_;
+		int maxTextureUnits_;
+		int maxViewports_;
+		int maxAttributes_;
+		int maxFeedbackBuffers_;
+		int maxUniformBuffers_;
+		int maxAtomicCounterBuffers_;
+		int maxShaderStorageBuffers_;
+		int feedbackCount_;
 
 		IndexedStateStack<GLboolean> toggles_;
 
@@ -739,9 +739,9 @@ namespace regen {
 
 		ByValueStateStack<GLfloat> pointSize_;
 		KeyedStateStack<GLfloat> pointFadeThreshold_;
-		KeyedStateStack<GLint> pointSpriteOrigin_;
+		KeyedStateStack<int> pointSpriteOrigin_;
 
-		KeyedStateStack<GLint> patchVertices_;
+		KeyedStateStack<int> patchVertices_;
 		ByReferenceStateStack<PatchLevels> patchLevel_;
 
 		IndexedStateStack<ColorMask> colorMask_;

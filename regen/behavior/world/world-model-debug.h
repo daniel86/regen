@@ -34,7 +34,7 @@ namespace regen {
 		ref_ptr<WorldModel> world_;
 		ref_ptr<ShaderInput3f> lineColor_;
 		ref_ptr<ShaderInput3f> lineVertices_;
-		GLint lineLocation_;
+		int lineLocation_;
 
 		ref_ptr<VAO> vao_;
 		uint32_t vbo_{};

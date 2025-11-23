@@ -147,7 +147,7 @@ GLdouble NoiseGenerator::GetValue(GLdouble x, GLdouble y, GLdouble z) const {
 	return handle_->GetValue(x, y, z);
 }
 
-ref_ptr<NoiseGenerator> NoiseGenerator::preset_perlin(GLint randomSeed) {
+ref_ptr<NoiseGenerator> NoiseGenerator::preset_perlin(int randomSeed) {
 	auto perlin = ref_ptr<module::Perlin>::alloc();
 	if (randomSeed != 0) perlin->SetSeed(randomSeed);
 	perlin->SetFrequency(4.0);
@@ -157,7 +157,7 @@ ref_ptr<NoiseGenerator> NoiseGenerator::preset_perlin(GLint randomSeed) {
 	return ref_ptr<NoiseGenerator>::alloc("perlin", perlin);
 }
 
-ref_ptr<NoiseGenerator> NoiseGenerator::preset_clouds(GLint randomSeed) {
+ref_ptr<NoiseGenerator> NoiseGenerator::preset_clouds(int randomSeed) {
 	// Base of the cloud texture.
 	// The billowy noise produces the basic shape of soft, fluffy clouds.
 	auto cloudBase = ref_ptr<module::Billow>::alloc();
@@ -180,7 +180,7 @@ ref_ptr<NoiseGenerator> NoiseGenerator::preset_clouds(GLint randomSeed) {
 	return finalGen;
 }
 
-ref_ptr<NoiseGenerator> NoiseGenerator::preset_wood(GLint randomSeed) {
+ref_ptr<NoiseGenerator> NoiseGenerator::preset_wood(int randomSeed) {
 	// Base wood texture.  The base texture uses concentric cylinders aligned
 	// on the z axis, like a log.
 	auto baseWood = ref_ptr<module::Cylinders>::alloc();
@@ -252,7 +252,7 @@ ref_ptr<NoiseGenerator> NoiseGenerator::preset_wood(GLint randomSeed) {
 	return finalGen;
 }
 
-ref_ptr<NoiseGenerator> NoiseGenerator::preset_granite(GLint randomSeed) {
+ref_ptr<NoiseGenerator> NoiseGenerator::preset_granite(int randomSeed) {
 	// Primary granite texture.  This generates the "roughness" of the texture
 	// when lit by a light source.
 	auto primaryGranite = ref_ptr<module::Billow>::alloc();
@@ -409,7 +409,7 @@ ref_ptr<NoiseGenerator> loadGenerator(
 }
 
 ref_ptr<NoiseGenerator> NoiseGenerator::load(LoadingContext &ctx, scene::SceneInputNode &input) {
-	auto randomSeed = input.getValue<GLint>("random-seed", math::randomInt());
+	auto randomSeed = input.getValue<int>("random-seed", math::randomInt());
 
 	if (input.hasAttribute("preset")) {
 		auto preset = input.getValue("preset");

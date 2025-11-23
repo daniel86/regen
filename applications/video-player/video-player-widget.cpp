@@ -50,7 +50,7 @@ static QString formatTime(GLfloat elapsedSeconds) {
 }
 
 static void hideLayout(QLayout *layout) {
-	for (GLint i = 0; i < layout->count(); ++i) {
+	for (int i = 0; i < layout->count(); ++i) {
 		QLayoutItem *item = layout->itemAt(i);
 		if (item->widget()) { item->widget()->hide(); }
 		if (item->layout()) { hideLayout(item->layout()); }
@@ -58,7 +58,7 @@ static void hideLayout(QLayout *layout) {
 }
 
 static void showLayout(QLayout *layout) {
-	for (GLint i = 0; i < layout->count(); ++i) {
+	for (int i = 0; i < layout->count(); ++i) {
 		QLayoutItem *item = layout->itemAt(i);
 		if (item->widget()) { item->widget()->show(); }
 		if (item->layout()) { showLayout(item->layout()); }
@@ -341,13 +341,13 @@ void VideoPlayerWidget::updateSize() {
 	if (!vid_.get()) return;
 	GLfloat widgetRatio = ui_.blackBackground->width() / (GLfloat) ui_.blackBackground->height();
 	GLfloat videoRatio = vid_->width() / (GLfloat) vid_->height();
-	GLint w, h;
+	int w, h;
 	if (widgetRatio > videoRatio) {
-		w = (GLint) (ui_.blackBackground->height() * videoRatio);
+		w = (int) (ui_.blackBackground->height() * videoRatio);
 		h = ui_.blackBackground->height();
 	} else {
 		w = ui_.blackBackground->width();
-		h = (GLint) (ui_.blackBackground->width() / videoRatio);
+		h = (int) (ui_.blackBackground->width() / videoRatio);
 	}
 	if (w % 2 != 0) { w -= 1; }
 	if (h % 2 != 0) { h -= 1; }

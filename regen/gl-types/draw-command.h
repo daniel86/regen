@@ -10,7 +10,7 @@ namespace regen {
 	 *        uint32_t count;           // index count
 	 *        uint32_t instanceCount;
 	 *        uint32_t firstIndex;
-	 *        GLint baseVertex;
+	 *        int baseVertex;
 	 *        uint32_t baseInstance;
 	 *    };
 	 *    struct IndirectArrayData {

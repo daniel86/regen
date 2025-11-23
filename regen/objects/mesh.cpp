@@ -204,7 +204,7 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 	}
 
 	if (in->isVertexAttribute()) {
-		GLint loc = meshShader_->attributeLocation(name);
+		int loc = meshShader_->attributeLocation(name);
 		if (loc == -1) {
 			// not used in shader
 			return;

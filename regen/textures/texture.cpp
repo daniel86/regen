@@ -200,7 +200,7 @@ void Texture::updateImage3D(GLubyte *subData) {
 						subData);
 }
 
-void Texture::updateSubImage1D(GLint layer, GLubyte *subData) {
+void Texture::updateSubImage1D(int layer, GLubyte *subData) {
 	glTextureSubImage1D(id(),
 						0, // mipmap level
 						0, // x offset
@@ -210,7 +210,7 @@ void Texture::updateSubImage1D(GLint layer, GLubyte *subData) {
 						subData);
 }
 
-void Texture::updateSubImage2D(GLint layer, GLubyte *subData) {
+void Texture::updateSubImage2D(int layer, GLubyte *subData) {
 	glTextureSubImage2D(id(),
 						0, // mipmap level
 						0, // x offset
@@ -222,7 +222,7 @@ void Texture::updateSubImage2D(GLint layer, GLubyte *subData) {
 						subData);
 }
 
-void Texture::updateSubImage3D(GLint layer, GLubyte *subData) {
+void Texture::updateSubImage3D(int layer, GLubyte *subData) {
 	glTextureSubImage3D(id(),
 						0, // mipmap level
 						0, // x offset
@@ -339,7 +339,7 @@ void Texture::updateImage(GLubyte *data) {
 	(this->*(this->updateImage_))(data);
 }
 
-void Texture::updateSubImage(GLint layer, GLubyte *subData) {
+void Texture::updateSubImage(int layer, GLubyte *subData) {
 	(this->*(this->updateSubImage_))(layer, subData);
 }
 
@@ -623,7 +623,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		}
 	} else if (input.hasAttribute("spectrum")) {
 		auto spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));
-		auto numTexels = input.getValue<GLint>("num-texels", 256u);
+		auto numTexels = input.getValue<int>("num-texels", 256u);
 		tex = regen::textures::loadSpectrum(spectrum.x, spectrum.y, numTexels);
 	} else if (typeName == "bloom") {
 		auto numMips = input.getValue<uint32_t>("num-mips", 5u);
@@ -751,7 +751,7 @@ void Texture::configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input) {
 		tex->set_compare(TextureCompare(mode, function));
 	}
 	if (!input.getValue("max-level").empty()) {
-		tex->set_maxLevel(input.getValue<GLint>("max-level", 1000));
+		tex->set_maxLevel(input.getValue<int>("max-level", 1000));
 	}
 
 	if (!input.getValue("min-filter").empty() &&

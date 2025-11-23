@@ -261,7 +261,7 @@ namespace regen {
 				uint32_t count,
 				GLenum targetType,
 				GLenum format,
-				GLint internalFormat,
+				int internalFormat,
 				GLenum pixelType,
 				uint32_t numSamples=1);
 
@@ -272,7 +272,7 @@ namespace regen {
 				uint32_t count,
 				GLenum targetType,
 				GLenum format,
-				GLint internalFormat,
+				int internalFormat,
 				GLenum pixelType,
 				uint32_t numSamples=1);
 

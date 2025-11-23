@@ -12,7 +12,7 @@ namespace regen {
 	 */
 	class Darkness : public SkyLayer {
 	public:
-		explicit Darkness(const ref_ptr<Sky> &sky, GLint levelOfDetail = 4);
+		explicit Darkness(const ref_ptr<Sky> &sky, int levelOfDetail = 4);
 
 		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 

@@ -18,7 +18,7 @@ static const GLenum glslStages__[] = {
 		, GL_COMPUTE_SHADER
 #endif
 };
-static const GLint glslStageCount__ = sizeof(glslStages__) / sizeof(GLenum);
+static const int glslStageCount__ = sizeof(glslStages__) / sizeof(GLenum);
 
 static std::string getValue(const std::string &in) {
 	std::string val = in;
@@ -31,7 +31,7 @@ static std::string getValue(const std::string &in) {
 
 const GLenum *glenum::glslStages() { return glslStages__; }
 
-GLint glenum::glslStageCount() { return glslStageCount__; }
+int glenum::glslStageCount() { return glslStageCount__; }
 
 std::string glenum::glslStageName(GLenum stage) {
 	switch (stage) {

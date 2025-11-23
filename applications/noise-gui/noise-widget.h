@@ -95,10 +95,10 @@ protected:
 
 	void addProperty_i(
 			std::string_view name,
-			GLint min,
-			GLint max,
-			GLint value,
-			const std::function<void(GLint)> &setter);
+			int min,
+			int max,
+			int value,
+			const std::function<void(int)> &setter);
 };
 
 #endif /* NOISE_WIDGET_H_ */

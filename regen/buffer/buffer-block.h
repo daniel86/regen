@@ -79,13 +79,13 @@ namespace regen {
 		 * it is bound to the correct shader location.
 		 * @param loc the shader location to bind the block to.
 		 */
-		void enableBufferBlock(GLint loc);
+		void enableBufferBlock(int loc);
 
 		/**
 		 * Binds the uniform block to the given shader location.
 		 * @param loc the shader location to bind the block to.
 		 */
-		void bind(GLint loc);
+		void bind(int loc);
 
 		/**
 		 * Set the binding index of the block.
@@ -102,7 +102,7 @@ namespace regen {
 		Qualifier blockQualifier_;
 		int bindingIndex_ = -1;
 
-		void prepareRebind(GLint loc);
+		void prepareRebind(int loc);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BufferBlock::Qualifier &v);

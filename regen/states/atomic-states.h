@@ -409,7 +409,7 @@ namespace regen {
 				fbo_->clearDepthAttachment(defaultClearDepth);
 			}
 			if (clearBits_ & GL_STENCIL_BUFFER_BIT) {
-				static const GLint defaultClearStencil = 0;
+				static const int defaultClearStencil = 0;
 				fbo_->clearStencilAttachment(defaultClearStencil);
 			}
 		}

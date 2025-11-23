@@ -51,7 +51,7 @@ namespace regen {
 	};
 }
 
-static GLint qtToOgleButton(Qt::MouseButton button) {
+static int qtToOgleButton(Qt::MouseButton button) {
 	switch (button) {
 		case Qt::LeftButton:
 			return Scene::MOUSE_BUTTON_LEFT;
@@ -123,7 +123,7 @@ QSurfaceFormat SceneWidget::defaultFormat() {
 	return format;
 }
 
-void SceneWidget::setUpdateInterval(GLint interval) {
+void SceneWidget::setUpdateInterval(int interval) {
 	updateInterval_ = interval;
 }
 
@@ -236,8 +236,8 @@ void SceneWidget::GLThread::run() {
 }
 
 void SceneWidget::do_mouseClick(QMouseEvent *event, bool isPressed, bool isDoubleClick) {
-	GLint x = event->x(), y = event->y();
-	GLint button = qtToOgleButton(event->button());
+	int x = event->x(), y = event->y();
+	int button = qtToOgleButton(event->button());
 	if (button == -1) { return; }
 	Scene::ButtonEvent ev{};
 	ev.button = button;
@@ -303,8 +303,8 @@ void SceneWidget::keyPressEvent(QKeyEvent *event) {
 	auto mousePos = app_->mousePosition()->getVertex(0);
 	Scene::KeyEvent ev{};
 	ev.key = event->key();
-	ev.x = (GLint) mousePos.r.x;
-	ev.y = (GLint) mousePos.r.y;
+	ev.x = (int) mousePos.r.x;
+	ev.y = (int) mousePos.r.y;
 	app_->keyDown(ev);
 	event->accept();
 }

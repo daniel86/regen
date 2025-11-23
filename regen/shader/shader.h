@@ -246,7 +246,7 @@ namespace regen {
 
 		std::list<InputLocation> attributes_;
 		std::list<InputLocation> uniforms_;
-		std::map<GLint, TextureLocation> textures_;
+		std::map<int, TextureLocation> textures_;
 		// available inputs
 		ShaderInputList inputs_;
 		std::map<std::string, ShaderInputList::iterator> inputNames_;

@@ -64,20 +64,20 @@ namespace regen {
 	/**
 	 * Query a GL integer attribute.
 	 */
-	GLint getGLInteger(GLenum e);
+	int glGetInteger(GLenum e);
 
 	/**
 	 * Query a GL integer attribute.
 	 * Check for required extension if not supported return default value.
 	 */
-	GLint getGLInteger(const std::string &ext, GLenum key, GLint defaultValue);
+	int glGetInteger(const std::string &ext, GLenum key, int defaultValue);
 
 	/**
 	 * Query a GL float attribute.
 	 */
-	GLfloat getGLFloat(GLenum e);
+	GLfloat glGetFloat(GLenum e);
 
-	GLint getGLBufferInteger(GLenum target, GLenum e);
+	int getGLBufferInteger(GLenum target, GLenum e);
 
 } // namespace
 

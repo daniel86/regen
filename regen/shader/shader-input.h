@@ -571,39 +571,39 @@ namespace regen {
 		 * Binds vertex attribute for active buffer to the
 		 * given shader location.
 		 */
-		void enableAttribute(GLint loc) const;
+		void enableAttribute(int loc) const;
 
 		/**
 		 * Binds uniform to the given shader location.
 		 */
-		void enableUniform(GLint loc) const;
+		void enableUniform(int loc) const;
 
 		/**
 		 * Bind the attribute to the given shader location.
 		 */
-		void enableAttribute_f(GLint location) const;
+		void enableAttribute_f(int location) const;
 
 		/**
 		 * Only the integer types GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,
 		 * GL_UNSIGNED_SHORT, GL_INT, GL_UNSIGNED_INT are accepted.
 		 * Values are always left as integer values.
 		 */
-		void enableAttribute_i(GLint location) const;
+		void enableAttribute_i(int location) const;
 
 		/**
 		 * Matrix attributes have special enable functions.
 		 */
-		void enableAttributeMat4(GLint location) const;
+		void enableAttributeMat4(int location) const;
 
 		/**
 		 * Matrix attributes have special enable functions.
 		 */
-		void enableAttributeMat3(GLint location) const;
+		void enableAttributeMat3(int location) const;
 
 		/**
 		 * Matrix attributes have special enable functions.
 		 */
-		void enableAttributeMat2(GLint location) const;
+		void enableAttributeMat2(int location) const;
 
 		/**
 		 * @return the input schema.
@@ -671,9 +671,9 @@ namespace regen {
 
 		const InputSchema *schema_ = InputSchema::unknown();
 
-		void (ShaderInput::*enableAttribute_)(GLint loc) const;
+		void (ShaderInput::*enableAttribute_)(int loc) const;
 
-		std::function<void(GLint)> enableInput_;
+		std::function<void(int)> enableInput_;
 
 		ShaderInput(const ShaderInput &);
 

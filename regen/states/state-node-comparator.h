@@ -43,7 +43,7 @@ namespace regen {
 	protected:
 		mutable std::map<StateNode*, ModelTransformation*> modelTransformations_;
 		ref_ptr<Camera> cam_;
-		GLint mode_;
+		int mode_;
 	};
 } // namespace
 

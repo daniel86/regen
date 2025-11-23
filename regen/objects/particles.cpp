@@ -86,7 +86,7 @@ ref_ptr<BufferReference> Particles::end() {
 	for (auto &particleInput: inputs()) {
 		const ref_ptr<ShaderInput> in = particleInput.in_;
 		if (!in->isVertexAttribute()) continue;
-		GLint loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
+		int loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
 		if (loc == -1) continue;
 		particleAttributes_.emplace_back(in, loc);
 	}

@@ -160,7 +160,7 @@ static std::vector<GLenum> getFBOAttachments_(scene::SceneInputNode &input, cons
 			attachments[i] = GL_BACK_RIGHT;
 		}
 		else {
-			GLint v;
+			int v;
 			std::stringstream ss(attachments_str[i]);
 			ss >> v;
 			attachments[i] = GL_COLOR_ATTACHMENT0 + v;

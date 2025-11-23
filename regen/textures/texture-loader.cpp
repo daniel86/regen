@@ -308,7 +308,7 @@ ref_ptr<TextureCube> textures::loadCube(
 	} else {
 		faceWidth = firstImage->width / 3;
 		faceHeight = firstImage->height / 4;
-		GLint faces_[12] = {
+		int faces_[12] = {
 				-1, TextureCube::TOP, -1,
 				TextureCube::LEFT, TextureCube::BACK, TextureCube::RIGHT,
 				-1, TextureCube::BOTTOM, -1,

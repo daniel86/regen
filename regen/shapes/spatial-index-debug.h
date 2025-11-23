@@ -38,7 +38,7 @@ namespace regen {
 		ref_ptr<SpatialIndex> index_;
 		ref_ptr<ShaderInput3f> lineColor_;
 		ref_ptr<ShaderInput3f> lineVertices_;
-		GLint lineLocation_;
+		int lineLocation_;
 
 		void debugFrustum(const Frustum &frustum, const Vec3f &color = Vec3f(0.0f, 1.0f, 0.0f));
 

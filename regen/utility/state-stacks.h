@@ -322,7 +322,7 @@ namespace regen {
 			Node *headi = headi_[index];
 
 			if (counter_.x > counter_.y) {
-				GLint lastStampi = (isEmptyi_[index] ? -1 : headi->stamp);
+				int lastStampi = (isEmptyi_[index] ? -1 : headi->stamp);
 				// an global value was pushed before
 				// if the global value was pushed before the last indexed push. only
 				// apply when the value of last indexed push is not equal
@@ -431,7 +431,7 @@ namespace regen {
 				lastStampi_ = -1;
 			}
 
-			GLint lastStampi = (isEmptyi_[index] ? -1 : headi->stamp);
+			int lastStampi = (isEmptyi_[index] ? -1 : headi->stamp);
 			// reset to equation with latest stamp
 			if (head_->stamp > lastStampi) {
 				if (headi->v != head_->v) applyi_(index, head_->v);
@@ -485,7 +485,7 @@ namespace regen {
 			Node *prev;
 			Node *next;
 			ValueType v;
-			GLint stamp;
+			int stamp;
 		};
 
 		void deleteNodes(Node *n_) {
@@ -521,9 +521,9 @@ namespace regen {
 		ApplyValueIndexed lockedApplyi_;
 
 		// Counts number of locks.
-		GLint lockCounter_;
+		int lockCounter_;
 
-		GLint lastStampi_;
+		int lastStampi_;
 
 		GLboolean isEmpty_;
 		GLboolean *isEmptyi_;

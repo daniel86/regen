@@ -663,7 +663,7 @@ ref_ptr<Particles> CompositeMesh::createParticleMesh(LoadingContext &ctx, scene:
 			} else if (type == "vec4") {
 				configureParticleAttribute<ShaderInput4f, Vec4f>(parser, particles, *child.get());
 			} else if (type == "int") {
-				configureParticleAttribute<ShaderInput1i, GLint>(parser, particles, *child.get());
+				configureParticleAttribute<ShaderInput1i, int>(parser, particles, *child.get());
 			} else if (type == "ivec2") {
 				configureParticleAttribute<ShaderInput2i, Vec2i>(parser, particles, *child.get());
 			} else if (type == "ivec3") {

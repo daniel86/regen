@@ -27,7 +27,7 @@ VertexBuffer::VertexBuffer(
 
 VertexBuffer::VertexBuffer(const StagedBuffer &other, const std::string &name)
 		: StagedBuffer(other, name) {
-	enableInput_ = [this](GLint loc) {};
+	enableInput_ = [this](int loc) {};
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
 }

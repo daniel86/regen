@@ -117,7 +117,7 @@ namespace regen {
 		 * @param index index in stream.
 		 * @param chachedBytesLimit limit for pre-loading.
 		 */
-		AudioSource(AVStream *stream, GLint index, uint32_t chachedBytesLimit);
+		AudioSource(AVStream *stream, int index, uint32_t chachedBytesLimit);
 
 		~AudioSource() override;
 
@@ -188,7 +188,7 @@ namespace regen {
 		 * @param initial flag indicating if the open call comes from constructor.
 		 */
 		void openAudioStream(AVStream *stream,
-							 GLint index, GLboolean initial = GL_FALSE);
+							 int index, GLboolean initial = GL_FALSE);
 
 		// override
 		void decode(AVPacket *packet) override;

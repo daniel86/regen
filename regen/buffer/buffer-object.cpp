@@ -74,31 +74,31 @@ void BufferObject::createMemoryPools() {
 
 		poolIndex = (int) TEXTURE_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_TBO_BUFFER
-		pools[poolIndex]->set_alignment(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
+		pools[poolIndex]->set_alignment(glGetInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
 #else
 		pools[poolIndex]->set_minSize(1);
 #endif
 		// Meaning: Max number of texels, not bytes!
-		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16);
+		pools[poolIndex]->set_maxSize(glGetInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16);
 		poolIndex = (int) UNIFORM_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_UBO_BUFFER
-		pools[poolIndex]->set_alignment(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
+		pools[poolIndex]->set_alignment(glGetInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 #else
 		pools[poolIndex]->set_minSize(1);
 #endif
 		// common: ~64KB
-		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
+		pools[poolIndex]->set_maxSize(glGetInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
 		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_SSBO_BUFFER
-		pools[poolIndex]->set_alignment(getGLInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
+		pools[poolIndex]->set_alignment(glGetInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
 #else
 		pools[poolIndex]->set_minSize(1);
 #endif
 		// common: ~2GB
-		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
+		pools[poolIndex]->set_maxSize(glGetInteger(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
 		// common: ~4KB
 		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
-		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE));
+		pools[poolIndex]->set_maxSize(glGetInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE));
 
 		poolIndex = (int) DRAW_INDIRECT_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 		// The Indirect draw buffers are rather small.

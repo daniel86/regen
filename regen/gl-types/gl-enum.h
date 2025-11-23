@@ -278,7 +278,7 @@ namespace regen {
 		/**
 		 * Number of known shader stages.
 		 */
-		GLint glslStageCount();
+		int glslStageCount();
 
 		/**
 		 * Maps stage enum to name representation.

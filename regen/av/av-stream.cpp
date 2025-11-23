@@ -12,7 +12,7 @@
 
 using namespace regen;
 
-AudioVideoStream::AudioVideoStream(AVStream *stream, GLint index, uint32_t cachedBytesLimit)
+AudioVideoStream::AudioVideoStream(AVStream *stream, int index, uint32_t cachedBytesLimit)
 		: stream_(nullptr),
 		  codecCtx_(nullptr),
 		  codec_(nullptr),
@@ -44,7 +44,7 @@ void AudioVideoStream::close() {
 	}
 }
 
-void AudioVideoStream::open(AVStream *stream, GLint index, GLboolean initial) {
+void AudioVideoStream::open(AVStream *stream, int index, GLboolean initial) {
 	if (!initial) {
 		clearQueue();
 	}

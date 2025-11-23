@@ -195,7 +195,7 @@ ref_ptr<Texture> FBO::createTexture(
 		uint32_t count,
 		GLenum targetType,
 		GLenum format,
-		GLint internalFormat,
+		int internalFormat,
 		GLenum pixelType,
 		uint32_t numSamples) {
 	ref_ptr<Texture> tex;
@@ -268,7 +268,7 @@ ref_ptr<Texture> FBO::addTexture(
 		uint32_t count,
 		GLenum targetType,
 		GLenum format,
-		GLint internalFormat,
+		int internalFormat,
 		GLenum pixelType,
 		uint32_t numSamples) {
 	ref_ptr<Texture> tex = createTexture(width(), height(), depth_,
@@ -430,7 +430,7 @@ void FBO::clearDepthAttachment(GLfloat depth) {
 			&depth);
 }
 
-void FBO::clearStencilAttachment(GLint stencil) {
+void FBO::clearStencilAttachment(int stencil) {
 	glClearNamedFramebufferiv(
 			id(),
 			GL_STENCIL,
@@ -589,7 +589,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 							<< ", depth attachment already present.");
 			} else {
 				hasDepthAttachment = true;
-				auto depthSize = n->getValue<GLint>("pixel-size", 16);
+				auto depthSize = n->getValue<int>("pixel-size", 16);
 				GLenum depthType = glenum::pixelType(
 						n->getValue<std::string>("pixel-type", "UNSIGNED_BYTE"));
 				GLenum textureTarget = glenum::textureTarget(
@@ -654,7 +654,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 						n->getValue<std::string>("target", "TEXTURE_2D"));
 
 				GLenum stencilFormat;
-				auto stencilSize = n->getValue<GLint>("pixel-size", 8);
+				auto stencilSize = n->getValue<int>("pixel-size", 8);
 				if (stencilSize < 8) stencilFormat = GL_STENCIL_INDEX1;
 				else if (stencilSize < 16) stencilFormat = GL_STENCIL_INDEX4;
 				else stencilFormat = GL_STENCIL_INDEX8;

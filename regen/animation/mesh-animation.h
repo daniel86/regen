@@ -139,7 +139,7 @@ namespace regen {
 		ref_ptr<Mesh> mesh_;
 		uint32_t meshBufferOffset_;
 
-		GLint lastFrame_, nextFrame_;
+		int lastFrame_, nextFrame_;
 		uint32_t bufferSize_;
 
 		ref_ptr<VBO> feedbackBuffer_;
@@ -147,7 +147,7 @@ namespace regen {
 		BufferRange bufferRange_;
 
 		ref_ptr<VBO> animationBuffer_;
-		GLint pingFrame_, pongFrame_;
+		int pingFrame_, pongFrame_;
 		ref_ptr<BufferReference> pingIt_;
 		ref_ptr<BufferReference> pongIt_;
 		std::vector<KeyFrame> frames_;
@@ -169,7 +169,7 @@ namespace regen {
 		ref_ptr<ShaderInput> findLastAttribute(const std::string &name);
 
 		static void findFrameAfterTick(
-				GLdouble tick, GLint &frame, std::vector<KeyFrame> &keys);
+				GLdouble tick, int &frame, std::vector<KeyFrame> &keys);
 
 		static void findFrameBeforeTick(
 				GLdouble &tick, uint32_t &frame, std::vector<KeyFrame> &keys);

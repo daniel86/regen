@@ -59,7 +59,7 @@ std::map<GLenum, std::string> PreProcessor::processStages(const PreProcessorInpu
 
 	// reverse process stages, because stages must know inputs
 	// of next stages.
-	for (GLint i = glenum::glslStageCount() - 1; i >= 0; --i) {
+	for (int i = glenum::glslStageCount() - 1; i >= 0; --i) {
 		GLenum stage = glenum::glslStages()[i];
 #ifdef DEBUG_GLSL_PREPROCESSOR
 		REGEN_DEBUG("[GLSL] Processing " << glenum::glslStageName(stage) << ".");

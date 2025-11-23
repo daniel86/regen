@@ -106,11 +106,11 @@ StagingSystem::StagingSystem()
 	if (STAGING_RANGE_ALIGNMENT == 0) {
 		// make sure to meet all alignment requirements
 		STAGING_RANGE_ALIGNMENT = std::max(16u,
-										   static_cast<uint32_t>(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT)));
+										   static_cast<uint32_t>(glGetInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT)));
 		STAGING_RANGE_ALIGNMENT = std::max(STAGING_RANGE_ALIGNMENT,
-										   static_cast<uint32_t>(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT)));
+										   static_cast<uint32_t>(glGetInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT)));
 		STAGING_RANGE_ALIGNMENT = std::max(STAGING_RANGE_ALIGNMENT,
-										   static_cast<uint32_t>(getGLInteger(
+										   static_cast<uint32_t>(glGetInteger(
 												   GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT)));
 		REGEN_INFO("Buffer alignment is " << STAGING_BUFFER_ALIGNMENT << " bytes "
 										  << " and range alignment is " << STAGING_RANGE_ALIGNMENT << " bytes.");

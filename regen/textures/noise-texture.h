@@ -55,22 +55,22 @@ namespace regen {
 		/**
 		 * @param randomSeed the random seed.
 		 */
-		static ref_ptr<NoiseGenerator> preset_perlin(GLint randomSeed);
+		static ref_ptr<NoiseGenerator> preset_perlin(int randomSeed);
 
 		/**
 		 * @param randomSeed the random seed.
 		 */
-		static ref_ptr<NoiseGenerator> preset_wood(GLint randomSeed);
+		static ref_ptr<NoiseGenerator> preset_wood(int randomSeed);
 
 		/**
 		 * @param randomSeed the random seed.
 		 */
-		static ref_ptr<NoiseGenerator> preset_granite(GLint randomSeed);
+		static ref_ptr<NoiseGenerator> preset_granite(int randomSeed);
 
 		/**
 		 * @param randomSeed the random seed.
 		 */
-		static ref_ptr<NoiseGenerator> preset_clouds(GLint randomSeed);
+		static ref_ptr<NoiseGenerator> preset_clouds(int randomSeed);
 
 		/**
 		 * Load noise generator from a scene input node.

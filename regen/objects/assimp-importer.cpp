@@ -44,7 +44,7 @@ static void assimpLog(const char *msg, char *) {
 
 static const struct aiScene *importFile(
 		const string &assimpFile,
-		GLint userSpecifiedFlags) {
+		int userSpecifiedFlags) {
 	// get a handle to the predefined STDOUT log stream and attach
 	// it to the logging system. It remains active for all further
 	// calls to aiImportFile(Ex) and aiApplyPostProcessing.
@@ -978,7 +978,7 @@ uint32_t AssetImporter::numBoneWeights(Mesh *meshState) {
 
 	auto *counter = new uint32_t[meshState->numVertices()];
 	uint32_t numWeights = 1;
-	for (GLint i = 0; i < meshState->numVertices(); ++i) counter[i] = 0u;
+	for (int i = 0; i < meshState->numVertices(); ++i) counter[i] = 0u;
 	for (uint32_t boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
 		aiBone *assimpBone = mesh->mBones[boneIndex];
 		for (uint32_t t = 0; t < assimpBone->mNumWeights; ++t) {

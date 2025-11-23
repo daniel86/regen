@@ -56,7 +56,7 @@ namespace regen {
 		void removeLight(const ref_ptr<Light> &l);
 
 	protected:
-		GLint idCounter_;
+		int idCounter_;
 
 		struct DirectLight {
 			uint32_t id_;

@@ -5,7 +5,7 @@ using namespace regen;
 NodeEyeDepthComparator::NodeEyeDepthComparator(
 		const ref_ptr<Camera> &cam, GLboolean frontToBack)
 		: cam_(cam),
-		  mode_(((GLint) frontToBack) * 2 - 1) {
+		  mode_(((int) frontToBack) * 2 - 1) {
 }
 
 GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const {

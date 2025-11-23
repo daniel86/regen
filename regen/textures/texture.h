@@ -508,7 +508,7 @@ namespace regen {
 
 		void (Texture::*allocTexture_)();
 		void (Texture::*updateImage_)(GLubyte *subData);
-		void (Texture::*updateSubImage_)(GLint layer, GLubyte *subData);
+		void (Texture::*updateSubImage_)(int layer, GLubyte *subData);
 		Vec3ui allocatedSize_ = Vec3ui::zero();
 
 		void allocTexture1D();
@@ -529,13 +529,13 @@ namespace regen {
 
 		void updateImage_noop(GLubyte*) {}
 
-		void updateSubImage1D(GLint layer, GLubyte *subData);
+		void updateSubImage1D(int layer, GLubyte *subData);
 
-		void updateSubImage2D(GLint layer, GLubyte *subData);
+		void updateSubImage2D(int layer, GLubyte *subData);
 
-		void updateSubImage3D(GLint layer, GLubyte *subData);
+		void updateSubImage3D(int layer, GLubyte *subData);
 
-		void updateSubImage_noop(GLint, GLubyte*) {}
+		void updateSubImage_noop(int, GLubyte*) {}
 
 		unsigned int texelIndex(const Vec2f &texco) const;
 

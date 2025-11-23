@@ -84,7 +84,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 		// actual width for this line
 		GLfloat lineWidth = 0.0;
 		// remember space for splitting string at words
-		GLint lastSpaceIndex = 0;
+		int lastSpaceIndex = 0;
 		GLfloat lastSpaceWidth = 0.0;
 
 		// get line width and split the line

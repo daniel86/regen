@@ -58,10 +58,10 @@ list<IndexRange> SceneInputNode::getIndexSequence(uint32_t numIndices) {
 	list<IndexRange> indices;
 	if (hasAttribute("index")) {
 		pushIndexToSequence(numIndices, indices,
-			IndexRange(getValue<GLint>("index", 0u)));
+			IndexRange(getValue<int>("index", 0u)));
 	} else if (hasAttribute("instance")) {
 		pushIndexToSequence(numIndices, indices,
-			IndexRange(getValue<GLint>("instance", 0u)));
+			IndexRange(getValue<int>("instance", 0u)));
 	} else if (hasAttribute("from-index") || hasAttribute("to-index")) {
 		auto from = getValue<uint32_t>("from-index", 0u);
 		auto to = getValue<uint32_t>("to-index", numIndices - 1);

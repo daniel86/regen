@@ -138,7 +138,7 @@ static void loadConeData(
 		GLfloat height) {
 	GLfloat angle = 0.0f;
 	GLfloat angleStep = 2.0f * M_PI / (GLfloat) subdivisions;
-	GLint i = 0;
+	int i = 0;
 
 	// apex
 	pos[i] = Vec3f::zero();
@@ -153,7 +153,7 @@ static void loadConeData(
 		++i;
 	}
 
-	GLint numVertices = subdivisions + i;
+	int numVertices = subdivisions + i;
 	for (; i < numVertices; ++i) {
 		angle += angleStep;
 		GLfloat s = sin(angle) * radius;
@@ -192,7 +192,7 @@ void ConeClosed::generateLODLevel(
 	const uint32_t apexIndex = vertexOffset;
 	const uint32_t baseCenterIndex = vertexOffset + 1;
 	uint32_t faceIndex = indexOffset;
-	GLint vIndex = vertexOffset + cfg.isBaseRequired ? 2 : 1;
+	int vIndex = vertexOffset + cfg.isBaseRequired ? 2 : 1;
 	// cone
 	for (uint32_t i = 0; i < lodLevel; ++i) {
 		setIndexValue(indices, indexType, faceIndex++, apexIndex);

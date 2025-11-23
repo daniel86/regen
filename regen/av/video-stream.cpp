@@ -18,7 +18,7 @@ using namespace regen;
 
 #define GL_RGB_PIXEL_FORMAT AV_PIX_FMT_RGB24
 
-VideoStream::VideoStream(AVStream *stream, GLint index, uint32_t cachedBytesLimit)
+VideoStream::VideoStream(AVStream *stream, int index, uint32_t cachedBytesLimit)
 		: AudioVideoStream(stream, index, cachedBytesLimit) {
 	stream_ = stream;
 	width_ = codecCtx_->width;

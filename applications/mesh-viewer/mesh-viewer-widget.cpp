@@ -59,7 +59,7 @@ QWidget *createParameterWidget(QtApplication *app, QWidget *parent,
 }
 
 static void hideLayout(QLayout *layout) {
-	for (GLint i = 0; i < layout->count(); ++i) {
+	for (int i = 0; i < layout->count(); ++i) {
 		QLayoutItem *item = layout->itemAt(i);
 		if (item->widget()) { item->widget()->hide(); }
 		if (item->layout()) { hideLayout(item->layout()); }
@@ -67,7 +67,7 @@ static void hideLayout(QLayout *layout) {
 }
 
 static void showLayout(QLayout *layout) {
-	for (GLint i = 0; i < layout->count(); ++i) {
+	for (int i = 0; i < layout->count(); ++i) {
 		QLayoutItem *item = layout->itemAt(i);
 		if (item->widget()) { item->widget()->show(); }
 		if (item->layout()) { showLayout(item->layout()); }

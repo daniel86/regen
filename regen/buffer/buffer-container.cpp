@@ -109,8 +109,8 @@ void BufferContainer::updateBuffer() {
 	if (isAllocated_) return;
 	isAllocated_ = true;
 
-	static auto maxUBOSize = static_cast<uint32_t>(getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
-	static auto maxTBOSize = static_cast<uint32_t>(getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE)) * 16;
+	static auto maxUBOSize = static_cast<uint32_t>(glGetInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
+	static auto maxTBOSize = static_cast<uint32_t>(glGetInteger(GL_MAX_TEXTURE_BUFFER_SIZE)) * 16;
 	unsigned int uboSize = 0u;
 	std::vector<NamedShaderInput> nextUBOInputs;
 	std::vector<NamedShaderInput> nextSSBOInputs;

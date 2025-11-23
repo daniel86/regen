@@ -81,7 +81,7 @@ bool Light::updateConeMatrix() {
 	if (lightConeStamp_ == stamp) return false; // no update needed
 
 	// Note: cone opens in positive z direction.
-	auto numInstances = this->numInstances();
+	auto numInstances = static_cast<uint32_t>(this->numInstances());
 	if (coneMatrix_->numInstances() != numInstances) {
 		// ensure cone matrix has numInstances
 		coneMatrix_->setInstanceData(numInstances, 1, nullptr);

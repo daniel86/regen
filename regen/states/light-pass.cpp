@@ -185,7 +185,7 @@ void LightPass::addLightInput(LightPassLight &light) {
 void LightPass::addInputLocation(LightPassLight &l,
 								 const ref_ptr<ShaderInput> &in, const std::string &name) {
 	Shader *s = shader_->shader().get();
-	GLint loc = s->uniformLocation(name);
+	int loc = s->uniformLocation(name);
 	if (loc > 0) {
 		l.inputLocations.emplace_back(in, loc);
 	}

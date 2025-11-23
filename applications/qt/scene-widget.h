@@ -39,7 +39,7 @@ namespace regen {
 		/**
 		 * @param interval update interval in milliseconds.
 		 */
-		void setUpdateInterval(GLint interval);
+		void setUpdateInterval(int interval);
 
 		// override
 		void mousePressEvent(QMouseEvent *) override;

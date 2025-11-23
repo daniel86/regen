@@ -195,10 +195,10 @@ void NoiseWidget::addProperty(
 
 void NoiseWidget::addProperty_i(
 			std::string_view name,
-			GLint min,
-			GLint max,
-			GLint value,
-			const std::function<void(GLint)> &setter) {
+			int min,
+			int max,
+			int value,
+			const std::function<void(int)> &setter) {
 	auto *slider = new QSlider(Qt::Horizontal);
 	int sliderMin = 0;
 	int sliderMax = REGEN_QT_SLIDER_MAX;
@@ -212,7 +212,7 @@ void NoiseWidget::addProperty_i(
 	ui_.parameterTable->setItem(itemRow, 1, new QTableWidgetItem(QString::number(value)));
 	ui_.parameterTable->setCellWidget(itemRow, 2, slider);
 	slider->connect(slider, &QSlider::valueChanged, [this,setter,min,max,itemRow](int value) {
-		auto val = static_cast<GLint>(
+		auto val = static_cast<int>(
 			((static_cast<GLdouble>(value) / REGEN_QT_SLIDER_MAX_d) *
 			 static_cast<GLdouble>(max - min)) + min);
 		setter(val);
@@ -242,7 +242,7 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 	auto perlin = dynamic_cast<noise::module::Perlin *>(handle);
 	if (perlin) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, perlin->GetSeed(),
-			[perlin](GLint value) { perlin->SetSeed(value); });
+			[perlin](int value) { perlin->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, perlin->GetFrequency(),
 			[perlin](GLdouble value) { perlin->SetFrequency(value); });
 		addProperty("Persistence", NOISE_PERSISTENCE_MIN, NOISE_PERSISTENCE_MAX, perlin->GetPersistence(),
@@ -250,40 +250,40 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 		addProperty("Lacunarity", NOISE_LACUNARITY_MIN, NOISE_LACUNARITY_MAX, perlin->GetLacunarity(),
 			[perlin](GLdouble value) { perlin->SetLacunarity(value); });
 		addProperty_i("Octave Count", NOISE_OCTAVES_MIN, NOISE_OCTAVES_MAX, perlin->GetOctaveCount(),
-			[perlin](GLint value) { perlin->SetOctaveCount(value); });
+			[perlin](int value) { perlin->SetOctaveCount(value); });
 		return;
 	}
 
 	auto billow = dynamic_cast<noise::module::Billow *>(handle);
 	if (billow) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, billow->GetSeed(),
-			[billow](GLint value) { billow->SetSeed(value); });
+			[billow](int value) { billow->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, billow->GetFrequency(),
 			[billow](GLdouble value) { billow->SetFrequency(value); });
 		addProperty("Lacunarity", NOISE_LACUNARITY_MIN, NOISE_LACUNARITY_MAX, billow->GetLacunarity(),
 			[billow](GLdouble value) { billow->SetLacunarity(value); });
 		addProperty_i("Octave Count", NOISE_OCTAVES_MIN, NOISE_OCTAVES_MAX, billow->GetOctaveCount(),
-			[billow](GLint value) { billow->SetOctaveCount(value); });
+			[billow](int value) { billow->SetOctaveCount(value); });
 		return;
 	}
 
 	auto turbulence = dynamic_cast<noise::module::Turbulence *>(handle);
 	if (turbulence) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, turbulence->GetSeed(),
-			[turbulence](GLint value) { turbulence->SetSeed(value); });
+			[turbulence](int value) { turbulence->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, turbulence->GetFrequency(),
 			[turbulence](GLdouble value) { turbulence->SetFrequency(value); });
 		addProperty("Power", 0.0, 10.0, turbulence->GetPower(),
 			[turbulence](GLdouble value) { turbulence->SetPower(value); });
 		addProperty_i("Roughness", 1, 10, turbulence->GetRoughnessCount(),
-			[turbulence](GLint value) { turbulence->SetRoughness(value); });
+			[turbulence](int value) { turbulence->SetRoughness(value); });
 		return;
 	}
 
 	auto voronoi = dynamic_cast<noise::module::Voronoi *>(handle);
 	if (voronoi) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, voronoi->GetSeed(),
-			[voronoi](GLint value) { voronoi->SetSeed(value); });
+			[voronoi](int value) { voronoi->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, voronoi->GetFrequency(),
 			[voronoi](GLdouble value) { voronoi->SetFrequency(value); });
 		addProperty("Displacement", 0.0, 100.0, voronoi->GetDisplacement(),
@@ -321,13 +321,13 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 	auto riggedMultifractal = dynamic_cast<noise::module::RidgedMulti *>(handle);
 	if (riggedMultifractal) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, riggedMultifractal->GetSeed(),
-			[riggedMultifractal](GLint value) { riggedMultifractal->SetSeed(value); });
+			[riggedMultifractal](int value) { riggedMultifractal->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, riggedMultifractal->GetFrequency(),
 			[riggedMultifractal](GLdouble value) { riggedMultifractal->SetFrequency(value); });
 		addProperty("Lacunarity", NOISE_LACUNARITY_MIN, NOISE_LACUNARITY_MAX, riggedMultifractal->GetLacunarity(),
 			[riggedMultifractal](GLdouble value) { riggedMultifractal->SetLacunarity(value); });
 		addProperty_i("Octave Count", NOISE_OCTAVES_MIN, NOISE_OCTAVES_MAX, riggedMultifractal->GetOctaveCount(),
-			[riggedMultifractal](GLint value) { riggedMultifractal->SetOctaveCount(value); });
+			[riggedMultifractal](int value) { riggedMultifractal->SetOctaveCount(value); });
 		return;
 	}
 
@@ -555,7 +555,7 @@ void NoiseWidget::addNoiseModule() {
 }
 
 void NoiseWidget::loadPerlin() {
-	GLint randomSeed = 36433;
+	int randomSeed = 36433;
 	auto gen = NoiseGenerator::preset_perlin(randomSeed);
 	updateTexture();
 	updateNoiseGenerators(gen);
@@ -563,7 +563,7 @@ void NoiseWidget::loadPerlin() {
 }
 
 void NoiseWidget::loadClouds() {
-	GLint randomSeed = 754643;
+	int randomSeed = 754643;
 	auto gen = NoiseGenerator::preset_clouds(randomSeed);
 	updateTexture();
 	updateNoiseGenerators(gen);
@@ -571,7 +571,7 @@ void NoiseWidget::loadClouds() {
 }
 
 void NoiseWidget::loadGranite() {
-			GLint randomSeed = 45245;
+			int randomSeed = 45245;
 	auto gen = NoiseGenerator::preset_granite(randomSeed);
 	updateTexture();
 	updateNoiseGenerators(gen);
@@ -579,7 +579,7 @@ void NoiseWidget::loadGranite() {
 }
 
 void NoiseWidget::loadWood() {
-	GLint randomSeed = 9674;
+	int randomSeed = 9674;
 	auto gen = NoiseGenerator::preset_wood(randomSeed);
 	updateTexture();
 	updateNoiseGenerators(gen);

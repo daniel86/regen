@@ -26,14 +26,14 @@ BufferBlock::BufferBlock(
 BufferBlock::BufferBlock(const StagedBuffer &other, const std::string &name)
 		: StagedBuffer(other, name),
 		  blockQualifier_(BufferBlock::BUFFER) {
-	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
+	enableInput_ = [this](int loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
 }
 
 BufferBlock::~BufferBlock() = default;
 
-void BufferBlock::enableBufferBlock(GLint loc) {
+void BufferBlock::enableBufferBlock(int loc) {
 	if (!isBufferValid_) return;
 	auto *rs = RenderState::get();
 
@@ -53,14 +53,14 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 	bindingIndex_ = loc;
 }
 
-void BufferBlock::bind(GLint loc) {
+void BufferBlock::bind(int loc) {
 	auto *rs = RenderState::get();
 	prepareRebind(loc);
 	rs->bufferRange(glTarget_).apply(loc, *drawBufferRange_.get());
 	bindingIndex_ = loc;
 }
 
-void BufferBlock::prepareRebind(GLint loc) {
+void BufferBlock::prepareRebind(int loc) {
 	if (bindingIndex_ != loc && bindingIndex_ != -1) {
 		// seems the buffer switched to another index!
 		// this is something the buffer manager should try to avoid, but there are some situations

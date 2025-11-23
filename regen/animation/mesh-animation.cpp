@@ -8,9 +8,9 @@ using namespace regen;
 
 void MeshAnimation::findFrameAfterTick(
 		GLdouble tick,
-		GLint &frame,
+		int &frame,
 		std::vector<KeyFrame> &keys) {
-	while (frame < (GLint) (keys.size() - 1)) {
+	while (frame < (int) (keys.size() - 1)) {
 		if (tick <= keys[frame].endTick) {
 			return;
 		}
@@ -242,8 +242,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 
 	bool framesChanged = false;
 	// Look for present frame number.
-	GLint lastFrame = lastFramePosition_;
-	GLint frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
+	int lastFrame = lastFramePosition_;
+	int frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
 	findFrameAfterTick(timeInTicks, frame, frames_);
 	lastFramePosition_ = frame;
 
@@ -305,7 +305,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		if (hasMeshInterleavedAttributes_) {
 			rs->feedbackBufferRange().push(0, bufferRange_);
 		} else {
-			GLint index = inputs.size() - 1;
+			int index = inputs.size() - 1;
 			bufferRange_.offset_ = 0;
 			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 				const ref_ptr<ShaderInput> &in = it->in_;
@@ -325,7 +325,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		if (hasMeshInterleavedAttributes_) {
 			rs->feedbackBufferRange().pop(0);
 		} else {
-			GLint index = inputs.size() - 1;
+			int index = inputs.size() - 1;
 			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 				const ref_ptr<ShaderInput> &in = it->in_;
 				index -= 1;
