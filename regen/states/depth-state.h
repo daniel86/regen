@@ -21,12 +21,12 @@ namespace regen {
 		/**
 		 * Enable or disable depth testing with this state.
 		 */
-		void set_useDepthTest(GLboolean useDepthTest);
+		void set_useDepthTest(bool useDepthTest);
 
 		/**
 		 * Enable or disable depth writing with this state.
 		 */
-		void set_useDepthWrite(GLboolean useDepthTest);
+		void set_useDepthWrite(bool useDepthTest);
 
 		/**
 		 * Specifies the depth comparison function. Symbolic constants

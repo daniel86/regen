@@ -19,8 +19,8 @@ AudioVideoStream::AudioVideoStream(AVStream *stream, int index, uint32_t cachedB
 		  index_(-1),
 		  cachedBytes_(0),
 		  cachedBytesLimit_(cachedBytesLimit),
-		  isActive_(GL_FALSE) {
-	open(stream, index, GL_TRUE);
+		  isActive_(false) {
+	open(stream, index, true);
 }
 
 AudioVideoStream::AudioVideoStream(uint32_t cachedBytesLimit)
@@ -30,7 +30,7 @@ AudioVideoStream::AudioVideoStream(uint32_t cachedBytesLimit)
 		  index_(-1),
 		  cachedBytes_(0),
 		  cachedBytesLimit_(cachedBytesLimit),
-		  isActive_(GL_FALSE) {
+		  isActive_(false) {
 }
 
 AudioVideoStream::~AudioVideoStream() {
@@ -44,7 +44,7 @@ void AudioVideoStream::close() {
 	}
 }
 
-void AudioVideoStream::open(AVStream *stream, int index, GLboolean initial) {
+void AudioVideoStream::open(AVStream *stream, int index, bool initial) {
 	if (!initial) {
 		clearQueue();
 	}
@@ -66,7 +66,7 @@ void AudioVideoStream::open(AVStream *stream, int index, GLboolean initial) {
 	stream_ = stream;
 	index_ = index;
 	cachedBytes_ = 0;
-	isActive_ = GL_TRUE;
+	isActive_ = true;
 }
 
 uint32_t AudioVideoStream::numFrames() {

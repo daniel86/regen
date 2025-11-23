@@ -39,8 +39,8 @@ ref_ptr<Torus> Torus::getUnitTorus() {
 		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isTangentRequired = GL_FALSE;
+		cfg.isNormalRequired = false;
+		cfg.isTangentRequired = false;
 		mesh = ref_ptr<Torus>::alloc(cfg);
 		return mesh;
 	} else {
@@ -72,8 +72,8 @@ Torus::Config::Config()
 		  rotation(Vec3f::zero()),
 		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
-		  isNormalRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE),
+		  isNormalRequired(true),
+		  isTangentRequired(false),
 		  ringRadius(1.0f),
 		  tubeRadius(0.5f) {
 }

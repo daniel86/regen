@@ -84,8 +84,8 @@ protected:
 	QTimer elapsedTimer_;
 	QTableWidgetItem *activePlaylistRow_;
 
-	GLboolean controlsShown_;
-	GLboolean wereControlsShown_;
+	bool controlsShown_;
+	bool wereControlsShown_;
 	QList<int> splitterSizes_;
 
 	ref_ptr<Animation> initAnim_;

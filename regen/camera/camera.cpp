@@ -409,7 +409,7 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 	camStamp_ += 1u;
 }
 
-void Camera::set_isAudioListener(GLboolean isAudioListener) {
+void Camera::set_isAudioListener(bool isAudioListener) {
 	isAudioListener_ = isAudioListener;
 	if (isAudioListener_) {
 		AudioListener::set3f(AL_POSITION, position_[0].xyz());

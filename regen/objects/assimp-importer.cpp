@@ -49,7 +49,7 @@ static const struct aiScene *importFile(
 	// it to the logging system. It remains active for all further
 	// calls to aiImportFile(Ex) and aiApplyPostProcessing.
 	static struct aiLogStream stream;
-	static GLboolean isLoggingInitialled = false;
+	static bool isLoggingInitialled = false;
 	if (!isLoggingInitialled) {
 		stream.callback = assimpLog;
 		stream.user = nullptr;
@@ -293,7 +293,7 @@ static void loadTexture(
 			REGEN_WARN("aiTextureFlags_UseAlpha is not supported.");
 		}
 		if (intVal & aiTextureFlags_IgnoreAlpha) {
-			texState->set_ignoreAlpha(GL_TRUE);
+			texState->set_ignoreAlpha(true);
 		}
 	}
 
@@ -662,7 +662,7 @@ std::vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 			mat->set_fillMode(GL_FILL);
 		}
 		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_TWOSIDED, intVal)) {
-			mat->set_twoSided(intVal ? GL_TRUE : GL_FALSE);
+			mat->set_twoSided(intVal ? true : false);
 		}
 	}
 

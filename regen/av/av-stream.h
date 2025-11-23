@@ -90,7 +90,7 @@ namespace regen {
 		 * Calling setInactive() will make sure that the stream
 		 * drops out the block so that other media can be loaded.
 		 */
-		void setInactive() { isActive_ = GL_FALSE; }
+		void setInactive() { isActive_ = false; }
 
 		/**
 		 * Decodes a single packet.
@@ -115,9 +115,9 @@ namespace regen {
 
 		uint32_t cachedBytes_;
 		uint32_t cachedBytesLimit_;
-		GLboolean isActive_;
+		bool isActive_;
 
-		void open(AVStream *stream, int index, GLboolean initial = GL_FALSE);
+		void open(AVStream *stream, int index, bool initial = false);
 
 		void close();
 	};

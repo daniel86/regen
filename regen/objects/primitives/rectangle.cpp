@@ -7,10 +7,10 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 	static ref_ptr<Rectangle> mesh;
 	if (mesh.get() == nullptr) {
 		Config cfg;
-		cfg.centerAtOrigin = GL_FALSE;
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isTangentRequired = GL_FALSE;
-		cfg.isTexcoRequired = GL_FALSE;
+		cfg.centerAtOrigin = false;
+		cfg.isNormalRequired = false;
+		cfg.isTangentRequired = false;
+		cfg.isTexcoRequired = false;
 		cfg.levelOfDetails = {0};
 		cfg.posScale = Vec3f::create(2.0f);
 		cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
@@ -49,10 +49,10 @@ Rectangle::Config::Config()
 		  rotation(Vec3f::zero()),
 		  translation(Vec3f::zero()),
 		  texcoScale(Vec2f::one()),
-		  isNormalRequired(GL_TRUE),
-		  isTexcoRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE),
-		  centerAtOrigin(GL_FALSE) {
+		  isNormalRequired(true),
+		  isTexcoRequired(true),
+		  isTangentRequired(false),
+		  centerAtOrigin(false) {
 }
 
 void Rectangle::generateLODLevel(const Config &cfg,
@@ -161,8 +161,8 @@ void Rectangle::updateAttributes() {
 		}
 	}
 	if (rectangleConfig_.isTangentRequired) {
-		rectangleConfig_.isNormalRequired = GL_TRUE;
-		rectangleConfig_.isTexcoRequired = GL_TRUE;
+		rectangleConfig_.isNormalRequired = true;
+		rectangleConfig_.isTexcoRequired = true;
 	}
 
 	// allocate attributes

@@ -25,7 +25,7 @@ using namespace std;
 
 NoiseWidget::NoiseWidget(QtApplication *app)
 		: QMainWindow(),
-		  Animation(GL_TRUE, GL_TRUE),
+		  Animation(true, true),
 		  app_(app) {
 	setMouseTracking(true);
 
@@ -60,7 +60,7 @@ protected:
 };
 
 void NoiseWidget::gl_loadScene() {
-	AnimationManager::get().pause(GL_TRUE);
+	AnimationManager::get().pause(true);
 	AnimationManager::get().setRootState(app_->renderTree()->state());
 
 	// create render target
@@ -93,7 +93,7 @@ void NoiseWidget::gl_loadScene() {
 	sceneRoot->state()->joinStates(ref_ptr<BlitToScreen>::alloc(
 			fbo, app_->screen(),
 			GL_COLOR_ATTACHMENT0,
-			GL_TRUE));
+			true));
 	GL_ERROR_LOG();
 
 	// resize fbo with window
@@ -117,7 +117,7 @@ void NoiseWidget::updateSize() {
 }
 
 void NoiseWidget::updateTexture() {
-	updateTexture_ = GL_TRUE;
+	updateTexture_ = true;
 }
 
 void NoiseWidget::animate(double dt) {}
@@ -137,7 +137,7 @@ void NoiseWidget::glAnimate(RenderState *rs, double dt) {
 	lock();
 	texture_->setNoiseGenerator(generator);
 	unlock();
-	updateTexture_ = GL_FALSE;
+	updateTexture_ = false;
 }
 
 void NoiseWidget::updateNoiseGenerators(const ref_ptr<NoiseGenerator> &generator) {

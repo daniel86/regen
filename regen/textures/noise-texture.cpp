@@ -51,7 +51,7 @@ void NoiseTexture::setNoiseGenerator(const ref_ptr<NoiseGenerator> &generator) {
 	updateNoise();
 }
 
-NoiseTexture2D::NoiseTexture2D(uint32_t width, uint32_t height, GLboolean isSeamless)
+NoiseTexture2D::NoiseTexture2D(uint32_t width, uint32_t height, bool isSeamless)
 		: Texture2D(), NoiseTexture(isSeamless) {
 	set_rectangleSize(width, height);
 	set_pixelType(GL_UNSIGNED_BYTE);
@@ -84,7 +84,7 @@ void NoiseTexture2D::updateNoise() {
 	set_wrapping(TextureWrapping::create(GL_MIRRORED_REPEAT));
 }
 
-NoiseTexture3D::NoiseTexture3D(uint32_t width, uint32_t height, uint32_t depth, GLboolean isSeamless)
+NoiseTexture3D::NoiseTexture3D(uint32_t width, uint32_t height, uint32_t depth, bool isSeamless)
 		: Texture3D(), NoiseTexture(isSeamless) {
 	set_rectangleSize(width, height);
 	set_depth(depth);

@@ -121,7 +121,7 @@ void Scene::addOptionalExtension(const std::string &ext) { optionalExt_.push_bac
 void Scene::mouseEnter() {
 	isMouseEntered_->setVertex(0, 1);
 	ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
-	event->entered = GL_TRUE;
+	event->entered = true;
 	queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 
@@ -282,7 +282,7 @@ void Scene::initGL() {
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(openglDebugCallback, NULL);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
 #endif
 
 	setupShaderLoading();
@@ -290,7 +290,7 @@ void Scene::initGL() {
 	BufferObject::createMemoryPools();
 	renderTree_->init();
 	renderState_ = RenderState::get();
-	isGLInitialized_ = GL_TRUE;
+	isGLInitialized_ = true;
 	REGEN_INFO("GL initialized.");
 
 	globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms", BufferUpdateFlags::FULL_PER_FRAME);
@@ -311,7 +311,7 @@ void Scene::setTime() {
 	lastTime_ = boost::posix_time::ptime(
 			boost::posix_time::microsec_clock::local_time());
 	lastMotionTime_ = lastTime_;
-	isTimeInitialized_ = GL_TRUE;
+	isTimeInitialized_ = true;
 }
 
 void Scene::clear() {
@@ -319,7 +319,7 @@ void Scene::clear() {
 	renderTree_->clear();
 	namedToObject_.clear();
 	idToObject_.clear();
-	isTimeInitialized_ = GL_FALSE;
+	isTimeInitialized_ = false;
 	StagingSystem::instance().clear();
 	RenderState::reset();
 	BindingManager::clear();

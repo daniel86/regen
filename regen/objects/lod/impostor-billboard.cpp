@@ -13,10 +13,10 @@ static ref_ptr<Rectangle> getImpostorQuad() {
 	static ref_ptr<Rectangle> mesh;
 	if (mesh.get() == nullptr) {
 		Rectangle::Config cfg;
-		cfg.centerAtOrigin = GL_FALSE;
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isTangentRequired = GL_FALSE;
-		cfg.isTexcoRequired = GL_FALSE;
+		cfg.centerAtOrigin = false;
+		cfg.isNormalRequired = false;
+		cfg.isTangentRequired = false;
+		cfg.isTexcoRequired = false;
 		cfg.levelOfDetails = {0};
 		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
@@ -45,7 +45,7 @@ ImpostorBillboard::ImpostorBillboard()
 	// note: we generally do not need culling when rendering impostor billboards
 	//       as they only have a two front face.
 	//       this is also important for the billboards to be rendered into shadow maps.
-	joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
+	joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, false));
 	setShaderKey("regen.models.impostor");
 }
 

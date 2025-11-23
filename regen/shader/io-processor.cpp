@@ -61,7 +61,7 @@ string IOProcessor::InputOutput::declaration() {
 
 IOProcessor::IOProcessor()
 		: GLSLProcessor("InputOutput"),
-		  isInputSpecified_(GL_FALSE),
+		  isInputSpecified_(false),
 		  currStage_(-1) {
 }
 
@@ -442,7 +442,7 @@ void IOProcessor::clear() {
 	uniforms_.clear();
 	lineQueue_.clear();
 	inputNames_.clear();
-	isInputSpecified_ = GL_FALSE;
+	isInputSpecified_ = false;
 	currStage_ = -1;
 }
 
@@ -461,7 +461,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 
 	if (currStage_ != state.currStage) {
 		inputNames_.clear();
-		isInputSpecified_ = GL_FALSE;
+		isInputSpecified_ = false;
 		currStage_ = state.currStage;
 	}
 
@@ -482,7 +482,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 	if (it != NO_REGEX_MATCH) {
 		if (!isInputSpecified_) {
 			declareSpecifiedInput(state);
-			isInputSpecified_ = GL_TRUE;
+			isInputSpecified_ = true;
 		}
 		defineHandleIO(state);
 		return process(state, line);
@@ -507,7 +507,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 
 	if (!isInputSpecified_) {
 		declareSpecifiedInput(state);
-		isInputSpecified_ = GL_TRUE;
+		isInputSpecified_ = true;
 	}
 
 	io.ioType = (*it)[2];

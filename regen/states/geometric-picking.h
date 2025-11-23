@@ -26,7 +26,7 @@ namespace regen {
 		/**
 		 * @return true if an object has been picked.
 		 */
-		auto hasPickedObject() const -> GLboolean { return hasPickedObject_; }
+		auto hasPickedObject() const -> bool { return hasPickedObject_; }
 
 		/**
 		 * @return the picked object.
@@ -40,7 +40,7 @@ namespace regen {
 		ref_ptr<Camera> camera_;
 		uint32_t maxPickedObjects_;
 
-		GLboolean hasPickedObject_;
+		bool hasPickedObject_;
 		PickData pickedObject_;
 
 		ref_ptr<ShaderInput2f> mouseTexco_;

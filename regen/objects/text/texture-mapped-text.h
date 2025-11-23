@@ -64,13 +64,13 @@ namespace regen {
 		/**
 		 * Sets the centerAtOrigin flag.
 		 */
-		void set_centerAtOrigin(GLboolean centerAtOrigin) { centerAtOrigin_ = centerAtOrigin; }
+		void set_centerAtOrigin(bool centerAtOrigin) { centerAtOrigin_ = centerAtOrigin; }
 
 	protected:
 		ref_ptr<Font> font_;
 		std::list<std::wstring> value_;
 		float height_;
-		GLboolean centerAtOrigin_;
+		bool centerAtOrigin_;
 		uint32_t numCharacters_;
 
 		ref_ptr<ShaderInput4f> textColor_;

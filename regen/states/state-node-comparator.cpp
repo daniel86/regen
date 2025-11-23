@@ -3,7 +3,7 @@
 using namespace regen;
 
 NodeEyeDepthComparator::NodeEyeDepthComparator(
-		const ref_ptr<Camera> &cam, GLboolean frontToBack)
+		const ref_ptr<Camera> &cam, bool frontToBack)
 		: cam_(cam),
 		  mode_(((int) frontToBack) * 2 - 1) {
 }

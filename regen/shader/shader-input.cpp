@@ -617,7 +617,7 @@ ShaderInputMat3::ShaderInputMat3(
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	transpose_ = GL_FALSE;
+	transpose_ = false;
 	enableAttribute_ = &ShaderInput::enableAttributeMat3;
 	enableInput_ = [this](int loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
@@ -630,7 +630,7 @@ ShaderInputMat4::ShaderInputMat4(
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	transpose_ = GL_FALSE;
+	transpose_ = false;
 	enableAttribute_ = &ShaderInput::enableAttributeMat4;
 	enableInput_ = [this](int loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);

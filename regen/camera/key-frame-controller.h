@@ -48,7 +48,7 @@ namespace regen {
 		/**
 		 * @param repeat the repeat flag.
 		 */
-		void setRepeat(GLboolean repeat) { repeat_ = repeat; }
+		void setRepeat(bool repeat) { repeat_ = repeat; }
 
 		// override
 		void animate(double dt) override;
@@ -65,12 +65,12 @@ namespace regen {
 		Vec3f camDir_;
 		double dt_;
 		double easeInOutIntensity_;
-		GLboolean repeat_;
-		GLboolean skipFirstFrameOnLoop_;
+		bool repeat_;
+		bool skipFirstFrameOnLoop_;
 
 		double pauseTime_;
 		double currentPauseDuration_;
-		GLboolean isPaused_;
+		bool isPaused_;
 
 		Vec3f interpolatePosition(const Vec3f &v0, const Vec3f &v1, double t) const;
 		Vec3f interpolateDirection(const Vec3f &v0, const Vec3f &v1, double t) const;

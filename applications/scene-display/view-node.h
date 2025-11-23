@@ -22,7 +22,7 @@ public:
 		ref_ptr<State> state = ref_ptr<State>::alloc();
 		ref_ptr<StateNode> newNode = ref_ptr<StateNode>::alloc(state);
 		newNode->set_name(input.getName());
-		newNode->set_isHidden(GL_TRUE);
+		newNode->set_isHidden(true);
 		parent->addChild(newNode);
 		parser->putNode(input.getName(), newNode);
 		handleChildren(parser, input, newNode);

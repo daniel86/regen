@@ -622,8 +622,8 @@ void Ground::createWeightPass() {
 	}
 	{ // disable depth test/write
 		auto depth = ref_ptr<DepthState>::alloc();
-		depth->set_useDepthTest(GL_FALSE);
-		depth->set_useDepthWrite(GL_FALSE);
+		depth->set_useDepthTest(false);
+		depth->set_useDepthWrite(false);
 		weightUpdateState_->joinStates(depth);
 	}
 	// run weight pass

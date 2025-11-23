@@ -34,7 +34,7 @@ namespace regen {
 		QtApplication *app_;
 		Ui_shaderInputEditor ui_;
 		QTreeWidgetItem *selectedItem_;
-		GLboolean ignoreValueChanges_;
+		bool ignoreValueChanges_;
 
 		std::map<ShaderInput *, byte *> initialValue_;
 		std::map<ShaderInput *, uint32_t> initialValueStamp_;

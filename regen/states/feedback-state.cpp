@@ -47,7 +47,7 @@ ref_ptr<ShaderInput> FeedbackSpecification::getFeedback(const std::string &name)
 	return *(it->second);
 }
 
-GLboolean FeedbackSpecification::hasFeedback(const std::string &name) const {
+bool FeedbackSpecification::hasFeedback(const std::string &name) const {
 	return feedbackAttributeMap_.count(name) > 0;
 }
 

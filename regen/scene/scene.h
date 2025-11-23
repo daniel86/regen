@@ -149,7 +149,7 @@ namespace regen {
 		/**
 		 * @param enabled enable/disable vsync.
 		 */
-		auto setVSyncEnabled(const GLboolean &enabled) { isVSyncEnabled_ = enabled; }
+		auto setVSyncEnabled(const bool &enabled) { isVSyncEnabled_ = enabled; }
 
 		/**
 		 * Initialize default loggers.

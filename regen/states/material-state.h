@@ -143,7 +143,7 @@ namespace regen {
 		/**
 		 * Indicates if the material should be rendered two-sided.
 		 */
-		void set_twoSided(GLboolean v);
+		void set_twoSided(bool v);
 
 		/**
 		 * Sets the wrapping mode for all textures.
@@ -175,7 +175,7 @@ namespace regen {
 		/**
 		 * Indicates if the material should be rendered two-sided.
 		 */
-		GLboolean twoSided() const { return twoSidedState_.get() != nullptr; }
+		bool twoSided() const { return twoSidedState_.get() != nullptr; }
 
 		/**
 		 * Sets default material colors for jade.

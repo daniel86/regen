@@ -45,11 +45,11 @@ namespace regen {
 			/** texture coordinate mode */
 			TexcoMode texcoMode;
 			/** generate normal attribute */
-			GLboolean isNormalRequired;
+			bool isNormalRequired;
 			/** generate tangent attribute */
-			GLboolean isTangentRequired;
+			bool isTangentRequired;
 			/** If true only bottom half sphere is used. */
-			GLboolean isHalfSphere;
+			bool isHalfSphere;
 			/** Buffer usage hints. */
 			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;

@@ -86,7 +86,7 @@ void Shader::printLog(
 		uint32_t shader,
 		GLenum shaderType,
 		const char *shaderCode,
-		GLboolean success) {
+		bool success) {
 	Logging::LogLevel logLevel;
 	if (shaderCode != nullptr) {
 		std::string shaderName = glenum::glslStageName(shaderType);
@@ -325,7 +325,7 @@ bool Shader::link() {
 	int status;
 	glGetProgramiv(id(), GL_LINK_STATUS, &status);
 	GL_ERROR_LOG();
-	if (status == GL_FALSE) {
+	if (status == false) {
 		for (auto &shaderCode: shaderCodes_) {
 			const char *source = shaderCode.second.c_str();
 			printLog(id(), shaderCode.first, source, false);
@@ -343,7 +343,7 @@ bool Shader::validate() {
 	glValidateProgram(id());
 	int status;
 	glGetProgramiv(id(), GL_VALIDATE_STATUS, &status);
-	if (status == GL_FALSE) {
+	if (status == false) {
 		int length;
 		glGetProgramiv(id(), GL_INFO_LOG_LENGTH, &length);
 		char *log = new char[length];

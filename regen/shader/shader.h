@@ -53,7 +53,7 @@ namespace regen {
 				uint32_t shader,
 				GLenum shaderType,
 				const char *shaderCode,
-				GLboolean success);
+				bool success);
 
 		/////////////
 
@@ -94,7 +94,7 @@ namespace regen {
 		bool link();
 
 		/**
-		 * @return GL_TRUE if the validation was successful.
+		 * @return true if the validation was successful.
 		 */
 		bool validate();
 

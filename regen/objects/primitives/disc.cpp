@@ -36,8 +36,8 @@ ref_ptr<Disc> Disc::getUnitDisc() {
 		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isTangentRequired = GL_FALSE;
+		cfg.isNormalRequired = false;
+		cfg.isTangentRequired = false;
 		cfg.discRadius = 1.0f;
 		mesh = ref_ptr<Disc>::alloc(cfg);
 		return mesh;
@@ -70,8 +70,8 @@ Disc::Config::Config()
 		  rotation(Vec3f::zero()),
 		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
-		  isNormalRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE),
+		  isNormalRequired(true),
+		  isTangentRequired(false),
 		  discRadius(1.0f) {
 }
 

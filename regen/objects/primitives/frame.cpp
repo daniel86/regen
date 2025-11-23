@@ -38,8 +38,8 @@ ref_ptr<FrameMesh> FrameMesh::getUnitFrame() {
 		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isTangentRequired = GL_FALSE;
+		cfg.isNormalRequired = false;
+		cfg.isTangentRequired = false;
 		cfg.borderSize = 0.1f;
 		mesh = ref_ptr<FrameMesh>::alloc(cfg);
 		return mesh;
@@ -73,8 +73,8 @@ FrameMesh::Config::Config()
 		  rotation(Vec3f::zero()),
 		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
-		  isNormalRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE),
+		  isNormalRequired(true),
+		  isTangentRequired(false),
 		  borderSize(0.1f) {
 }
 

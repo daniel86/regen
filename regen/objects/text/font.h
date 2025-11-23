@@ -121,7 +121,7 @@ namespace regen {
 		typedef std::map<std::string, ref_ptr<Font> > FontMap;
 		static FT_Library ftlib_;
 		static FontMap fonts_;
-		static GLboolean isFreetypeInitialized_;
+		static bool isFreetypeInitialized_;
 
 		const std::string fontPath_;
 		const uint32_t size_;

@@ -815,7 +815,7 @@ Texture2DDepth::Texture2DDepth(GLenum textureTarget, uint32_t numTextures)
 Texture2DMultisample::Texture2DMultisample(
 		GLsizei numSamples,
 		uint32_t numTextures,
-		GLboolean fixedSampleLocations)
+		bool fixedSampleLocations)
 		: Texture2D(GL_TEXTURE_2D_MULTISAMPLE, numTextures) {
 	fixedSampleLocations_ = fixedSampleLocations;
 	samplerType_ = "sampler2DMS";
@@ -828,7 +828,7 @@ Texture2DMultisample::Texture2DMultisample(
 
 Texture2DMultisampleDepth::Texture2DMultisampleDepth(
 		GLsizei numSamples,
-		GLboolean fixedSampleLocations)
+		bool fixedSampleLocations)
 		: Texture2DDepth(GL_TEXTURE_2D_MULTISAMPLE, 1) {
 	internalFormat_ = GL_DEPTH_COMPONENT24;
 	fixedSampleLocations_ = fixedSampleLocations;
@@ -873,7 +873,7 @@ Texture2DArrayDepth::Texture2DArrayDepth(uint32_t numTextures)
 Texture2DArrayMultisample::Texture2DArrayMultisample(
 		GLsizei numSamples,
 		uint32_t numTextures,
-		GLboolean fixedSampleLocations)
+		bool fixedSampleLocations)
 		: Texture2DArray(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, numTextures) {
 	samplerType_ = "sampler2DMSArray";
 	set_numSamples(numSamples);
@@ -883,7 +883,7 @@ Texture2DArrayMultisample::Texture2DArrayMultisample(
 Texture2DArrayMultisampleDepth::Texture2DArrayMultisampleDepth(
 		GLsizei numSamples,
 		uint32_t numTextures,
-		GLboolean fixedSampleLocations)
+		bool fixedSampleLocations)
 		: Texture2DArray(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, numTextures) {
 	samplerType_ = "sampler2DMSArray";
 	set_numSamples(numSamples);

@@ -65,12 +65,12 @@ static void showLayout(QLayout *layout) {
 	}
 }
 
-static GLboolean isRegularFile(const string &f) {
+static bool isRegularFile(const string &f) {
 	boost::filesystem::path p(f);
 	return boost::filesystem::is_regular_file(p);
 }
 
-static GLboolean isDirectory(const string &f) {
+static bool isDirectory(const string &f) {
 	boost::filesystem::path p(f);
 	return boost::filesystem::is_directory(p);
 }
@@ -94,10 +94,10 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 		  gain_(1.0f),
 		  elapsedTimer_(this),
 		  activePlaylistRow_(nullptr),
-		  wereControlsShown_(GL_FALSE) {
+		  wereControlsShown_(false) {
 	setMouseTracking(true);
 	setAcceptDrops(true);
-	controlsShown_ = GL_TRUE;
+	controlsShown_ = true;
 
 	ui_.setupUi(this);
 	app_->glWidget()->setEnabled(false);
@@ -157,17 +157,17 @@ ref_ptr<Mesh> createVideoWidget(
 		const ref_ptr<StateNode> &root) {
 	Rectangle::Config quadConfig;
 	quadConfig.levelOfDetails = {0};
-	quadConfig.isTexcoRequired = GL_TRUE;
-	quadConfig.isNormalRequired = GL_FALSE;
-	quadConfig.isTangentRequired = GL_FALSE;
-	quadConfig.centerAtOrigin = GL_TRUE;
+	quadConfig.isTexcoRequired = true;
+	quadConfig.isNormalRequired = false;
+	quadConfig.isTangentRequired = false;
+	quadConfig.centerAtOrigin = true;
 	quadConfig.rotation = Vec3f(0.5 * M_PI, 0.0 * M_PI, 0.0 * M_PI);
 	quadConfig.posScale = Vec3f::one();
 	quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
 	quadConfig.levelOfDetails = {0};
-	quadConfig.isTexcoRequired = GL_TRUE;
-	quadConfig.isNormalRequired = GL_FALSE;
-	quadConfig.centerAtOrigin = GL_TRUE;
+	quadConfig.isTexcoRequired = true;
+	quadConfig.isNormalRequired = false;
+	quadConfig.centerAtOrigin = true;
 	auto mesh = regen::Rectangle::create(quadConfig);
 
 	ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(videoTexture);
@@ -190,7 +190,7 @@ ref_ptr<Mesh> createVideoWidget(
 }
 
 void VideoPlayerWidget::gl_loadScene() {
-	AnimationManager::get().pause(GL_TRUE);
+	AnimationManager::get().pause(true);
 
 	vid_ = ref_ptr<VideoTexture>::alloc();
 	demuxer_ = vid_->demuxer();

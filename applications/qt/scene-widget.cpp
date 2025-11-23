@@ -282,8 +282,8 @@ void SceneWidget::wheelEvent(QWheelEvent *event) {
 	int button = event->angleDelta().y() > 0 ? Scene::MOUSE_WHEEL_UP : Scene::MOUSE_WHEEL_DOWN;
 	Scene::ButtonEvent ev{};
 	ev.button = button;
-	ev.isDoubleClick = GL_FALSE;
-	ev.pressed = GL_FALSE;
+	ev.isDoubleClick = false;
+	ev.pressed = false;
 	ev.x = static_cast<int>(x);
 	ev.y = static_cast<int>(y);
 	app_->mouseButton(ev);

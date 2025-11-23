@@ -84,7 +84,7 @@ namespace regen {
 		std::map<GLenum, std::map<std::string, InputOutput> > outputs_;
 		std::map<GLenum, std::map<std::string, InputOutput> > uniforms_;
 		std::set<std::string> inputNames_;
-		GLboolean isInputSpecified_;
+		bool isInputSpecified_;
 		GLenum currStage_;
 
 		void declareSpecifiedInput(PreProcessorState &state);

@@ -39,9 +39,9 @@ void StencilState::set_useStencilTest(bool useStencilTest) {
 		disjoinStates(stencilTestToggle_);
 	}
 	if (useStencilTest) {
-		stencilTestToggle_ = ref_ptr<ToggleState>::alloc(RenderState::STENCIL_TEST, GL_TRUE);
+		stencilTestToggle_ = ref_ptr<ToggleState>::alloc(RenderState::STENCIL_TEST, true);
 	} else {
-		stencilTestToggle_ = ref_ptr<ToggleState>::alloc(RenderState::STENCIL_TEST, GL_FALSE);
+		stencilTestToggle_ = ref_ptr<ToggleState>::alloc(RenderState::STENCIL_TEST, false);
 	}
 	joinStates(stencilTestToggle_);
 }

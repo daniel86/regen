@@ -21,7 +21,7 @@ using namespace regen;
 ShaderInputWidget::ShaderInputWidget(QtApplication *app, QWidget *parent)
 		: QWidget(parent), app_(app),
 		  selectedItem_(nullptr),
-		  ignoreValueChanges_(GL_FALSE) {
+		  ignoreValueChanges_(false) {
 	ui_.setupUi(this);
 	QList<int> sizes;
 	sizes << 25 << 75;
@@ -159,7 +159,7 @@ bool ShaderInputWidget::handleNode(
 }
 
 void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem *_) {
-	ignoreValueChanges_ = GL_TRUE;
+	ignoreValueChanges_ = true;
 	selectedItem_ = selected;
 
 	while (ui_.parameterLayout->count() > 0) {
@@ -182,7 +182,7 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
 		REGEN_WARN("No item found for selected node.");
 	}
 
-	ignoreValueChanges_ = GL_FALSE;
+	ignoreValueChanges_ = false;
 }
 
 bool ShaderInputWidget::handleState(

@@ -93,7 +93,7 @@ static inline void Regen_PatchLevel(const PatchLevels &l) {
 
 typedef void (GLAPIENTRY *ToggleFunc)(GLenum);
 
-inline void Regen_Toggle(uint32_t index, const GLboolean &v) {
+inline void Regen_Toggle(uint32_t index, const bool &v) {
 	GLenum toggleID = RenderState::toggleToID((RenderState::Toggle) index);
 	static ToggleFunc toggleFunctions[2] = {glDisable, glEnable};
 	toggleFunctions[v](toggleID);
@@ -259,19 +259,19 @@ RenderState::RenderState()
 		// avoid initial state set for unsupported states
 		if (e == GL_NONE) continue;
 
-		GLboolean enabled = GL_FALSE;
+		bool enabled = false;
 		for (uint32_t j = 0; j < sizeof(enabledToggles) / sizeof(GLenum); ++j) {
 			if (enabledToggles[j] == e) {
-				enabled = GL_TRUE;
+				enabled = true;
 				break;
 			}
 		}
 		toggles_.push(i, enabled);
 	}
-	toggles_.push(RenderState::BLEND, GL_FALSE);
+	toggles_.push(RenderState::BLEND, false);
 	// init value states
 	cullFace_.push(GL_BACK);
-	depthMask_.push(GL_TRUE);
+	depthMask_.push(true);
 	depthFunc_.push(GL_LEQUAL);
 	depthRange_.push(DepthRange(0.0, 1.0));
 	blendEquation_.push(BlendEquation::create(GL_FUNC_ADD));
@@ -280,7 +280,7 @@ RenderState::RenderState()
 	polygonOffset_.push(Vec2f::zero());
 	pointSize_.push(1.0);
 	lineWidth_.push(1.0);
-	colorMask_.push(ColorMask::create(GL_TRUE));
+	colorMask_.push(ColorMask::create(true));
 	logicOp_.push(GL_COPY);
 	frontFace_.push(GL_CCW);
 	pointFadeThreshold_.push(1.0);

@@ -74,7 +74,7 @@ namespace regen {
 		 * Set the synchronized flag.
 		 * @param synchronized the synchronized flag.
 		 */
-		void setSynchronized(GLboolean v) { isSynchronized_ = v; }
+		void setSynchronized(bool v) { isSynchronized_ = v; }
 
 		/**
 		 * Activate this animation.
@@ -90,13 +90,13 @@ namespace regen {
 		 * Mutex lock for data access.
 		 * @return false if not successful.
 		 */
-		GLboolean try_lock();
+		bool try_lock();
 
 		/**
 		 * Mutex lock for data access.
 		 * @return false if not successful.
 		 */
-		GLboolean try_lock_gl();
+		bool try_lock_gl();
 
 		/**
 		 * Mutex lock for data access.

@@ -64,7 +64,7 @@ Demuxer::~Demuxer() {
 	if (formatCtx_) avformat_close_input(&formatCtx_);
 }
 
-void Demuxer::set_repeat(GLboolean repeat) {
+void Demuxer::set_repeat(bool repeat) {
 	repeatStream_ = repeat;
 }
 

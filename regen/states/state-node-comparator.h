@@ -15,7 +15,7 @@ namespace regen {
 		 * @param cam the perspective camera.
 		 * @param frontToBack sort front to back or back to front
 		 */
-		NodeEyeDepthComparator(const ref_ptr<Camera> &cam, GLboolean frontToBack);
+		NodeEyeDepthComparator(const ref_ptr<Camera> &cam, bool frontToBack);
 
 		/**
 		 * @param worldPosition the world position.

@@ -181,7 +181,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange) {
 	elapsedTime_ = 0.0;
 }
 
-void MeshAnimation::loadFrame(uint32_t frameIndex, GLboolean isPongFrame) {
+void MeshAnimation::loadFrame(uint32_t frameIndex, bool isPongFrame) {
 	MeshAnimation::KeyFrame &frame = frames_[frameIndex];
 
 	std::list<ref_ptr<ShaderInput> > atts;
@@ -395,7 +395,7 @@ void MeshAnimation::addMeshFrame(double timeInTicks) {
 	std::list<ref_ptr<ShaderInput> > meshAttributes;
 	for (auto &it : mesh_->inputs()) {
 		if (!it.in_->isVertexAttribute()) continue;
-		meshAttributes.push_back(ShaderInput::copy(it.in_, GL_TRUE));
+		meshAttributes.push_back(ShaderInput::copy(it.in_, true));
 	}
 	addFrame(meshAttributes, timeInTicks);
 }
@@ -406,7 +406,7 @@ ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const std::string &name) {
 		for (auto jt = f.attributes.begin(); jt != f.attributes.end(); ++jt) {
 			const ref_ptr<ShaderInput> &att = jt->input;
 			if (att->name() == name) {
-				return ShaderInput::copy(att, GL_TRUE);
+				return ShaderInput::copy(att, true);
 			}
 		}
 	}
@@ -618,9 +618,9 @@ void MeshAnimation::addBoxAttributes(
 	ref_ptr<ShaderInput3f> norAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->normals());
 	// allocate memory for the animation attributes
 	ref_ptr<ShaderInput3f> boxPos = ref_ptr<ShaderInput3f>::dynamicCast(
-			ShaderInput::copy(posAtt, GL_FALSE));
+			ShaderInput::copy(posAtt, false));
 	ref_ptr<ShaderInput3f> boxNor = ref_ptr<ShaderInput3f>::dynamicCast(
-			ShaderInput::copy(norAtt, GL_FALSE));
+			ShaderInput::copy(norAtt, false));
 
 	// set cube vertex data
 	for (uint32_t i = 0; i < boxPos->numVertices(); ++i) {

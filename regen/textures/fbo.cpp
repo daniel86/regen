@@ -312,7 +312,7 @@ void FBO::blitCopy(
 		GLenum writeAttachment,
 		GLbitfield mask,
 		GLenum filter,
-		GLboolean keepRatio) {
+		bool keepRatio) {
 	if (readAttachment != GL_DEPTH_ATTACHMENT) {
 		applyReadBuffer(readAttachment);
 	}
@@ -363,7 +363,7 @@ void FBO::blitCopyToScreen(
 		GLenum readAttachment,
 		GLbitfield mask,
 		GLenum filter,
-		GLboolean keepRatio) {
+		bool keepRatio) {
 	applyReadBuffer(readAttachment);
 	glNamedFramebufferDrawBuffer(0, GL_FRONT);
 	if (keepRatio) {

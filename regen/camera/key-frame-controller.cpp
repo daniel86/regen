@@ -5,11 +5,11 @@ using namespace regen;
 KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
 		: Animation(false, true),
 		  CameraControllerBase(cam),
-		  repeat_(GL_TRUE),
-		  skipFirstFrameOnLoop_(GL_TRUE),
+		  repeat_(true),
+		  skipFirstFrameOnLoop_(true),
 		  pauseTime_(0.0),
 		  currentPauseDuration_(0.0),
-		  isPaused_(GL_FALSE) {
+		  isPaused_(false) {
 	setAnimationName("controller");
 	camPos_ = cam->position()[0].xyz();
 	camDir_ = cam->direction()[0].xyz();
@@ -136,7 +136,7 @@ void KeyFrameController::animate(double dt) {
 	if (isPaused_) {
 		currentPauseDuration_ += dtSeconds;
 		if(currentPauseDuration_ >= pauseTime_) {
-			isPaused_ = GL_FALSE;
+			isPaused_ = false;
 			dtSeconds = currentPauseDuration_ - pauseTime_;
 			currentPauseDuration_ = 0.0;
 		} else {
@@ -171,7 +171,7 @@ void KeyFrameController::animate(double dt) {
 		}
 		// enter pause mode if pause time is set
 		if (pauseTime_ > 0.0) {
-			isPaused_ = GL_TRUE;
+			isPaused_ = true;
 			currentPauseDuration_ = dtNewFrame;
 			dt_ = 0.0;
 			return;

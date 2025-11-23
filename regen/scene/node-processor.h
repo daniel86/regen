@@ -27,7 +27,7 @@ namespace regen::scene {
 		SortByModelMatrix(
 				const ref_ptr<StateNode> &n,
 				const ref_ptr<Camera> &cam,
-				GLboolean frontToBack)
+				bool frontToBack)
 				: State(),
 				  n_(n),
 				  comparator_(cam, frontToBack) {}

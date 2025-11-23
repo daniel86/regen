@@ -104,10 +104,10 @@ void Filter::setInput(
 /////////////////
 
 
-FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput)
+FilterSequence::FilterSequence(const ref_ptr<Texture> &input, bool bindInput)
 		: State(),
 		  input_(input),
-		  clearFirstFilter_(GL_FALSE),
+		  clearFirstFilter_(false),
 		  clearColor_(Vec4f::zero()),
 		  lastWidth_(0u),
 		  lastHeight_(0u),

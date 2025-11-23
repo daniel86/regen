@@ -7,7 +7,7 @@ BlitToFBO::BlitToFBO(
 		const ref_ptr<FBO> &dst,
 		GLenum srcAttachment,
 		GLenum dstAttachment,
-		GLboolean keepRatio)
+		bool keepRatio)
 		: BlitState(),
 		  src_(src),
 		  dst_(dst),
@@ -40,7 +40,7 @@ BlitToScreen::BlitToScreen(
 		const ref_ptr<FBO> &fbo,
 		const ref_ptr<Screen> &screen,
 		GLenum attachment,
-		GLboolean keepRatio)
+		bool keepRatio)
 		: BlitState(),
 		  fbo_(fbo),
 		  screen_(screen),

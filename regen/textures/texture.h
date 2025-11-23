@@ -488,7 +488,7 @@ namespace regen {
 		int32_t border_ = 0;
 		TextureBind texBind_;
 		int32_t numSamples_ = 1;
-		GLboolean fixedSampleLocations_ = GL_TRUE;
+		bool fixedSampleLocations_ = true;
 		int32_t textureChannel_ = -1;
 		std::string samplerType_;
 		std::optional<TextureFile> textureFile_;
@@ -638,7 +638,7 @@ namespace regen {
 		explicit Texture2DMultisample(
 				GLsizei numSamples,
 				uint32_t numTextures = 1,
-				GLboolean fixedLocations = GL_TRUE);
+				bool fixedLocations = true);
 	};
 
 	/**
@@ -654,7 +654,7 @@ namespace regen {
 		 * @param numSamples number of samples per texel.
 		 * @param fixedLocations use fixed locations.
 		 */
-		explicit Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations = GL_TRUE);
+		explicit Texture2DMultisampleDepth(GLsizei numSamples, bool fixedLocations = true);
 	};
 
 	/**
@@ -720,7 +720,7 @@ namespace regen {
 		explicit Texture2DArrayMultisample(
 				int32_t numSamples,
 				uint32_t numTextures = 1,
-				GLboolean fixedLocations = GL_FALSE);
+				bool fixedLocations = false);
 	};
 
 	/**
@@ -736,7 +736,7 @@ namespace regen {
 		explicit Texture2DArrayMultisampleDepth(
 				int32_t numSamples,
 				uint32_t numTextures = 1,
-				GLboolean fixedLocations = GL_FALSE);
+				bool fixedLocations = false);
 	};
 
 	/**

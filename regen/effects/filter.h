@@ -109,7 +109,7 @@ namespace regen {
 		 * @param input the input texture.
 		 * @param bindInput bind and activate input before filtering.
 		 */
-		explicit FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput = GL_TRUE);
+		explicit FilterSequence(const ref_ptr<Texture> &input, bool bindInput = true);
 
 		static ref_ptr<FilterSequence> load(LoadingContext &ctx, scene::SceneInputNode &input);
 

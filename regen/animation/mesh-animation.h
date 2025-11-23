@@ -164,7 +164,7 @@ namespace regen {
 
 		bool hasMeshInterleavedAttributes_;
 
-		void loadFrame(uint32_t frameIndex, GLboolean isPongFrame);
+		void loadFrame(uint32_t frameIndex, bool isPongFrame);
 
 		ref_ptr<ShaderInput> findLastAttribute(const std::string &name);
 

@@ -188,7 +188,7 @@ namespace regen {
 		 * @param initial flag indicating if the open call comes from constructor.
 		 */
 		void openAudioStream(AVStream *stream,
-							 int index, GLboolean initial = GL_FALSE);
+							 int index, bool initial = false);
 
 		// override
 		void decode(AVPacket *packet) override;

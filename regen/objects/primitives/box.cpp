@@ -38,8 +38,8 @@ ref_ptr<Box> Box::getUnitCube() {
 		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isTangentRequired = GL_FALSE;
+		cfg.isNormalRequired = false;
+		cfg.isTangentRequired = false;
 		cfg.levelOfDetails = {0};
 		mesh = ref_ptr<Box>::alloc(cfg);
 	}
@@ -72,8 +72,8 @@ Box::Config::Config()
 		  rotation(Vec3f::zero()),
 		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
-		  isNormalRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE) {
+		  isNormalRequired(true),
+		  isTangentRequired(false) {
 }
 
 void Box::generateLODLevel(

@@ -269,7 +269,7 @@ namespace regen {
 			/**
 			 * If enabled,
 			 * the fragment's coverage is ANDed with the temporary coverage value.  If
-			 * GL_SAMPLE_COVERAGE_INVERT is set to GL_TRUE, invert the coverage value.
+			 * GL_SAMPLE_COVERAGE_INVERT is set to true, invert the coverage value.
 			 */
 			SAMPLE_COVERAGE,
 			/**
@@ -335,7 +335,7 @@ namespace regen {
 		/**
 		 * Returns true if a transform feedback operation was started.
 		 */
-		inline GLboolean isTransformFeedbackAcive() const { return feedbackCount_ > 0; }
+		inline bool isTransformFeedbackAcive() const { return feedbackCount_ > 0; }
 
 		/**
 		 * Start transform feedback operation.
@@ -358,7 +358,7 @@ namespace regen {
 		/**
 		 * Enable or disable server-side GL capabilities.
 		 */
-		inline IndexedStateStack<GLboolean> &toggles() { return toggles_; }
+		inline IndexedStateStack<bool> &toggles() { return toggles_; }
 
 		/**
 		 * bind a buffer to given target.
@@ -515,7 +515,7 @@ namespace regen {
 
 		/**
 		 * Specifies whether the depth buffer is enabled for writing.
-		 * If flag is GL_FALSE, depth buffer writing is disabled.
+		 * If flag is false, depth buffer writing is disabled.
 		 * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
 		 */
 		inline ByValueStateStack<GLboolean> &depthMask() { return depthMask_; }
@@ -688,7 +688,7 @@ namespace regen {
 		int maxShaderStorageBuffers_;
 		int feedbackCount_;
 
-		IndexedStateStack<GLboolean> toggles_;
+		IndexedStateStack<bool> toggles_;
 
 		std::map<uint32_t,uint32_t> bufferBaseBindings_[4];
 		KeyedStateStack<uint32_t> arrayBuffer_;

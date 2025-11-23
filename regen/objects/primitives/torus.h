@@ -44,9 +44,9 @@ namespace regen {
 			/** texture coordinate mode. */
 			TexcoMode texcoMode;
 			/** generate normal attribute ?. */
-			GLboolean isNormalRequired;
+			bool isNormalRequired;
 			/** generate tangent attribute ?. */
-			GLboolean isTangentRequired;
+			bool isTangentRequired;
 			/** radius of the torus ring. */
 			float ringRadius;
 			/** radius of the tube. */

@@ -14,7 +14,7 @@ Cone::Cone(GLenum primitive, const BufferUpdateFlags &hints)
 ConeOpened::Config::Config()
 		: cosAngle(0.5),
 		  height(1.0f),
-		  isNormalRequired(GL_TRUE),
+		  isNormalRequired(true),
 		  levelOfDetails({1}) {
 }
 
@@ -102,8 +102,8 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 ConeClosed::Config::Config()
 		: radius(0.5),
 		  height(1.0f),
-		  isNormalRequired(GL_TRUE),
-		  isBaseRequired(GL_TRUE),
+		  isNormalRequired(true),
+		  isBaseRequired(true),
 		  levelOfDetails({1}) {
 }
 
@@ -114,8 +114,8 @@ ref_ptr<Mesh> ConeClosed::getBaseCone() {
 		cfg.height = 1.0f;
 		cfg.radius = 0.5;
 		cfg.levelOfDetails = {3, 2, 1};
-		cfg.isNormalRequired = GL_FALSE;
-		cfg.isBaseRequired = GL_TRUE;
+		cfg.isNormalRequired = false;
+		cfg.isBaseRequired = true;
 		mesh = ref_ptr<ConeClosed>::alloc(cfg);
 	}
 	return ref_ptr<Mesh>::alloc(mesh);
@@ -132,7 +132,7 @@ static void loadConeData(
 		Vec3f *pos, Vec3f *nor,
 		Vec3f &min,
 		Vec3f &max,
-		GLboolean useBase,
+		bool useBase,
 		uint32_t subdivisions,
 		float radius,
 		float height) {

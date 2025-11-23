@@ -256,7 +256,7 @@ void Particles::createUpdateShader() {
 void Particles::glAnimate(RenderState *rs, double dt) {
 	const uint32_t nextIdx = (updateIdx_ == 0) ? 1 : 0;
 
-	rs->toggles().push(RenderState::RASTERIZER_DISCARD, GL_TRUE);
+	rs->toggles().push(RenderState::RASTERIZER_DISCARD, true);
 	updateState_->enable(rs);
 
 	rs->vao().apply(particleVAO_.id());

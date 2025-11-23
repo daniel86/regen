@@ -413,7 +413,7 @@ void MeshViewerWidget::createCameraController() {
 }
 
 void MeshViewerWidget::gl_loadScene() {
-	AnimationManager::get().pause(GL_TRUE);
+	AnimationManager::get().pause(true);
 	AnimationManager::get().setRootState(app_->renderTree()->state());
 
 	// create render target

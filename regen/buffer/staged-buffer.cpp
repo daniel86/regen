@@ -59,7 +59,7 @@ static std::string getName(const StagedBuffer &other, const std::string &name) {
 
 StagedBuffer::StagedBuffer(const StagedBuffer &other, const std::string &name)
 		: BufferObject(other),
-		  ShaderInput(getName(other,name), GL_INVALID_ENUM, 0, 0, 0, GL_FALSE),
+		  ShaderInput(getName(other,name), GL_INVALID_ENUM, 0, 0, 0, false),
 		  stagingFlags_(other.bufferTarget(), other.bufferUpdateHints()) {
 	memoryLayout_ = other.memoryLayout_;
 	hasClientData_ = other.hasClientData_;

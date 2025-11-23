@@ -267,7 +267,7 @@ namespace regen {
 		 * Explicit request to the application to ignore the alpha channel
 		 * of the texture.
 		 */
-		void set_ignoreAlpha(GLboolean v);
+		void set_ignoreAlpha(bool v);
 
 		/**
 		 * Explicit request to the application to ignore the alpha channel

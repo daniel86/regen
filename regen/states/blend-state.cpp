@@ -103,7 +103,7 @@ namespace regen {
 	}
 
 	BlendState::BlendState(BlendMode blendMode) : ServerSideState() {
-		joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, GL_TRUE));
+		joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, true));
 
 		switch (blendMode) {
 			case BLEND_MODE_ALPHA:
@@ -189,7 +189,7 @@ namespace regen {
 	}
 
 	BlendState::BlendState(GLenum sfactor, GLenum dfactor) : ServerSideState() {
-		joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, GL_TRUE));
+		joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, true));
 		setBlendFunc(sfactor, dfactor);
 	}
 

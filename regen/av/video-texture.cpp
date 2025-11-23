@@ -28,9 +28,9 @@ using namespace regen;
 VideoTexture::VideoTexture()
 		: Texture2D(GL_TEXTURE_2D, 1),
 		  Animation(true, true),
-		  closeFlag_(GL_FALSE),
-		  seeked_(GL_FALSE),
-		  fileToLoaded_(GL_FALSE),
+		  closeFlag_(false),
+		  seeked_(false),
+		  fileToLoaded_(false),
 		  elapsedSeconds_(0.0),
 		  idleInterval_(IDLE_SLEEP_MS / 1000.0f),
 		  interval_(idleInterval_),
@@ -85,12 +85,12 @@ void VideoTexture::seekTo(double p) {
 	boost::lock_guard<boost::mutex> lock(decodingLock_);
 	demuxer_->seekTo(p);
 	elapsedSeconds_ = p * demuxer_->totalSeconds();
-	seeked_ = GL_TRUE;
+	seeked_ = true;
 }
 
 void VideoTexture::stopDecodingThread() {
 	// stop VideoTexture::decode()
-	closeFlag_ = GL_TRUE;
+	closeFlag_ = true;
 	demuxer_->setInactive();
 	// wait for the decoding thread to stop
 	decodingThread_.join();
@@ -117,12 +117,12 @@ void VideoTexture::set_file(std::string_view file) {
 }
 
 void VideoTexture::decode() {
-	GLboolean isIdle;
+	bool isIdle;
 	while (!closeFlag_) {
 		if (demuxer_->hasInput()) {
 			isIdle = demuxer_->decode();
 		} else {
-			isIdle = GL_TRUE;
+			isIdle = true;
 		}
 		if (isIdle) {
 			// demuxer has nothing to do lets sleep a while
@@ -138,7 +138,7 @@ void VideoTexture::animate(double animateDT) {
 	if (interval_ > 0.0) { return; }
 
 	uint32_t numFrames = vs_->numFrames();
-	GLboolean isIdle = (numFrames == 0);
+	bool isIdle = (numFrames == 0);
 
 	if (isIdle) {
 		// no frames there to show
@@ -169,7 +169,7 @@ void VideoTexture::animate(double animateDT) {
 			float dt = (*t) - elapsedSeconds_;
 			intervalMili_ = std::max(0.0f, dt * 1000.0f - diff);
 		} else {
-			seeked_ = GL_FALSE;
+			seeked_ = false;
 		}
 		elapsedSeconds_ = *t;
 		delete t;
@@ -191,7 +191,7 @@ void VideoTexture::glAnimate(RenderState *rs, double dt) {
 		allocTexture();
 		set_filter(TextureFilter::create(GL_LINEAR));
 		set_wrapping(TextureWrapping::create(GL_REPEAT));
-		fileToLoaded_ = GL_FALSE;
+		fileToLoaded_ = false;
 	}
 	// upload texture data to GL
 	if (videoImageData_) {

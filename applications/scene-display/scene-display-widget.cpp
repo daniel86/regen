@@ -203,7 +203,7 @@ void SceneDisplayWidget::writeConfig() {
 void SceneDisplayWidget::nextView() {
 	if (viewNodes_.empty()) return;
 	ViewNode &active0 = *activeView_;
-	active0.node->set_isHidden(GL_TRUE);
+	active0.node->set_isHidden(true);
 
 	activeView_++;
 	if (activeView_ == viewNodes_.end()) {
@@ -211,7 +211,7 @@ void SceneDisplayWidget::nextView() {
 	}
 
 	ViewNode &active1 = *activeView_;
-	active1.node->set_isHidden(GL_FALSE);
+	active1.node->set_isHidden(false);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 
 	if (videoRecorder_.get()) {
@@ -227,7 +227,7 @@ void SceneDisplayWidget::nextView() {
 void SceneDisplayWidget::previousView() {
 	if (viewNodes_.empty()) return;
 	ViewNode &active0 = *activeView_;
-	active0.node->set_isHidden(GL_TRUE);
+	active0.node->set_isHidden(true);
 
 	if (activeView_ == viewNodes_.begin()) {
 		activeView_ = viewNodes_.end();
@@ -235,7 +235,7 @@ void SceneDisplayWidget::previousView() {
 	activeView_--;
 
 	ViewNode &active1 = *activeView_;
-	active1.node->set_isHidden(GL_FALSE);
+	active1.node->set_isHidden(false);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 
 	if (videoRecorder_.get()) {
@@ -278,7 +278,7 @@ void SceneDisplayWidget::activateAnchor() {
 	double dt = getAnchorTime(anchor->position(), camPos);
 
 	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(userCamera_);
-	anchorAnim_->setRepeat(GL_FALSE);
+	anchorAnim_->setRepeat(false);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
 	anchorAnim_->push_back(cameraAnchor, 0.0);
@@ -318,8 +318,8 @@ void SceneDisplayWidget::playAnchor() {
 	toggleOffCameraTransform();
 
 	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(userCamera_);
-	anchorAnim_->setRepeat(GL_TRUE);
-	//anchorAnim_->setSkipFirstFrameOnLoop(GL_TRUE);
+	anchorAnim_->setRepeat(true);
+	//anchorAnim_->setSkipFirstFrameOnLoop(true);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
 	auto camPos = userCamera_->position(0);
@@ -478,12 +478,12 @@ void SceneDisplayWidget::toggleInfo(bool isOn) {
 	if (isOn) {
 		auto guiNode = app_->renderTree()->findNodeWithName("GUI-Pass");
 		if (guiNode) {
-			guiNode->set_isHidden(GL_FALSE);
+			guiNode->set_isHidden(false);
 		}
 	} else {
 		auto guiNode = app_->renderTree()->findNodeWithName("GUI-Pass");
 		if (guiNode) {
-			guiNode->set_isHidden(GL_TRUE);
+			guiNode->set_isHidden(true);
 		}
 	}
 }
@@ -927,7 +927,7 @@ static void handleMouseConfiguration(
 void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	REGEN_INFO("Loading XML scene at " << sceneFile << ".");
 
-	AnimationManager::get().pause(GL_TRUE);
+	AnimationManager::get().pause(true);
 	AnimationManager::get().clear();
 	AnimationManager::get().setRootState(app_->renderTree()->state());
 	TextureBinder::reset();
@@ -1037,7 +1037,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 		activeView_ = viewNodes_.end();
 		activeView_--;
 		ViewNode &active = *activeView_;
-		active.node->set_isHidden(GL_FALSE);
+		active.node->set_isHidden(false);
 		app_->toplevelWidget()->setWindowTitle(QString(active.name.c_str()));
 	}
 

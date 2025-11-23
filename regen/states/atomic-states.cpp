@@ -52,5 +52,5 @@ ref_ptr<State> SampleShadingState::load(LoadingContext &ctx, scene::SceneInputNo
 
 ref_ptr<State> ColorMaskState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	return ref_ptr<ColorMaskState>::alloc(ColorMask(
-			input.getValue<ColorMask>("mask", ColorMask::create(GL_TRUE))));
+			input.getValue<ColorMask>("mask", ColorMask::create(true))));
 }

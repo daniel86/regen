@@ -26,7 +26,7 @@ using namespace regen;
 // Get the singleton and activate the MULTISAMPLE state
 // aka. use multiple fragment samples in computing the final color of a pixel.
 // Possibly glEnable(GL_MULTISAMPLE) will be called with this push
-RenderState()::get()->toggles().push(RenderState::MULTISAMPLE, GL_TRUE);
+RenderState()::get()->toggles().push(RenderState::MULTISAMPLE, true);
 doSomethingWithMultiSampling();
 // Pop value, reset to previous value of MULTISAMPLE state
 RenderState()::get()->toggles().pop();
@@ -146,7 +146,7 @@ class MyAnimation : public Animation
 {
 public:
   MyAnimation()
-  : Animation(GL_TRUE,GL_TRUE)
+  : Animation(true,true)
   {}
   void animate(double dt)
   {

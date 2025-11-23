@@ -31,7 +31,7 @@ QtApplication::QtApplication(
 		const QSurfaceFormat &glFormat,
 		uint32_t width, uint32_t height,
 		QWidget *parent)
-		: Scene(argc, argv), isMainloopRunning_(GL_FALSE), exitCode_(0) {
+		: Scene(argc, argv), isMainloopRunning_(false), exitCode_(0) {
 	QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 	app_ = new QApplication(appArgCount, (char **) appArgs);
 
@@ -64,12 +64,12 @@ void QtApplication::show() {
 
 void QtApplication::exitMainLoop(int errorCode) {
 	exitCode_ = errorCode;
-	isMainloopRunning_ = GL_FALSE;
+	isMainloopRunning_ = false;
 }
 
 int QtApplication::mainLoop() {
 	AnimationManager::get().resume();
-	isMainloopRunning_ = GL_TRUE;
+	isMainloopRunning_ = true;
 
 	toplevelWidget()->installEventFilter(glWidget_);
 

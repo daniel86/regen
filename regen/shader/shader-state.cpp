@@ -43,14 +43,14 @@ void ShaderState::loadStage(
 	if (code[stage].empty()) { code.erase(stage); }
 }
 
-GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &shaderKey) {
+bool ShaderState::createShader(const StateConfig &cfg, const std::string &shaderKey) {
 	std::map<GLenum, std::string> unprocessedCode;
 	for (int i = 0; i < glenum::glslStageCount(); ++i) {
 		loadStage(cfg.defines_, shaderKey, unprocessedCode, glenum::glslStages()[i]);
 	}
 	if (unprocessedCode.empty()) {
 		REGEN_ERROR("Failed to load shader with key '" << shaderKey << "'");
-		return GL_FALSE;
+		return false;
 	}
 	if(createShader(cfg, unprocessedCode)) {
 		REGEN_INFO("Shader [" << shader_->id() << "] successfully loaded from '" << shaderKey << "'.");
@@ -60,7 +60,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 	}
 }
 
-GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys) {
+bool ShaderState::createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys) {
 	std::map<GLenum, std::string> unprocessedCode;
 	for (uint32_t i = 0u; i < shaderKeys.size(); ++i) {
 		auto stage = glenum::glslStages()[i];
@@ -70,7 +70,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<st
 	}
 	if (unprocessedCode.empty()) {
 		REGEN_ERROR("Failed to load shader with key '" << shaderKeys[0] << "'");
-		return GL_FALSE;
+		return false;
 	}
 	if(createShader(cfg, unprocessedCode)) {
 		REGEN_INFO("Shader [" << shader_->id() << "] successfully loaded from '" << shaderKeys[0] << ", ...'");
@@ -80,7 +80,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<st
 	}
 }
 
-GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode) {
+bool ShaderState::createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode) {
 	std::map<GLenum, std::string> processedCode;
 
 	PreProcessorConfig preProcessCfg(
@@ -101,7 +101,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 		for (auto it = processedCode.begin(); it != processedCode.end(); ++it) {
 			REGEN_DEBUG("Shader code failed to compile:\n" << it->second);
 		}
-		return GL_FALSE;
+		return false;
 	}
 	if (!shader_->link()) {
 		REGEN_ERROR("Shader failed to link.");
@@ -116,7 +116,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 		shader_->setTexture(texture.second.first, texture.first);
 	}
 
-	return GL_TRUE;
+	return true;
 }
 
 const ref_ptr<Shader> &ShaderState::shader() const { return shader_; }

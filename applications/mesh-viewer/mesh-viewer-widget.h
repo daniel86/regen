@@ -60,8 +60,8 @@ protected:
 	QVBoxLayout *fullscreenLayout_;
 	Ui_mainWindow ui_;
 
-	GLboolean controlsShown_;
-	GLboolean wereControlsShown_;
+	bool controlsShown_;
+	bool wereControlsShown_;
 	QList<int> splitterSizes_;
 
 	ref_ptr<StateNode> sceneRoot_;

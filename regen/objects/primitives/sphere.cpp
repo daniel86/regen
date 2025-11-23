@@ -45,9 +45,9 @@ Sphere::Config::Config()
 		  texcoScale(Vec2f::one()),
 		  levelOfDetails({4}),
 		  texcoMode(TEXCO_MODE_UV),
-		  isNormalRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE),
-		  isHalfSphere(GL_FALSE) {
+		  isNormalRequired(true),
+		  isTangentRequired(false),
+		  isHalfSphere(false) {
 }
 
 static Vec3f computeSphereTangent(const Vec3f &v) {

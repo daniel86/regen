@@ -94,32 +94,32 @@ namespace regen {
 		/**
 		 * @param v moving forward toggle.
 		 */
-		void moveForward(GLboolean v) { moveForward_ = v; }
+		void moveForward(bool v) { moveForward_ = v; }
 
 		/**
 		 * @param v moving backward toggle.
 		 */
-		void moveBackward(GLboolean v) { moveBackward_ = v; }
+		void moveBackward(bool v) { moveBackward_ = v; }
 
 		/**
 		 * @param v moving left toggle.
 		 */
-		void moveLeft(GLboolean v) { moveLeft_ = v; }
+		void moveLeft(bool v) { moveLeft_ = v; }
 
 		/**
 		 * @param v moving right toggle.
 		 */
-		void moveRight(GLboolean v) { moveRight_ = v; }
+		void moveRight(bool v) { moveRight_ = v; }
 
 		/**
 		 * @param v moving up toggle.
 		 */
-		void moveUp(GLboolean v) { moveUp_ = v; }
+		void moveUp(bool v) { moveUp_ = v; }
 
 		/**
 		 * @param v moving down toggle.
 		 */
-		void moveDown(GLboolean v) { moveDown_ = v; }
+		void moveDown(bool v) { moveDown_ = v; }
 
 		/**
 		 * @param v the amount to step forward.

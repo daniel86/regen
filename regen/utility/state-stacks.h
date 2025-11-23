@@ -227,7 +227,7 @@ namespace regen {
 				  applyi_(applyi),
 				  lockCounter_(0),
 				  lastStampi_(-1),
-				  isEmpty_(GL_TRUE) {
+				  isEmpty_(true) {
 			head_->stamp = -1;
 			counter_.x = 0;
 			counter_.y = 0;
@@ -235,11 +235,11 @@ namespace regen {
 
 			headi_ = new Node *[numIndices];
 			doApplyi_ = new DoApplyValueIndexed[numIndices];
-			isEmptyi_ = new GLboolean[numIndices];
+			isEmptyi_ = new bool[numIndices];
 			for (uint32_t i = 0; i < numIndices_; ++i) {
 				doApplyi_[i] = &applyInitStampedi;
 				headi_[i] = new Node(zeroValue_);
-				isEmptyi_[i] = GL_TRUE;
+				isEmptyi_[i] = true;
 			}
 		}
 
@@ -297,7 +297,7 @@ namespace regen {
 				// initial push to the stack or first push after everything
 				// was popped out.
 				head_->v = v;
-				isEmpty_ = GL_FALSE;
+				isEmpty_ = false;
 			} else if (head_->next) {
 				// use node created earlier
 				head_ = head_->next;
@@ -338,7 +338,7 @@ namespace regen {
 				// initial push to the stack or first push after everything
 				// was popped out.
 				headi->v = v;
-				isEmptyi_[index] = GL_FALSE;
+				isEmptyi_[index] = false;
 			} else if (headi->next) {
 				// use node created earlier
 				headi = headi->next;
@@ -391,7 +391,7 @@ namespace regen {
 				}
 				head_ = head_->prev;
 			} else {
-				isEmpty_ = GL_TRUE;
+				isEmpty_ = true;
 			}
 
 			// if there are indexed values pushed we may
@@ -417,7 +417,7 @@ namespace regen {
 		 */
 		void pop(uint32_t index) {
 			Node *headi = headi_[index];
-			GLboolean valueChanged;
+			bool valueChanged;
 
 			// apply previously pushed indexed value
 			if (headi->prev) {
@@ -426,8 +426,8 @@ namespace regen {
 				headi_[index] = headi;
 				lastStampi_ = headi->stamp;
 			} else {
-				valueChanged = GL_FALSE;
-				isEmptyi_[index] = GL_TRUE;
+				valueChanged = false;
+				isEmptyi_[index] = true;
 				lastStampi_ = -1;
 			}
 
@@ -465,7 +465,7 @@ namespace regen {
 		/**
 		 * @return true if the stack is locked.
 		 */
-		GLboolean isLocked() const {
+		bool isLocked() const {
 			return lockCounter_ > 0;
 		}
 
@@ -525,8 +525,8 @@ namespace regen {
 
 		int lastStampi_;
 
-		GLboolean isEmpty_;
-		GLboolean *isEmptyi_;
+		bool isEmpty_;
+		bool *isEmptyi_;
 
 		typedef void (*DoApplyValue)(IndexedStateStack *, const ValueType &);
 

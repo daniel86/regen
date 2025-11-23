@@ -96,7 +96,7 @@ void DirectiveProcessor::MacroTree::clear() {
 	root_ = MacroBranch();
 }
 
-GLboolean DirectiveProcessor::MacroTree::isDefined(const string &arg) const {
+bool DirectiveProcessor::MacroTree::isDefined(const string &arg) const {
 	return defines_.count(arg) > 0;
 }
 
@@ -243,7 +243,7 @@ void DirectiveProcessor::MacroTree::_if(const string &s) { root_.open(evaluate(s
 
 void DirectiveProcessor::MacroTree::_elif(const string &s) { root_.add(evaluate(s)); }
 
-void DirectiveProcessor::MacroTree::_else() { root_.add(GL_TRUE); }
+void DirectiveProcessor::MacroTree::_else() { root_.add(true); }
 
 void DirectiveProcessor::MacroTree::_endif() { root_.close(); }
 
@@ -257,7 +257,7 @@ bool DirectiveProcessor::MacroTree::isDefined() { return root_.getActive().isDef
 DirectiveProcessor::DirectiveProcessor()
 		: GLSLProcessor("Directives"),
 		  continuedLine_(""),
-		  wasEmpty_(GL_TRUE),
+		  wasEmpty_(true),
 		  lastStage_(GL_NONE) {}
 
 void DirectiveProcessor::parseVariables(string &line) {
@@ -269,7 +269,7 @@ void DirectiveProcessor::parseVariables(string &line) {
 
 	if (regexIt == NO_REGEX_MATCH) { return; }
 
-	GLboolean replacedSomething = GL_FALSE;
+	bool replacedSomething = false;
 
 	for (; regexIt != NO_REGEX_MATCH; ++regexIt) {
 		const string &match = (*regexIt)[1];
@@ -281,12 +281,12 @@ void DirectiveProcessor::parseVariables(string &line) {
 		const string &value = tree_.define(name);
 		if (value != name) {
 			boost::replace_all(line, "${" + name + "}", value);
-			replacedSomething = GL_TRUE;
+			replacedSomething = true;
 		}
 	}
 
 	// parse nested vars
-	if (replacedSomething == GL_TRUE) parseVariables(line);
+	if (replacedSomething == true) parseVariables(line);
 }
 
 void DirectiveProcessor::clear() {
@@ -301,7 +301,7 @@ bool DirectiveProcessor::process(PreProcessorState &state, string &line) {
 		continuedLine_.clear();
 		forBranch_.clear();
 		forLoopCounter_ = 0;
-		wasEmpty_ = GL_TRUE;
+		wasEmpty_ = true;
 	}
 
 	if (inputs_.empty()) {
@@ -335,7 +335,7 @@ bool DirectiveProcessor::process(PreProcessorState &state, string &line) {
 	string statement(line);
 	boost::trim(statement);
 
-	GLboolean isEmpty = statement.empty();
+	bool isEmpty = statement.empty();
 	if (isEmpty && wasEmpty_) {
 		return DirectiveProcessor::getline(state, line);
 	}

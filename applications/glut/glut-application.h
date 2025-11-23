@@ -44,14 +44,14 @@ protected:
   uint32_t glutWidth_;
   uint32_t displayMode_;
 
-  GLboolean applicationRunning_;
+  bool applicationRunning_;
 
-  GLboolean reshaped_;
+  bool reshaped_;
 
-  GLboolean keyState_[NUM_KEYS];
-  GLboolean ctrlPressed_;
-  GLboolean altPressed_;
-  GLboolean shiftPressed_;
+  bool keyState_[NUM_KEYS];
+  bool ctrlPressed_;
+  bool altPressed_;
+  bool shiftPressed_;
 
   boost::posix_time::ptime lastButtonTime_;
 

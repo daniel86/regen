@@ -15,12 +15,12 @@ using namespace regen;
 
 FT_Library Font::ftlib_ = FT_Library();
 Font::FontMap Font::fonts_ = FontMap();
-GLboolean Font::isFreetypeInitialized_ = GL_FALSE;
+bool Font::isFreetypeInitialized_ = false;
 
 ref_ptr<Font> Font::get(const std::string &f, uint32_t size, uint32_t dpi) {
 	if (!isFreetypeInitialized_) {
 		if (FT_Init_FreeType(&ftlib_)) { throw Font::Error("FT_Init_FreeType failed."); }
-		isFreetypeInitialized_ = GL_TRUE;
+		isFreetypeInitialized_ = true;
 	}
 	// unique font identifier
 	std::string fontKey = REGEN_STRING(f << size << "_" << dpi);
@@ -48,7 +48,7 @@ ref_ptr<Font> Font::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 
 void Font::closeLibrary() {
 	FT_Done_FreeType(ftlib_);
-	isFreetypeInitialized_ = GL_FALSE;
+	isFreetypeInitialized_ = false;
 }
 
 Font::Font(const std::string &fontPath, uint32_t size, uint32_t dpi)

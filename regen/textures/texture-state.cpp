@@ -223,7 +223,7 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const std::string &n
 		: State(),
 		  stateID_(++idCounter_),
 		  texcoChannel_(0u),
-		  ignoreAlpha_(GL_FALSE) {
+		  ignoreAlpha_(false) {
 	set_blendMode(BLEND_MODE_SRC);
 	set_blendFactor(1.0f);
 	set_mapping(MAPPING_TEXCO);
@@ -239,7 +239,7 @@ TextureState::TextureState()
 		  stateID_(++idCounter_),
 		  samplerType_("sampler2D"),
 		  texcoChannel_(0u),
-		  ignoreAlpha_(GL_FALSE) {
+		  ignoreAlpha_(false) {
 	set_blendMode(BLEND_MODE_SRC);
 	set_blendFactor(1.0f);
 	set_mapping(MAPPING_TEXCO);
@@ -277,7 +277,7 @@ void TextureState::set_texcoChannel(uint32_t texcoChannel) {
 	shaderDefine(REGEN_TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 
-void TextureState::set_ignoreAlpha(GLboolean v) {
+void TextureState::set_ignoreAlpha(bool v) {
 	ignoreAlpha_ = v;
 	shaderDefine(REGEN_TEX_NAME("TEX_IGNORE_ALPHA"), v ? "TRUE" : "FALSE");
 }

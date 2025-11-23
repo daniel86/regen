@@ -67,7 +67,7 @@ namespace regen {
 		/**
 		 * Repeat video of end position reached ?
 		 */
-		void set_repeat(GLboolean repeat);
+		void set_repeat(bool repeat);
 
 		/**
 		 * Repeat video of end position reached ?

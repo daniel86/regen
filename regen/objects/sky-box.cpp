@@ -18,8 +18,8 @@ using namespace regen;
 
 static Box::Config cubeCfg(uint32_t levelOfDetail) {
 	Box::Config cfg;
-	cfg.isNormalRequired = GL_FALSE;
-	cfg.isTangentRequired = GL_FALSE;
+	cfg.isNormalRequired = false;
+	cfg.isTangentRequired = false;
 	cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
 	cfg.updateHint.frequency = BUFFER_UPDATE_NEVER;
 	cfg.updateHint.scope = BUFFER_UPDATE_FULLY;

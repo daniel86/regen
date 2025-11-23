@@ -21,7 +21,7 @@ namespace regen {
 				const ref_ptr<Camera> &cam,
 				const ref_ptr<Mesh> &mesh,
 				uint32_t vertexIndex = 0,
-				bool hasBackFace = GL_FALSE);
+				bool hasBackFace = false);
 
 		/**
 		 * @param userCamera The user camera to reflect.
@@ -33,7 +33,7 @@ namespace regen {
 				const ref_ptr<Camera> &userCamera,
 				const Vec3f &reflectorNormal,
 				const Vec3f &reflectorPoint,
-				bool hasBackFace = GL_FALSE);
+				bool hasBackFace = false);
 
 		/**
 		 * Update reflection camera.

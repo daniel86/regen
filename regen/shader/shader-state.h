@@ -25,11 +25,11 @@ namespace regen {
 		 * Load, compile and link shader with given include key.
 		 * @param cfg the shader config.
 		 * @param shaderKey the shader include key.
-		 * @return GL_TRUE on success.
+		 * @return true on success.
 		 */
-		GLboolean createShader(const StateConfig &cfg, const std::string &shaderKey);
+		bool createShader(const StateConfig &cfg, const std::string &shaderKey);
 
-		GLboolean createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys);
+		bool createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys);
 
 		/**
 		 * @return the shader object.
@@ -51,7 +51,7 @@ namespace regen {
 	protected:
 		ref_ptr<Shader> shader_;
 
-		GLboolean createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode);
+		bool createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode);
 
 		void loadStage(
 				const std::map<std::string, std::string> &shaderConfig,

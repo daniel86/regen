@@ -56,7 +56,7 @@ namespace regen {
 		 * @param name name of an attribute.
 		 * @return true if there is a feedback attribute with given name.
 		 */
-		GLboolean hasFeedback(const std::string &name) const;
+		bool hasFeedback(const std::string &name) const;
 
 		/**
 		 * @param name feedback name

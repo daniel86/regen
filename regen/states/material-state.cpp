@@ -93,7 +93,7 @@ void Material::set_fillMode(GLenum fillMode) {
 	joinStates(fillModeState_);
 }
 
-void Material::set_twoSided(GLboolean twoSided) {
+void Material::set_twoSided(bool twoSided) {
 	if (twoSidedState_.get()) {
 		disjoinStates(twoSidedState_);
 	}

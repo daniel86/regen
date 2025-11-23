@@ -53,13 +53,13 @@ void Animation::doStopAnimation() {
 	AnimationManager::get().removeAnimation(this);
 }
 
-GLboolean Animation::try_lock() { return mutex_.try_lock(); }
+bool Animation::try_lock() { return mutex_.try_lock(); }
 
 void Animation::lock() { mutex_.lock(); }
 
 void Animation::unlock() { mutex_.unlock(); }
 
-GLboolean Animation::try_lock_gl() { return mutex_gl_.try_lock(); }
+bool Animation::try_lock_gl() { return mutex_gl_.try_lock(); }
 
 void Animation::lock_gl() { mutex_gl_.lock(); }
 

@@ -457,7 +457,7 @@ namespace regen {
 		/**
 		 * @param useAudio true if this camera is the OpenAL audio listener.
 		 */
-		void set_isAudioListener(GLboolean useAudio);
+		void set_isAudioListener(bool useAudio);
 
 		/**
 		 * @return true if this camera is the OpenAL audio listener.
