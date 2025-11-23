@@ -60,7 +60,7 @@ void TransformAnimation::updatePose(const TransformKeyFrame &currentFrame, doubl
 }
 
 // Override
-void TransformAnimation::animate(GLdouble dt) {
+void TransformAnimation::animate(double dt) {
 	if (it_ == frames_.end()) {
 		if (loopTransformAnimation_) {
 			it_ = frames_.begin();
@@ -78,11 +78,11 @@ void TransformAnimation::animate(GLdouble dt) {
 		lastFrame_ = currentFrame;
 		lastFrame_.pos = currentPos_;
 		lastFrame_.rotation = currentDir_;
-		GLdouble dt__ = dt_ - currentFrame.dt;
+		double dt__ = dt_ - currentFrame.dt;
 		dt_ = 0.0;
 		animate(dt__);
 	} else {
-		GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
+		double t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
 		{
 			if (mesh_.get() != nullptr && mesh_->physicalObjects().size() > 0) {
 				auto &physicalObject = mesh_->physicalObjects()[0];

@@ -23,7 +23,7 @@ Q_OBJECT
 public:
 	explicit MeshViewerWidget(QtApplication *app);
 
-	void transformMesh(GLdouble dt);
+	void transformMesh(double dt);
 
 public slots:
 

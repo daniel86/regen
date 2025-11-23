@@ -17,7 +17,7 @@ bool SkyLayer::advanceTime(double dt) {
 	return (dt_ >= updateInterval_);
 }
 
-void SkyLayer::updateSky(RenderState *rs, GLdouble dt) {
+void SkyLayer::updateSky(RenderState *rs, double dt) {
 	updateSkyLayer(rs, dt_);
 	dt_ = 0.0;
 }

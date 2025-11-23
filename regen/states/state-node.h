@@ -206,7 +206,7 @@ namespace regen {
 		 * Do something after render call.
 		 * @param dt time difference to last traversal.
 		 */
-		static void postRender(GLdouble dt);
+		static void postRender(double dt);
 	};
 } // namespace
 

@@ -143,7 +143,7 @@ void NoiseGenerator::removeSource(const ref_ptr<NoiseGenerator> &source) {
 	}
 }
 
-GLdouble NoiseGenerator::GetValue(GLdouble x, GLdouble y, GLdouble z) const {
+double NoiseGenerator::GetValue(double x, double y, double z) const {
 	return handle_->GetValue(x, y, z);
 }
 

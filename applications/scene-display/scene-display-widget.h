@@ -100,9 +100,9 @@ protected:
 	ref_ptr<KeyFrameController> anchorAnim_;
 	std::vector<ref_ptr<CameraAnchor>> anchors_;
 	uint32_t anchorIndex_;
-	GLdouble anchorEaseInOutIntensity_;
-	GLdouble anchorPauseTime_;
-	GLdouble anchorTimeScale_;
+	double anchorEaseInOutIntensity_;
+	double anchorPauseTime_;
+	double anchorTimeScale_;
 
 	QDialog *inputDialog_;
 	ShaderInputWidget *inputWidget_;

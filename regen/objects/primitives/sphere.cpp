@@ -69,14 +69,14 @@ static Vec3f computeSphereTangent(const Vec3f &v) {
 
 void pushVertex(
 		uint32_t vertexIndex,
-		GLdouble u,
-		GLdouble v,
+		double u,
+		double v,
 		const Sphere::Config &cfg,
 		Vec3f *pos,
 		Vec3f *nor,
 		Vec4f *tan,
 		Vec2f *texco) {
-	GLdouble r = std::sin(M_PI * v);
+	double r = std::sin(M_PI * v);
 	pos[vertexIndex] = Vec3f(
 			static_cast<float>(r * std::cos(2.0 * M_PI * u)),
 			static_cast<float>(r * std::sin(2.0 * M_PI * u)),
@@ -113,15 +113,15 @@ void Sphere::generateLODLevel(const Config &cfg,
 	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
 	auto indexType = indices_->baseType();
 
-	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
+	double stepSizeInv = 1.0 / (double) lodLevel;
 	uint32_t vertexIndex = vertexOffset, faceIndex = indexOffset / 6;
 
 	for (uint32_t i = 0; i < lodLevel; i++) {
 		for (uint32_t j = 0; j < lodLevel; j++) {
-			GLdouble u0 = (GLdouble) i * stepSizeInv;
-			GLdouble u1 = (GLdouble) (i + 1) * stepSizeInv;
-			GLdouble v0 = (GLdouble) j * stepSizeInv;
-			GLdouble v1 = (GLdouble) (j + 1) * stepSizeInv;
+			double u0 = (double) i * stepSizeInv;
+			double u1 = (double) (i + 1) * stepSizeInv;
+			double v0 = (double) j * stepSizeInv;
+			double v1 = (double) (j + 1) * stepSizeInv;
 
 			if (cfg.isHalfSphere && u0 < 0.5) continue;
 

@@ -120,9 +120,9 @@ void NoiseWidget::updateTexture() {
 	updateTexture_ = GL_TRUE;
 }
 
-void NoiseWidget::animate(GLdouble dt) {}
+void NoiseWidget::animate(double dt) {}
 
-void NoiseWidget::glAnimate(RenderState *rs, GLdouble dt) {
+void NoiseWidget::glAnimate(RenderState *rs, double dt) {
 	if (!updateTexture_ || !texture_.get()) return;
 
 	auto noiseModuleName = ui_.textureSelectionBox->itemText(
@@ -170,10 +170,10 @@ void NoiseWidget::updateNoiseGenerators(const ref_ptr<NoiseGenerator> &generator
 
 void NoiseWidget::addProperty(
 			std::string_view name,
-			GLdouble min,
-			GLdouble max,
-			GLdouble value,
-			const std::function<void(GLdouble)> &setter) {
+			double min,
+			double max,
+			double value,
+			const std::function<void(double)> &setter) {
 	auto *slider = new QSlider(Qt::Horizontal);
 	int sliderMin = 0;
 	int sliderMax = REGEN_QT_SLIDER_MAX;
@@ -186,7 +186,7 @@ void NoiseWidget::addProperty(
 	ui_.parameterTable->setItem(itemRow, 1, new QTableWidgetItem(QString::number(value)));
 	ui_.parameterTable->setCellWidget(itemRow, 2, slider);
 	slider->connect(slider, &QSlider::valueChanged, [this,setter,min,max,itemRow](int value) {
-		GLdouble val = (static_cast<GLdouble>(value) / REGEN_QT_SLIDER_MAX_d) * ((max - min) + min);
+		double val = (static_cast<double>(value) / REGEN_QT_SLIDER_MAX_d) * ((max - min) + min);
 		setter(val);
 		ui_.parameterTable->item(itemRow, 1)->setText(QString::number(val));
 		//updateTexture();
@@ -203,7 +203,7 @@ void NoiseWidget::addProperty_i(
 	int sliderMin = 0;
 	int sliderMax = REGEN_QT_SLIDER_MAX;
 	int sliderValue = static_cast<int>(
-			(static_cast<GLdouble>(value) / static_cast<GLdouble>(max-min)) * static_cast<GLdouble>(sliderMax - sliderMin));
+			(static_cast<double>(value) / static_cast<double>(max-min)) * static_cast<double>(sliderMax - sliderMin));
 	int itemRow = ui_.parameterTable->rowCount();
 	slider->setRange(sliderMin, sliderMax);
 	slider->setValue(sliderValue);
@@ -213,8 +213,8 @@ void NoiseWidget::addProperty_i(
 	ui_.parameterTable->setCellWidget(itemRow, 2, slider);
 	slider->connect(slider, &QSlider::valueChanged, [this,setter,min,max,itemRow](int value) {
 		auto val = static_cast<int>(
-			((static_cast<GLdouble>(value) / REGEN_QT_SLIDER_MAX_d) *
-			 static_cast<GLdouble>(max - min)) + min);
+			((static_cast<double>(value) / REGEN_QT_SLIDER_MAX_d) *
+			 static_cast<double>(max - min)) + min);
 		setter(val);
 		ui_.parameterTable->item(itemRow, 1)->setText(QString::number(val));
 		//updateTexture();
@@ -244,11 +244,11 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, perlin->GetSeed(),
 			[perlin](int value) { perlin->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, perlin->GetFrequency(),
-			[perlin](GLdouble value) { perlin->SetFrequency(value); });
+			[perlin](double value) { perlin->SetFrequency(value); });
 		addProperty("Persistence", NOISE_PERSISTENCE_MIN, NOISE_PERSISTENCE_MAX, perlin->GetPersistence(),
-			[perlin](GLdouble value) { perlin->SetPersistence(value); });
+			[perlin](double value) { perlin->SetPersistence(value); });
 		addProperty("Lacunarity", NOISE_LACUNARITY_MIN, NOISE_LACUNARITY_MAX, perlin->GetLacunarity(),
-			[perlin](GLdouble value) { perlin->SetLacunarity(value); });
+			[perlin](double value) { perlin->SetLacunarity(value); });
 		addProperty_i("Octave Count", NOISE_OCTAVES_MIN, NOISE_OCTAVES_MAX, perlin->GetOctaveCount(),
 			[perlin](int value) { perlin->SetOctaveCount(value); });
 		return;
@@ -259,9 +259,9 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, billow->GetSeed(),
 			[billow](int value) { billow->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, billow->GetFrequency(),
-			[billow](GLdouble value) { billow->SetFrequency(value); });
+			[billow](double value) { billow->SetFrequency(value); });
 		addProperty("Lacunarity", NOISE_LACUNARITY_MIN, NOISE_LACUNARITY_MAX, billow->GetLacunarity(),
-			[billow](GLdouble value) { billow->SetLacunarity(value); });
+			[billow](double value) { billow->SetLacunarity(value); });
 		addProperty_i("Octave Count", NOISE_OCTAVES_MIN, NOISE_OCTAVES_MAX, billow->GetOctaveCount(),
 			[billow](int value) { billow->SetOctaveCount(value); });
 		return;
@@ -272,9 +272,9 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, turbulence->GetSeed(),
 			[turbulence](int value) { turbulence->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, turbulence->GetFrequency(),
-			[turbulence](GLdouble value) { turbulence->SetFrequency(value); });
+			[turbulence](double value) { turbulence->SetFrequency(value); });
 		addProperty("Power", 0.0, 10.0, turbulence->GetPower(),
-			[turbulence](GLdouble value) { turbulence->SetPower(value); });
+			[turbulence](double value) { turbulence->SetPower(value); });
 		addProperty_i("Roughness", 1, 10, turbulence->GetRoughnessCount(),
 			[turbulence](int value) { turbulence->SetRoughness(value); });
 		return;
@@ -285,36 +285,36 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, voronoi->GetSeed(),
 			[voronoi](int value) { voronoi->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, voronoi->GetFrequency(),
-			[voronoi](GLdouble value) { voronoi->SetFrequency(value); });
+			[voronoi](double value) { voronoi->SetFrequency(value); });
 		addProperty("Displacement", 0.0, 100.0, voronoi->GetDisplacement(),
-			[voronoi](GLdouble value) { voronoi->SetDisplacement(value); });
+			[voronoi](double value) { voronoi->SetDisplacement(value); });
 		return;
 	}
 
 	auto cylinders = dynamic_cast<noise::module::Cylinders *>(handle);
 	if (cylinders) {
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, cylinders->GetFrequency(),
-			[cylinders](GLdouble value) { cylinders->SetFrequency(value); });
+			[cylinders](double value) { cylinders->SetFrequency(value); });
 		return;
 	}
 
 	auto scaleBias = dynamic_cast<noise::module::ScaleBias *>(handle);
 	if (scaleBias) {
 		addProperty("Scale", -100.0, 100.0, scaleBias->GetScale(),
-			[scaleBias](GLdouble value) { scaleBias->SetScale(value); });
+			[scaleBias](double value) { scaleBias->SetScale(value); });
 		addProperty("Bias", -100.0, 100.0, scaleBias->GetBias(),
-			[scaleBias](GLdouble value) { scaleBias->SetBias(value); });
+			[scaleBias](double value) { scaleBias->SetBias(value); });
 		return;
 	}
 
 	auto scalePoint = dynamic_cast<noise::module::ScalePoint *>(handle);
 	if (scalePoint) {
 		addProperty("X Scale", 0.0, 100.0, scalePoint->GetXScale(),
-			[scalePoint](GLdouble value) { scalePoint->SetXScale(value); });
+			[scalePoint](double value) { scalePoint->SetXScale(value); });
 		addProperty("Y Scale", 0.0, 100.0, scalePoint->GetYScale(),
-			[scalePoint](GLdouble value) { scalePoint->SetYScale(value); });
+			[scalePoint](double value) { scalePoint->SetYScale(value); });
 		addProperty("Z Scale", 0.0, 100.0, scalePoint->GetZScale(),
-			[scalePoint](GLdouble value) { scalePoint->SetZScale(value); });
+			[scalePoint](double value) { scalePoint->SetZScale(value); });
 		return;
 	}
 
@@ -323,9 +323,9 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 		addProperty_i("Seed", NOISE_SEED_MIN, NOISE_SEED_MAX, riggedMultifractal->GetSeed(),
 			[riggedMultifractal](int value) { riggedMultifractal->SetSeed(value); });
 		addProperty("Frequency", NOISE_FREQUENCY_MIN, NOISE_FREQUENCY_MAX, riggedMultifractal->GetFrequency(),
-			[riggedMultifractal](GLdouble value) { riggedMultifractal->SetFrequency(value); });
+			[riggedMultifractal](double value) { riggedMultifractal->SetFrequency(value); });
 		addProperty("Lacunarity", NOISE_LACUNARITY_MIN, NOISE_LACUNARITY_MAX, riggedMultifractal->GetLacunarity(),
-			[riggedMultifractal](GLdouble value) { riggedMultifractal->SetLacunarity(value); });
+			[riggedMultifractal](double value) { riggedMultifractal->SetLacunarity(value); });
 		addProperty_i("Octave Count", NOISE_OCTAVES_MIN, NOISE_OCTAVES_MAX, riggedMultifractal->GetOctaveCount(),
 			[riggedMultifractal](int value) { riggedMultifractal->SetOctaveCount(value); });
 		return;
@@ -354,33 +354,33 @@ void NoiseWidget::updateTable(const ref_ptr<NoiseGenerator> &generator) {
 	auto select = dynamic_cast<noise::module::Select *>(handle);
 	if (select) {
 		addProperty("Lower Bound", -1.0, 1.0, select->GetLowerBound(),
-			[select](GLdouble value) { select->SetBounds(value, select->GetUpperBound()); });
+			[select](double value) { select->SetBounds(value, select->GetUpperBound()); });
 		addProperty("Upper Bound", -1.0, 1.0, select->GetUpperBound(),
-			[select](GLdouble value) { select->SetBounds(select->GetLowerBound(), value); });
+			[select](double value) { select->SetBounds(select->GetLowerBound(), value); });
 		addProperty("Edge Falloff", 0.0, 1.0, select->GetEdgeFalloff(),
-			[select](GLdouble value) { select->SetEdgeFalloff(value); });
+			[select](double value) { select->SetEdgeFalloff(value); });
 		return;
 	}
 
 	auto translatePoint = dynamic_cast<noise::module::TranslatePoint *>(handle);
 	if (translatePoint) {
 		addProperty("X Translation", -100.0, 100.0, translatePoint->GetXTranslation(),
-			[translatePoint](GLdouble value) { translatePoint->SetXTranslation(value); });
+			[translatePoint](double value) { translatePoint->SetXTranslation(value); });
 		addProperty("Y Translation", -100.0, 100.0, translatePoint->GetYTranslation(),
-			[translatePoint](GLdouble value) { translatePoint->SetYTranslation(value); });
+			[translatePoint](double value) { translatePoint->SetYTranslation(value); });
 		addProperty("Z Translation", -100.0, 100.0, translatePoint->GetZTranslation(),
-			[translatePoint](GLdouble value) { translatePoint->SetZTranslation(value); });
+			[translatePoint](double value) { translatePoint->SetZTranslation(value); });
 		return;
 	}
 
 	auto rotatePoint = dynamic_cast<noise::module::RotatePoint *>(handle);
 	if (rotatePoint) {
 		addProperty("X Angle", 0.0, 360.0, rotatePoint->GetXAngle(),
-			[rotatePoint](GLdouble value) { rotatePoint->SetXAngle(value); });
+			[rotatePoint](double value) { rotatePoint->SetXAngle(value); });
 		addProperty("Y Angle", 0.0, 360.0, rotatePoint->GetYAngle(),
-			[rotatePoint](GLdouble value) { rotatePoint->SetYAngle(value); });
+			[rotatePoint](double value) { rotatePoint->SetYAngle(value); });
 		addProperty("Z Angle", 0.0, 360.0, rotatePoint->GetZAngle(),
-			[rotatePoint](GLdouble value) { rotatePoint->SetZAngle(value); });
+			[rotatePoint](double value) { rotatePoint->SetZAngle(value); });
 		return;
 	}
 }

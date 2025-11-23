@@ -37,7 +37,7 @@ namespace regen {
 		auto &dynamicsWorld() { return dynamicsWorld_; }
 
 		// override
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
 	protected:
 		std::list<ref_ptr<PhysicalObject> > objects_;

@@ -26,9 +26,9 @@ public:
 	// Override
 	void call(EventObject *ev, EventData *data);
 
-	void animate(GLdouble dt);
+	void animate(double dt);
 
-	void glAnimate(RenderState *rs, GLdouble dt);
+	void glAnimate(RenderState *rs, double dt);
 
 public slots:
 
@@ -88,10 +88,10 @@ protected:
 
 	void addProperty(
 			std::string_view name,
-			GLdouble min,
-			GLdouble max,
-			GLdouble value,
-			const std::function<void(GLdouble)> &setter);
+			double min,
+			double max,
+			double value,
+			const std::function<void(double)> &setter);
 
 	void addProperty_i(
 			std::string_view name,

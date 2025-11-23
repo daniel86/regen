@@ -110,7 +110,7 @@ namespace regen {
 		/**
 		 * Seek to given position [0,1]
 		 */
-		void seekTo(GLdouble p);
+		void seekTo(double p);
 
 		/**
 		 * The video stream or NULL.

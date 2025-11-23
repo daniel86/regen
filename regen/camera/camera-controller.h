@@ -159,42 +159,42 @@ namespace regen {
 		/**
 		 * @param v the amount of camera direction change in left direction.
 		 */
-		void lookLeft(GLdouble v);
+		void lookLeft(double v);
 
 		/**
 		 * @param v the amount of camera direction change in right direction.
 		 */
-		void lookRight(GLdouble v);
+		void lookRight(double v);
 
 		/**
 		 * @param amount the amount of camera direction change in up direction.
 		 */
-		void lookUp(GLdouble amount);
+		void lookUp(double amount);
 
 		/**
 		 * @param amount the amount of camera direction change in down direction.
 		 */
-		void lookDown(GLdouble amount);
+		void lookDown(double amount);
 
 		/**
 		 * @param amount the amount to zoom in.
 		 */
-		void zoomIn(GLdouble amount);
+		void zoomIn(double amount);
 
 		/**
 		 * @param amount the amount to zoom out.
 		 */
-		void zoomOut(GLdouble amount);
+		void zoomOut(double amount);
 
 		/**
 		 * @param orientation the orientation of the camera.
 		 */
-		void setHorizontalOrientation(GLdouble orientation) { horizontalOrientation_ = orientation; }
+		void setHorizontalOrientation(double orientation) { horizontalOrientation_ = orientation; }
 
 		/**
 		 * @param orientation the orientation of the camera.
 		 */
-		void setVerticalOrientation(GLdouble orientation) { verticalOrientation_ = orientation; }
+		void setVerticalOrientation(double orientation) { verticalOrientation_ = orientation; }
 
 		/**
 		 * @param distance the distance to the mesh.
@@ -211,7 +211,7 @@ namespace regen {
 		/**
 		 * @param orientation initial orientation of the mesh relative to the camera.
 		 */
-		void setMeshHorizontalOrientation(GLdouble orientation) { meshHorizontalOrientation_ = orientation; }
+		void setMeshHorizontalOrientation(double orientation) { meshHorizontalOrientation_ = orientation; }
 
 		/**
 		 * Move a step in the direction of the given offset.
@@ -225,7 +225,7 @@ namespace regen {
 		virtual void jump();
 
 		// override Animation
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
 	protected:
 		Mode cameraMode_;

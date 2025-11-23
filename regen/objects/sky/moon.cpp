@@ -283,7 +283,7 @@ void Moon::set_sunShineIntensity(float intensity) {
 	v_color.w = Vec4f::create(v_color.r.xyz(), intensity);
 }
 
-void Moon::updateSkyLayer(RenderState *rs, GLdouble dt) {
+void Moon::updateSkyLayer(RenderState *rs, double dt) {
 	moonOrientation_->setVertex(0, sky_->astro().getMoonOrientation());
 	earthShine_->setVertex(0, earthShineColor_ *
 							  (sky_->astro().getEarthShineIntensity() * earthShineIntensity_));

@@ -33,7 +33,7 @@ namespace regen {
 		if (it != store.params_.end()) {
 			return it->second;
 		} else {
-			GLdouble value;
+			double value;
 			glGetDoublev(param, &value);
 			store.params_[param] = value;
 			return value;

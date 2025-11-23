@@ -44,7 +44,7 @@ bool UserController::isMotionActive(MotionType type) const {
 	return motionState_[motionIndex].load();
 }
 
-void UserController::animate(GLdouble dt) {
+void UserController::animate(double dt) {
 	CameraController::animate(dt);
 	if (boneController_.get()) {
 		float dt_s = dt / 1000.0f;

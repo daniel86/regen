@@ -209,7 +209,7 @@ const ref_ptr<TextureCube> &Atmosphere::cubeMap() const {
 	return drawState_->cubeMap();
 }
 
-void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt) {
+void Atmosphere::updateSkyLayer(RenderState *rs, double dt) {
 	rs->drawFrameBuffer().apply(fbo_->id());
 	rs->viewport().apply(fbo_->glViewport());
 	updateState_->enable(rs);

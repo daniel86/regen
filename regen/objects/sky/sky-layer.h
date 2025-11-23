@@ -15,13 +15,13 @@ namespace regen {
 
 		~SkyLayer() override;
 
-		void updateSky(RenderState *rs, GLdouble dt);
+		void updateSky(RenderState *rs, double dt);
 
-		virtual void set_updateInterval(GLdouble interval_ms) { updateInterval_ = interval_ms; }
+		virtual void set_updateInterval(double interval_ms) { updateInterval_ = interval_ms; }
 
-		virtual GLdouble updateInterval() const { return updateInterval_; }
+		virtual double updateInterval() const { return updateInterval_; }
 
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) {}
+		virtual void updateSkyLayer(RenderState *rs, double dt) {}
 
 		bool advanceTime(double dt);
 
@@ -37,8 +37,8 @@ namespace regen {
 		ref_ptr<Sky> sky_;
 		ref_ptr<State> updateState_;
 
-		GLdouble updateInterval_;
-		GLdouble dt_;
+		double updateInterval_;
+		double dt_;
 	};
 
 	class SkyLayerView : public SkyLayer {
@@ -53,15 +53,15 @@ namespace regen {
 			state()->joinStates(mesh_);
 		}
 
-		void set_updateInterval(GLdouble interval_ms) override { source_->set_updateInterval(interval_ms); }
+		void set_updateInterval(double interval_ms) override { source_->set_updateInterval(interval_ms); }
 
-		GLdouble updateInterval() const override { return source_->updateInterval(); }
+		double updateInterval() const override { return source_->updateInterval(); }
 
 		ref_ptr<Mesh> getMeshState() override { return mesh_; }
 
 		ref_ptr<HasShader> getShaderState() override { return shader_; }
 
-		void updateSkyLayer(RenderState *rs, GLdouble dt) override {}
+		void updateSkyLayer(RenderState *rs, double dt) override {}
 
 	protected:
 		ref_ptr<SkyLayer> source_;

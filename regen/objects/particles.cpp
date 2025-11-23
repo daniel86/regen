@@ -253,7 +253,7 @@ void Particles::createUpdateShader() {
 	shaderCfg.feedbackAttributes_.clear();
 }
 
-void Particles::glAnimate(RenderState *rs, GLdouble dt) {
+void Particles::glAnimate(RenderState *rs, double dt) {
 	const uint32_t nextIdx = (updateIdx_ == 0) ? 1 : 0;
 
 	rs->toggles().push(RenderState::RASTERIZER_DISCARD, GL_TRUE);

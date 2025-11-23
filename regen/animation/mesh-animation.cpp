@@ -7,7 +7,7 @@
 using namespace regen;
 
 void MeshAnimation::findFrameAfterTick(
-		GLdouble tick,
+		double tick,
 		int &frame,
 		std::vector<KeyFrame> &keys) {
 	while (frame < (int) (keys.size() - 1)) {
@@ -19,7 +19,7 @@ void MeshAnimation::findFrameAfterTick(
 }
 
 void MeshAnimation::findFrameBeforeTick(
-		GLdouble &tick,
+		double &tick,
 		uint32_t &frame,
 		std::vector<KeyFrame> &keys) {
 	for (frame = keys.size() - 1; frame > 0;) {
@@ -202,7 +202,7 @@ void MeshAnimation::loadFrame(uint32_t frameIndex, GLboolean isPongFrame) {
 	}
 }
 
-void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
+void MeshAnimation::glAnimate(RenderState *rs, double dt) {
 	if (dt <= 0.00001) return;
 	if (rs->isTransformFeedbackAcive()) {
 		REGEN_WARN("Transform Feedback was active when the MeshAnimation was updated.");
@@ -227,8 +227,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	elapsedTime_ += dt;
 
 	// map into anim's duration
-	const GLdouble duration = tickRange_.y - tickRange_.x;
-	const GLdouble timeInTicks = elapsedTime_ * ticksPerSecond_ / 1000.0;
+	const double duration = tickRange_.y - tickRange_.x;
+	const double timeInTicks = elapsedTime_ * ticksPerSecond_ / 1000.0;
 	if (timeInTicks > duration) {
 		REGEN_DEBUG("Mesh animation stopped at tick " <<
 				timeInTicks << " (duration: " << duration << ", frame:" << nextFrame_ << ")");
@@ -352,7 +352,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 
 void MeshAnimation::addFrame(
 		const std::list<ref_ptr<ShaderInput> > &attributes,
-		GLdouble timeInTicks) {
+		double timeInTicks) {
 	MeshAnimation::KeyFrame frame;
 
 	frame.timeInTicks = timeInTicks;
@@ -391,7 +391,7 @@ void MeshAnimation::addFrame(
 	frames_.push_back(frame);
 }
 
-void MeshAnimation::addMeshFrame(GLdouble timeInTicks) {
+void MeshAnimation::addMeshFrame(double timeInTicks) {
 	std::list<ref_ptr<ShaderInput> > meshAttributes;
 	for (auto &it : mesh_->inputs()) {
 		if (!it.in_->isVertexAttribute()) continue;
@@ -416,7 +416,7 @@ ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const std::string &name) {
 void MeshAnimation::addSphereAttributes(
 		float horizontalRadius,
 		float verticalRadius,
-		GLdouble timeInTicks,
+		double timeInTicks,
 		const Vec3f &offset) {
 	if (!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
 		REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
@@ -460,7 +460,7 @@ void MeshAnimation::addSphereAttributes(
 		Vec3f v = posAtt->getVertex(i).r;
 		Vec3f direction = v - centroid;
 		Vec3f n;
-		GLdouble l = direction.length();
+		double l = direction.length();
 		if (l == 0) {
 			continue;
 		}
@@ -600,7 +600,7 @@ void MeshAnimation::addBoxAttributes(
 		float width,
 		float height,
 		float depth,
-		GLdouble timeInTicks,
+		double timeInTicks,
 		const Vec3f &offset) {
 	if (!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
 		REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_POS << "'");
@@ -612,7 +612,7 @@ void MeshAnimation::addBoxAttributes(
 	}
 
 	Vec3f boxSize(width, height, depth);
-	GLdouble radius = sqrt(0.5f);
+	double radius = sqrt(0.5f);
 
 	ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->positions());
 	ref_ptr<ShaderInput3f> norAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->normals());
@@ -626,7 +626,7 @@ void MeshAnimation::addBoxAttributes(
 	for (uint32_t i = 0; i < boxPos->numVertices(); ++i) {
 		Vec3f v = posAtt->getVertex(i).r;
 		Vec3f n;
-		GLdouble l = v.length();
+		double l = v.length();
 		if (l == 0) {
 			continue;
 		}
@@ -638,10 +638,10 @@ void MeshAnimation::addBoxAttributes(
 
 #if 0
 		// check the coordinate values to choose the right face
-		GLdouble xAbs = abs(vCopy.x);
-		GLdouble yAbs = abs(vCopy.y);
-		GLdouble zAbs = abs(vCopy.z);
-		GLdouble factor;
+		double xAbs = abs(vCopy.x);
+		double yAbs = abs(vCopy.y);
+		double zAbs = abs(vCopy.z);
+		double factor;
 		// set the coordinate for the face to the cube size
 		if(xAbs > yAbs && xAbs > zAbs) { // left/right face
 		  factor = (v.x<0 ? -1 : 1);
@@ -660,9 +660,9 @@ void MeshAnimation::addBoxAttributes(
 		vCopy *= radius;
 
 		// check the coordinate values to choose the right face
-		GLdouble xAbs = abs(vCopy.x);
-		GLdouble yAbs = abs(vCopy.y);
-		GLdouble zAbs = abs(vCopy.z);
+		double xAbs = abs(vCopy.x);
+		double yAbs = abs(vCopy.y);
+		double zAbs = abs(vCopy.z);
 		float h, factor;
 		// set the coordinate for the face to the cube size
 		if (xAbs > yAbs && xAbs > zAbs) { // left/right face
@@ -684,7 +684,7 @@ void MeshAnimation::addBoxAttributes(
 		// delete component of face direction (-n*0.5f , 0.5f because thats the sphere radius)
 		vCopy += -r * (factor * 0.5f - h) / h - n * 0.5f;
 
-		GLdouble maxDim = std::max(std::max(abs(vCopy.x), abs(vCopy.y)), abs(vCopy.z));
+		double maxDim = std::max(std::max(abs(vCopy.x), abs(vCopy.y)), abs(vCopy.z));
 		// we divide by maxDim, so it is not allowed to be zero,
 		// this happens for vCopy with only a single component not zero.
 		if (maxDim != 0.0f) {
@@ -692,7 +692,7 @@ void MeshAnimation::addBoxAttributes(
 			// the length of the vector pointing on the square surface
 			// by the length of the vector pointing on the circle surface (equals circle radius).
 			// size2/maxDim calculates scale factor for d to point on the square surface
-			GLdouble distortionScale = ((vCopy * 0.5f / maxDim).length()) / 0.5f;
+			double distortionScale = ((vCopy * 0.5f / maxDim).length()) / 0.5f;
 			vCopy *= distortionScale;
 		}
 

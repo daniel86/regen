@@ -40,7 +40,7 @@ void DepthState::set_depthFunc(GLenum depthFunc) {
 	joinStates(depthFunc_);
 }
 
-void DepthState::set_depthRange(GLdouble nearVal, GLdouble farVal) {
+void DepthState::set_depthRange(double nearVal, double farVal) {
 	if (depthRange_.get()) {
 		disjoinStates(depthRange_);
 	}

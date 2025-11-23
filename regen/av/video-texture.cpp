@@ -73,15 +73,15 @@ void VideoTexture::seekToBegin() {
 	seekTo(0.0);
 }
 
-void VideoTexture::seekForward(GLdouble seconds) {
+void VideoTexture::seekForward(double seconds) {
 	seekTo((elapsedSeconds_ + seconds) / demuxer_->totalSeconds());
 }
 
-void VideoTexture::seekBackward(GLdouble seconds) {
+void VideoTexture::seekBackward(double seconds) {
 	seekTo((elapsedSeconds_ - seconds) / demuxer_->totalSeconds());
 }
 
-void VideoTexture::seekTo(GLdouble p) {
+void VideoTexture::seekTo(double p) {
 	boost::lock_guard<boost::mutex> lock(decodingLock_);
 	demuxer_->seekTo(p);
 	elapsedSeconds_ = p * demuxer_->totalSeconds();
@@ -131,7 +131,7 @@ void VideoTexture::decode() {
 	}
 }
 
-void VideoTexture::animate(GLdouble animateDT) {
+void VideoTexture::animate(double animateDT) {
 	if (!demuxer_->isPlaying()) { return; }
 	interval_ -= animateDT;
 	dt_ += animateDT;
@@ -186,7 +186,7 @@ void VideoTexture::animate(GLdouble animateDT) {
 	dt_ = 0.0;
 }
 
-void VideoTexture::glAnimate(RenderState *rs, GLdouble dt) {
+void VideoTexture::glAnimate(RenderState *rs, double dt) {
 	if (fileToLoaded_) { // setup the texture target
 		allocTexture();
 		set_filter(TextureFilter::create(GL_LINEAR));

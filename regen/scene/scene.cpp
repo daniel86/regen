@@ -158,7 +158,7 @@ void Scene::mouseMove(const Vec2i &pos) {
 	updateMousePosition();
 
 	ref_ptr<MouseMotionEvent> event = ref_ptr<MouseMotionEvent>::alloc();
-	event->dt = ((GLdouble) (time - lastMotionTime_).total_microseconds()) / 1000.0;
+	event->dt = ((double) (time - lastMotionTime_).total_microseconds()) / 1000.0;
 	event->dx = dx;
 	event->dy = dy;
 	queueEmit(MOUSE_MOTION_EVENT, event);
@@ -477,7 +477,7 @@ namespace regen {
 				Animation(true, false),
 				f_(f) {}
 
-		void glAnimate(RenderState *rs, GLdouble dt) override {
+		void glAnimate(RenderState *rs, double dt) override {
 			f_();
 			stopAnimation();
 		}

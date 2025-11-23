@@ -87,7 +87,7 @@ namespace regen {
 		 * @param farVal specifies the mapping of the far clipping plane to window coordinates.
 		 *    The initial value is 1.
 		 */
-		DepthRangeState(GLdouble nearVal, GLdouble farVal)
+		DepthRangeState(double nearVal, double farVal)
 				: ServerSideState(), nearVal_(nearVal), farVal_(farVal) {}
 
 		void enable(RenderState *rs) override { rs->depthRange().push(DepthRange(nearVal_, farVal_)); }
@@ -95,7 +95,7 @@ namespace regen {
 		void disable(RenderState *rs) override { rs->depthRange().pop(); }
 
 	protected:
-		GLdouble nearVal_, farVal_;
+		double nearVal_, farVal_;
 	};
 
 	/**

@@ -45,7 +45,7 @@ public:
 
 	~RotateAnimation() override = default;
 
-	void animate(GLdouble dt) override { widget_->transformMesh(dt); }
+	void animate(double dt) override { widget_->transformMesh(dt); }
 	MeshViewerWidget *widget_;
 };
 
@@ -502,7 +502,7 @@ void MeshViewerWidget::gl_loadScene() {
 	createCameraController();
 }
 
-void MeshViewerWidget::transformMesh(GLdouble dt) {
+void MeshViewerWidget::transformMesh(double dt) {
 	// rotate the mesh around the Y axis
 	meshOrientation_ += dt * 0.001f;
 	if (meshOrientation_ > M_PI * 2.0f) {

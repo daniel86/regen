@@ -47,7 +47,7 @@ public:
 		  widget_(widget), sceneFile_(sceneFile) {
 	}
 
-	void glAnimate(RenderState *rs, GLdouble dt) override {
+	void glAnimate(RenderState *rs, double dt) override {
 		widget_->loadSceneGraphicsThread(sceneFile_);
 	}
 
@@ -65,7 +65,7 @@ public:
 		: Animation(false, true), widget_(widget) {
 	}
 
-	void animate(GLdouble dt) override { widget_->updateGameTimeWidget(); }
+	void animate(double dt) override { widget_->updateGameTimeWidget(); }
 
 protected:
 	SceneDisplayWidget *widget_;
@@ -107,7 +107,7 @@ public:
 		}
 	}
 
-	void glAnimate(RenderState *rs, GLdouble dt) override {
+	void glAnimate(RenderState *rs, double dt) override {
 		while (!interactionQueue_.empty()) {
 			boost::lock_guard<boost::mutex> lock(animationLock_);
 			auto interaction = interactionQueue_.front();
@@ -706,13 +706,13 @@ void SceneDisplayWidget::handleControllerConfiguration(
 		}
 		ref_ptr<KeyFrameController> keyFramesCamera = ref_ptr<KeyFrameController>::alloc(cam);
 		if (node->hasAttribute("ease-in-out")) {
-			keyFramesCamera->setEaseInOutIntensity(node->getValue<GLdouble>("ease-in-out", 1.0));
+			keyFramesCamera->setEaseInOutIntensity(node->getValue<double>("ease-in-out", 1.0));
 		}
 		for (const auto &x: node->getChildren("key-frame")) {
 			keyFramesCamera->push_back(
 				x->getValue<Vec3f>("pos", Vec3f(0.0f, 0.0f, 1.0f)),
 				x->getValue<Vec3f>("dir", Vec3f(0.0f, 0.0f, -1.0f)),
-				x->getValue<GLdouble>("dt", 0.0)
+				x->getValue<double>("dt", 0.0)
 			);
 		}
 		keyFramesCamera->startAnimation();

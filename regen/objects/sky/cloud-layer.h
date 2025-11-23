@@ -72,7 +72,7 @@ namespace regen {
 		static float defaultChangeLow();
 
 		// Override
-		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
+		void updateSkyLayer(RenderState *rs, double dt) override;
 
 		// Override SkyLayer
 		void createUpdateShader() override;

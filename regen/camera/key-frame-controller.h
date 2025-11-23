@@ -28,22 +28,22 @@ namespace regen {
 		/**
 		 * Adds a frame to the list of key frames for camera animation.
 		 */
-		void push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
+		void push_back(const Vec3f &pos, const Vec3f &dir, double dt);
 
 		/**
 		 * Adds a frame to the list of key frames for camera animation.
 		 */
-		void push_back(const ref_ptr<CameraAnchor> &anchor, GLdouble dt);
+		void push_back(const ref_ptr<CameraAnchor> &anchor, double dt);
 
 		/**
 		 * @param intensity the intensity of the ease in/out effect.
 		 */
-		void setEaseInOutIntensity(GLdouble intensity) { easeInOutIntensity_ = intensity; }
+		void setEaseInOutIntensity(double intensity) { easeInOutIntensity_ = intensity; }
 
 		/**
 		 * @param pauseTime the pause time between key frames.
 		 */
-		void setPauseBetweenFrames(GLdouble pauseTime) { pauseTime_ = pauseTime; }
+		void setPauseBetweenFrames(double pauseTime) { pauseTime_ = pauseTime; }
 
 		/**
 		 * @param repeat the repeat flag.
@@ -51,29 +51,29 @@ namespace regen {
 		void setRepeat(GLboolean repeat) { repeat_ = repeat; }
 
 		// override
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
 	protected:
 		struct CameraKeyFrame {
 			ref_ptr<CameraAnchor> anchor;
-			GLdouble dt;
+			double dt;
 		};
 		std::list<CameraKeyFrame> frames_;
 		std::list<CameraKeyFrame>::iterator it_;
 		CameraKeyFrame lastFrame_;
 		Vec3f camPos_;
 		Vec3f camDir_;
-		GLdouble dt_;
-		GLdouble easeInOutIntensity_;
+		double dt_;
+		double easeInOutIntensity_;
 		GLboolean repeat_;
 		GLboolean skipFirstFrameOnLoop_;
 
-		GLdouble pauseTime_;
-		GLdouble currentPauseDuration_;
+		double pauseTime_;
+		double currentPauseDuration_;
 		GLboolean isPaused_;
 
-		Vec3f interpolatePosition(const Vec3f &v0, const Vec3f &v1, GLdouble t) const;
-		Vec3f interpolateDirection(const Vec3f &v0, const Vec3f &v1, GLdouble t) const;
+		Vec3f interpolatePosition(const Vec3f &v0, const Vec3f &v1, double t) const;
+		Vec3f interpolateDirection(const Vec3f &v0, const Vec3f &v1, double t) const;
 	};
 } // namespace
 

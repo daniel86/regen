@@ -49,7 +49,7 @@ namespace regen {
 		void nextStamp() { stamp_++; }
 
 		// Override from Animation
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
 	protected:
 		ref_ptr<ModelTransformation> tf_;

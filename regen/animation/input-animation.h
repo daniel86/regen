@@ -11,7 +11,7 @@ namespace regen {
 	template<class T>
 	struct InputKeyFrame {
 		T val;
-		GLdouble dt;
+		double dt;
 	};
 
 	/**
@@ -33,7 +33,7 @@ namespace regen {
 			setAnimationName(REGEN_STRING("animation-" << in->name()));
 		}
 
-		void push_back(const T &value, GLdouble dt) {
+		void push_back(const T &value, double dt) {
 			InputKeyFrame<T> f;
 			f.val = value;
 			f.dt = dt;
@@ -44,7 +44,7 @@ namespace regen {
 		}
 
 		// Override
-		void animate(GLdouble dt) override {
+		void animate(double dt) override {
 			if (it_ == frames_.end()) {
 				it_ = frames_.begin();
 				dt_ = 0.0;
@@ -55,11 +55,11 @@ namespace regen {
 			if (dt_ >= currentFrame.dt) {
 				++it_;
 				lastFrame_ = currentFrame;
-				GLdouble dt__ = dt_ - currentFrame.dt;
+				double dt__ = dt_ - currentFrame.dt;
 				dt_ = 0.0;
 				animate(dt__);
 			} else {
-				GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
+				double t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
 				val_ = math::mix(lastFrame_.val, currentFrame.val, t);
 				in_->setVertex(0, val_);
 			}
@@ -70,7 +70,7 @@ namespace regen {
 		std::list <InputKeyFrame<T>> frames_;
 		typename std::list<InputKeyFrame<T> >::iterator it_;
 		InputKeyFrame<T> lastFrame_;
-		GLdouble dt_;
+		double dt_;
 		T val_;
 	};
 }

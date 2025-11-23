@@ -19,7 +19,7 @@ public:
 		setAnimationName("fps-widget");
 	}
 
-	void glAnimate(RenderState *rs, GLdouble dt) {
+	void glAnimate(RenderState *rs, double dt) {
 		frameCounter_ += 1;
 		sumDtMiliseconds_ += dt;
 
@@ -38,7 +38,7 @@ private:
 	ref_ptr<TextureMappedText> widget_{};
 	uint32_t frameCounter_{};
 	int fps_{};
-	GLdouble sumDtMiliseconds_;
+	double sumDtMiliseconds_;
 };
 
 #endif /* SCENE_DISPLAY_FPS_WIDGET_H_ */

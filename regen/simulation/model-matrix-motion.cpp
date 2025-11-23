@@ -35,7 +35,7 @@ ModelMatrixUpdater::~ModelMatrixUpdater() {
 	delete[] backBuffer_;
 }
 
-void ModelMatrixUpdater::animate(GLdouble dt) {
+void ModelMatrixUpdater::animate(double dt) {
 	if (stamp_ == tf_->modelMat()->stampOfReadData()) return;
 	stamp_ = tf_->modelMat()->stampOfReadData();
 	auto regenData = tf_->modelMat()->mapClientDataRaw(BUFFER_GPU_WRITE);

@@ -152,7 +152,7 @@ namespace regen {
 		const ref_ptr<TextureCube> &cubeMap() const;
 
 		// Override SkyLayer
-		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
+		void updateSkyLayer(RenderState *rs, double dt) override;
 
 		// Override SkyLayer
 		void createUpdateShader() override;

@@ -538,7 +538,7 @@ ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &in
 		return {};
 	}
 	auto numLayer = input.getValue<uint32_t>("num-layer", 1u);
-	auto splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
+	auto splitWeight = input.getValue<double>("split-weight", 0.9);
 	auto cameraType = input.getValue<std::string>("camera-type", "spot");
 	auto near = input.getValue<float>("near", 0.1f);
 	ref_ptr<Camera> lightCamera;

@@ -90,7 +90,7 @@ namespace regen {
 		virtual void initializeController() {}
 
 		// override
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
 	protected:
 		ref_ptr<ModelTransformation> tf_;

@@ -83,7 +83,7 @@ public:
 	explicit VideoInitAnimation(VideoPlayerWidget *widget)
 			: Animation(true, false), widget_(widget) {}
 
-	void glAnimate(RenderState *rs, GLdouble dt) override { widget_->gl_loadScene(); }
+	void glAnimate(RenderState *rs, double dt) override { widget_->gl_loadScene(); }
 
 	VideoPlayerWidget *widget_;
 };
@@ -292,7 +292,7 @@ int VideoPlayerWidget::addPlaylistItem(const string &filePath) {
 	if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
 		return -1;
 	}
-	GLdouble numSeconds = formatCtx->duration / (GLdouble) AV_TIME_BASE;
+	double numSeconds = formatCtx->duration / (double) AV_TIME_BASE;
 	__CLOSE_INPUT__(formatCtx);
 
 	std::string filename = boost::filesystem::path(filePath).stem().string();

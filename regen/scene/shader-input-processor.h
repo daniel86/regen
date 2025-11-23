@@ -29,7 +29,7 @@ namespace regen {
 		}
 
 		// Override
-		void animate(GLdouble dt) override {
+		void animate(double dt) override {
 			auto mapped = mapClientVertex<float>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
 			mapped.w = mapped.r + static_cast<float>(dt) * timeScale_;
 		}
@@ -347,7 +347,7 @@ namespace regen {
 					for (const auto &m: n->getChildren("key-frame")) {
 						inputAnimation->push_back(
 								m->getValue<T>("value", T()),
-								m->getValue<GLdouble>("dt", 1.0)
+								m->getValue<double>("dt", 1.0)
 						);
 					}
 					state->attach(inputAnimation);

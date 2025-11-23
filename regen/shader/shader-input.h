@@ -999,7 +999,7 @@ namespace regen {
 	/**
 	 * \brief Provides 1D double input to shader programs.
 	 */
-	class ShaderInput1d : public ShaderInputTyped<GLdouble, double, GL_DOUBLE> {
+	class ShaderInput1d : public ShaderInputTyped<double, double, GL_DOUBLE> {
 	public:
 		/**
 		 * @param name the input name.

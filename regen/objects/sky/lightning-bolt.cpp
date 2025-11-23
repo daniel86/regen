@@ -423,7 +423,7 @@ void LightningBolt::createResources() {
 	}
 }
 
-void LightningBolt::animate(GLdouble dt) {
+void LightningBolt::animate(double dt) {
 	bool active = false;
 	double dt_s = dt * 0.001;
 	for (auto &strike : strikes_) {
@@ -435,7 +435,7 @@ void LightningBolt::animate(GLdouble dt) {
 	}
 }
 
-void LightningBolt::glAnimate(RenderState *rs, GLdouble dt) {
+void LightningBolt::glAnimate(RenderState *rs, double dt) {
 	if (!isActive_) return;
 
 	const uint32_t maxVertices = pos_->numVertices();

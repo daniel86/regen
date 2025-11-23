@@ -143,7 +143,7 @@ namespace regen {
 		 * This should be called each frame.
 		 * @param dt time difference to last call in milliseconds.
 		 */
-		virtual void animate(GLdouble dt) {}
+		virtual void animate(double dt) {}
 
 		/**
 		 * Upload animation data to GL.
@@ -152,7 +152,7 @@ namespace regen {
 		 * @param rs the render state.
 		 * @param dt time difference to last call in milliseconds.
 		 */
-		virtual void glAnimate(RenderState *rs, GLdouble dt) {}
+		virtual void glAnimate(RenderState *rs, double dt) {}
 
 		/**
 		 * @return the root state.

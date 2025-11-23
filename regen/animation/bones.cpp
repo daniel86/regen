@@ -57,7 +57,7 @@ Bones::Bones(const ref_ptr<BoneTree> &tree,
 	GL_ERROR_LOG();
 }
 
-void Bones::animate(GLdouble dt) {
+void Bones::animate(double dt) {
 	if (bufferSize_ <= 0) return;
 	auto mapped = boneMatrices_->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
 	auto *boneMatrixData_ = mapped.w.data();

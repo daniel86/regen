@@ -142,7 +142,7 @@ void RootNode::render(float /* dt */) {
 	traverse(rs);
 }
 
-void RootNode::postRender(GLdouble dt) {
+void RootNode::postRender(double dt) {
 	//AnimationManager::get().nextFrame();
 	// some animations modify the vertex data,
 	// updating the vbo needs a context so we do it here in the main thread..

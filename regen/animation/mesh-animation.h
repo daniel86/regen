@@ -83,13 +83,13 @@ namespace regen {
 		 */
 		void addFrame(
 				const std::list<ref_ptr<ShaderInput> > &attributes,
-				GLdouble timeInTicks);
+				double timeInTicks);
 
 		/**
 		 * Add a frame for the original mesh attributes.
 		 * @param timeInTicks number of ticks for this morph.
 		 */
-		void addMeshFrame(GLdouble timeInTicks);
+		void addMeshFrame(double timeInTicks);
 
 		/**
 		 * Projects each vertex of the mesh to a sphere.
@@ -100,7 +100,7 @@ namespace regen {
 		void addSphereAttributes(
 				float horizontalRadius,
 				float verticalRadius,
-				GLdouble timeInTicks,
+				double timeInTicks,
 				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 
 		/**
@@ -114,18 +114,18 @@ namespace regen {
 				float width,
 				float height,
 				float depth,
-				GLdouble timeInTicks,
+				double timeInTicks,
 				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt) override;
+		void glAnimate(RenderState *rs, double dt) override;
 
 	protected:
 		struct KeyFrame {
 			std::list<InputLocation> attributes;
-			GLdouble timeInTicks;
-			GLdouble startTick;
-			GLdouble endTick;
+			double timeInTicks;
+			double startTick;
+			double endTick;
 			ref_ptr<BufferReference> ref;
 		};
 
@@ -153,9 +153,9 @@ namespace regen {
 		std::vector<KeyFrame> frames_;
 
 		// milliseconds from start of animation
-		GLdouble elapsedTime_;
-		GLdouble ticksPerSecond_;
-		GLdouble lastTime_;
+		double elapsedTime_;
+		double ticksPerSecond_;
+		double lastTime_;
 		Vec2d tickRange_;
 		uint32_t lastFramePosition_;
 		uint32_t startFramePosition_;
@@ -169,10 +169,10 @@ namespace regen {
 		ref_ptr<ShaderInput> findLastAttribute(const std::string &name);
 
 		static void findFrameAfterTick(
-				GLdouble tick, int &frame, std::vector<KeyFrame> &keys);
+				double tick, int &frame, std::vector<KeyFrame> &keys);
 
 		static void findFrameBeforeTick(
-				GLdouble &tick, uint32_t &frame, std::vector<KeyFrame> &keys);
+				double &tick, uint32_t &frame, std::vector<KeyFrame> &keys);
 	};
 } // namespace
 

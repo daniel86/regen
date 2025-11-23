@@ -82,7 +82,7 @@ namespace regen {
 		static float meanRadius();
 
 		// Override
-		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
+		void updateSkyLayer(RenderState *rs, double dt) override;
 
 		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 

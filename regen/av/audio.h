@@ -200,7 +200,7 @@ namespace regen {
 			ref_ptr<AudioBuffer> buffer;
 			AVFrame *avFrame;
 			ALbyte *convertedFrame;
-			GLdouble dts;
+			double dts;
 
 			void free();
 		};
@@ -210,7 +210,7 @@ namespace regen {
 		ALenum alChannelLayout_;
 		ALenum alFormat_;
 		ALint rate_;
-		GLdouble elapsedTime_;
+		double elapsedTime_;
 
 		Stack<ref_ptr<AudioBuffer> > queued_;
 #ifdef HAS_LIBSWRESAMPLE

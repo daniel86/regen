@@ -13,7 +13,7 @@ namespace regen {
 	struct TransformKeyFrame {
 		std::optional<Vec3f> pos = std::nullopt;
 		std::optional<Vec3f> rotation = std::nullopt;
-		GLdouble dt = 0.0;
+		double dt = 0.0;
 	};
 
 	/**
@@ -51,7 +51,7 @@ namespace regen {
 		void setMesh(const ref_ptr<Mesh> &mesh) { mesh_ = mesh; }
 
 		// Override Animation
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
 		/**
 		 * Update the pose.
@@ -67,7 +67,7 @@ namespace regen {
 		std::list<TransformKeyFrame> frames_;
 		typename std::list<TransformKeyFrame>::iterator it_;
 		TransformKeyFrame lastFrame_;
-		GLdouble dt_;
+		double dt_;
 		Vec3f currentPos_;
 		Vec3f currentVel_ = Vec3f::zero();
 		Vec3f currentDir_;

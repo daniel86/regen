@@ -94,9 +94,9 @@ namespace regen {
 		ref_ptr<AudioSource> audioSource();
 
 		// override
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
-		void glAnimate(RenderState *rs, GLdouble dt) override;
+		void glAnimate(RenderState *rs, double dt) override;
 
 	protected:
 		ref_ptr<Demuxer> demuxer_;

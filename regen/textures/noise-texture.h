@@ -50,7 +50,7 @@ namespace regen {
 		 * @param z the z coordinate.
 		 * @return the noise value.
 		 */
-		GLdouble GetValue(GLdouble x, GLdouble y, GLdouble z) const;
+		double GetValue(double x, double y, double z) const;
 
 		/**
 		 * @param randomSeed the random seed.

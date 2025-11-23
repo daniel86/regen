@@ -41,7 +41,7 @@ namespace regen {
 		 * nearVal specifies the mapping of the near clipping plane to window coordinates. The initial value is 0.
 		 * farVal specifies the mapping of the far clipping plane to window coordinates. The initial value is 1.
 		 */
-		void set_depthRange(GLdouble nearVal = 0.0, GLdouble farVal = 1.0);
+		void set_depthRange(double nearVal = 0.0, double farVal = 1.0);
 
 	protected:
 		ref_ptr<State> depthTestToggle_;

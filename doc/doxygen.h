@@ -148,11 +148,11 @@ public:
   MyAnimation()
   : Animation(GL_TRUE,GL_TRUE)
   {}
-  void animate(GLdouble dt)
+  void animate(double dt)
   {
     doSomethingInAnimThread();
   }
-  void glAnimate(RenderState *rs, GLdouble dt)
+  void glAnimate(RenderState *rs, double dt)
   {
     doSomethingInRenderThread();
   }

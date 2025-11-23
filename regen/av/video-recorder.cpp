@@ -21,7 +21,7 @@ namespace regen {
 			desiredFrameRate_ = 30.0f;
 		}
 
-		void animate(GLdouble dt) override {
+		void animate(double dt) override {
 			encoder_->encodeNextFrame();
 		}
 
@@ -182,7 +182,7 @@ void VideoRecorder::updateFrameBuffer() {
 	pboIndex_ = nextIndex;
 }
 
-void VideoRecorder::glAnimate(RenderState *rs, GLdouble dt) {
+void VideoRecorder::glAnimate(RenderState *rs, double dt) {
 	elapsedTime_ += (dt / 1000.0);
 	if (elapsedTime_ >= 1.0 / static_cast<double>(encoder_->fps())) {
 		updateFrameBuffer();

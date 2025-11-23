@@ -166,7 +166,7 @@ float CloudLayer::defaultChangeLow() {
 	return 0.1f;
 }
 
-void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
+void CloudLayer::updateSkyLayer(RenderState *rs, double dt) {
 	static const Vec4f clearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	fbo_->clearAllColorAttachments(clearColor);
 	rs->viewport().push(fbo_->glViewport());

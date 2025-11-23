@@ -289,7 +289,7 @@ ref_ptr<BoidsGPU> BoidsGPU::load(
 	return boids;
 }
 
-void BoidsGPU::glAnimate(RenderState *rs, GLdouble dt) {
+void BoidsGPU::glAnimate(RenderState *rs, double dt) {
 	// limit FPS to 60
 	time_ += dt;
 	bbox_time_ += dt;

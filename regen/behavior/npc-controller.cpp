@@ -433,7 +433,7 @@ void NonPlayerCharacterController::updateController(double dt) {
 	}
 }
 
-void NonPlayerCharacterController::animate(GLdouble dt) {
+void NonPlayerCharacterController::animate(double dt) {
 	updateController(dt);
 	NavigationController::animate(dt);
 }

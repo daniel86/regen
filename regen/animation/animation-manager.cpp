@@ -255,7 +255,7 @@ void AnimationManager::run() {
 				boost::posix_time::microsec_clock::local_time());
 
 		if (!pauseFlag_) {
-			double dt = ((GLdouble) (time_ - lastTime_).total_microseconds()) / 1000.0;
+			double dt = ((double) (time_ - lastTime_).total_microseconds()) / 1000.0;
 			// wait for remove/add to return
 			while (removeInProgress_) usleepRegen(1000);
 			while (addInProgress_) usleepRegen(1000);

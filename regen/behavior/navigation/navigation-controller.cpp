@@ -461,7 +461,7 @@ void NavigationController::updateNavController() {
 	updateNavOrientation(currentPos2D, desiredSpeed);
 }
 
-void NavigationController::animate(GLdouble dt) {
+void NavigationController::animate(double dt) {
 	if (navModeMask_ == NO_NAVIGATION) {
 		currentVel_ = Vec3f::zero();
 		currentSpeed_ = 0.0f;
