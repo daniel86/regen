@@ -20,7 +20,7 @@ namespace regen {
 		if (it != store.params_.end()) {
 			return it->second;
 		} else {
-			GLfloat value;
+			float value;
 			glGetFloatv(param, &value);
 			store.params_[param] = value;
 			return value;

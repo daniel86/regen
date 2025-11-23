@@ -21,7 +21,7 @@ namespace regen {
 		 * @param worldPosition the world position.
 		 * @return world position camera distance.
 		 */
-		GLfloat getEyeDepth(const Vec3f &worldPosition) const;
+		float getEyeDepth(const Vec3f &worldPosition) const;
 
 		/**
 		 * @param n a node.

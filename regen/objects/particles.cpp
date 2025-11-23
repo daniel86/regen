@@ -111,7 +111,7 @@ void Particles::configureAdvancing(
 		AdvanceMode mode) {
 	std::string advanceImportKey;
 	std::string advanceFunction;
-	GLfloat advanceFactor = 1.0f;
+	float advanceFactor = 1.0f;
 	switch (mode) {
 		case ADVANCE_MODE_CUSTOM: {
 			auto needle = advanceFunctions_.find(in->name());

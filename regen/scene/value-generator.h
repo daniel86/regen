@@ -118,7 +118,7 @@ namespace regen {
 			T nextFade() {
 				const T start = n_->getValue<T>("start", Vec::create<T>(1.0f));
 				const T stop = n_->getValue<T>("stop", Vec::create<T>(2.0f));
-				const GLfloat progress = ((GLfloat) counter_.x) / ((GLfloat) numValues_);
+				const float progress = ((float) counter_.x) / ((float) numValues_);
 				value_ = start + (stop - start) * progress;
 				counter_.x += 1;
 				return value_;

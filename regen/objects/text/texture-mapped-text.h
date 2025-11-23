@@ -28,7 +28,7 @@ namespace regen {
 		 * @param font font for the text.
 		 * @param height text height.
 		 */
-		TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height);
+		TextureMappedText(const ref_ptr<Font> &font, const float &height);
 
 		/**
 		 * @param color the text color.
@@ -46,7 +46,7 @@ namespace regen {
 		void set_value(
 				const std::wstring &value,
 				Alignment alignment = ALIGNMENT_LEFT,
-				GLfloat maxLineWidth = 0.0f);
+				float maxLineWidth = 0.0f);
 
 		/**
 		 * Sets the text to be displayed.
@@ -54,12 +54,12 @@ namespace regen {
 		void set_value(
 				const std::list<std::wstring> &lines,
 				Alignment alignment = ALIGNMENT_LEFT,
-				GLfloat maxLineWidth = 0.0f);
+				float maxLineWidth = 0.0f);
 
 		/**
 		 * Sets the y value of the primitive-set topmost point.
 		 */
-		void set_height(GLfloat height);
+		void set_height(float height);
 
 		/**
 		 * Sets the centerAtOrigin flag.
@@ -69,7 +69,7 @@ namespace regen {
 	protected:
 		ref_ptr<Font> font_;
 		std::list<std::wstring> value_;
-		GLfloat height_;
+		float height_;
 		GLboolean centerAtOrigin_;
 		uint32_t numCharacters_;
 
@@ -79,12 +79,12 @@ namespace regen {
 		ref_ptr<ShaderInput3f> norAttribute_;
 		ref_ptr<ShaderInput3f> texcoAttribute_;
 
-		void updateAttributes(Alignment alignment, GLfloat maxLineWidth);
+		void updateAttributes(Alignment alignment, float maxLineWidth);
 
 		void makeGlyphGeometry(
 				const Font::FaceData &data,
 				const Vec3f &translation,
-				GLfloat layer,
+				float layer,
 				ClientData_rw<Vec3f> &posAttribute,
 				ClientData_rw<Vec3f> &norAttribute,
 				ClientData_rw<Vec3f> &texcoAttribute,

@@ -8,7 +8,7 @@ NodeEyeDepthComparator::NodeEyeDepthComparator(
 		  mode_(((int) frontToBack) * 2 - 1) {
 }
 
-GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const {
+float NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const {
 	auto &mat = cam_->view()[0];
 	return mat.x[2] * p.x + mat.x[6] * p.y + mat.x[10] * p.z + mat.x[14];
 }

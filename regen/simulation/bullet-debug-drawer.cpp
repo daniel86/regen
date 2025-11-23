@@ -17,7 +17,7 @@ BulletDebugDrawer::BulletDebugDrawer(const ref_ptr<BulletPhysics> &physics)
 	lineVertices_->setVertexData(2);
 	// Create and set up the VAO and VBO
 	vao_ = ref_ptr<VAO>::alloc();
-	bufferSize_ = sizeof(GLfloat) * 3 * lineVertices_->numVertices();
+	bufferSize_ = sizeof(float) * 3 * lineVertices_->numVertices();
 	glGenBuffers(1, &vbo_);
 }
 

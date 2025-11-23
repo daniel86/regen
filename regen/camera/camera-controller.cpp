@@ -29,27 +29,27 @@ void CameraController::setAttachedTo(
 	pos_ = target->position(0).r;
 }
 
-void CameraController::stepUp(const GLfloat &v) {
+void CameraController::stepUp(const float &v) {
 	step(Vec3f(0.0f, v, 0.0f));
 }
 
-void CameraController::stepDown(const GLfloat &v) {
+void CameraController::stepDown(const float &v) {
 	step(Vec3f(0.0f, -v, 0.0f));
 }
 
-void CameraController::stepForward(const GLfloat &v) {
+void CameraController::stepForward(const float &v) {
 	step(dirXZ_ * v);
 }
 
-void CameraController::stepBackward(const GLfloat &v) {
+void CameraController::stepBackward(const float &v) {
 	step(dirXZ_ * (-v));
 }
 
-void CameraController::stepLeft(const GLfloat &v) {
+void CameraController::stepLeft(const float &v) {
 	step(dirSidestep_ * (-v));
 }
 
-void CameraController::stepRight(const GLfloat &v) {
+void CameraController::stepRight(const float &v) {
 	step(dirSidestep_ * v);
 }
 
@@ -142,7 +142,7 @@ void CameraController::updateModel() {
 	}
 }
 
-void CameraController::applyStep(GLfloat dt, const Vec3f &offset) {
+void CameraController::applyStep(float dt, const Vec3f &offset) {
 	pos_ += offset;
 }
 

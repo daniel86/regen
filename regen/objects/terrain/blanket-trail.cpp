@@ -123,12 +123,12 @@ ref_ptr<BlanketTrail> BlanketTrail::load(LoadingContext &ctx,
 	meshCfg.texcoScale = input.getValue<Vec2f>("texco-scaling", Vec2f::one());
 	meshCfg.blanketSize = input.getValue<Vec2f>("blanket-size", Vec2f(1.0f, 1.0f));
 	meshCfg.isInitiallyDead = input.getValue<bool>("initially-dead", false);
-	meshCfg.blanketLifetime = input.getValue<GLfloat>("blanket-lifetime", 0.0f);
+	meshCfg.blanketLifetime = input.getValue<float>("blanket-lifetime", 0.0f);
 	meshCfg.updateHint = updateFlags;
 	meshCfg.mapMode = input.getValue<BufferMapMode>("map-mode", BUFFER_MAP_DISABLED);
 	meshCfg.accessMode = input.getValue<ClientAccessMode>("access-mode", BUFFER_CPU_WRITE);
 	meshCfg.numTrails = input.getValue<uint32_t>("blanket-trails", 1u);
-	meshCfg.blanketFrequency = input.getValue<GLfloat>("blanket-frequency", 0.5f);
+	meshCfg.blanketFrequency = input.getValue<float>("blanket-frequency", 0.5f);
 	auto blanket = ref_ptr<BlanketTrail>::alloc(groundMesh, meshCfg);
 
 	// early add mesh vector to scene for children handling below

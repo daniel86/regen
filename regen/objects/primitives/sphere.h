@@ -80,7 +80,7 @@ namespace regen {
 		ref_ptr<ShaderInput2f> texco_;
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput> indices_;
-		GLfloat radius_;
+		float radius_;
 
 		void generateLODLevel(const Config &cfg,
 				uint32_t lodLevel,
@@ -109,7 +109,7 @@ namespace regen {
 		 */
 		struct Config {
 			/** one radius for each sphere. */
-			GLfloat *radius;
+			float *radius;
 			/** one position for each sphere. */
 			Vec3f *position;
 			/** number of spheres. */

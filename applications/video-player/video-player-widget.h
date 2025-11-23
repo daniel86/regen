@@ -80,7 +80,7 @@ protected:
 	Ui_mainWindow ui_;
 	ref_ptr<VideoTexture> vid_;
 	ref_ptr<Demuxer> demuxer_;
-	GLfloat gain_;
+	float gain_;
 	QTimer elapsedTimer_;
 	QTableWidgetItem *activePlaylistRow_;
 

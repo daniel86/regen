@@ -114,7 +114,7 @@ ref_ptr<TesselationState> TesselationState::load(LoadingContext &ctx, scene::Sce
 	tess->outerLevel()->setVertex(0,
 								  input.getValue<Vec4f>("outer-level", Vec4f::create(8.0f)));
 	tess->lodFactor()->setVertex(0,
-								 input.getValue<GLfloat>("lod-factor", 4.0f));
+								 input.getValue<float>("lod-factor", 4.0f));
 	tess->set_lodMetric(input.getValue<TesselationState::LoDMetric>(
 			"lod-metric", TesselationState::CAMERA_DISTANCE));
 

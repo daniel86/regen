@@ -102,7 +102,7 @@ void Material::set_twoSided(GLboolean twoSided) {
 	shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }
 
-void Material::set_maxOffset(GLfloat offset) {
+void Material::set_maxOffset(float offset) {
 	maxOffset_ = offset;
 	auto heightMaps = textures_.find(TextureState::MAP_TO_HEIGHT);
 	if (heightMaps != textures_.end()) {
@@ -456,7 +456,7 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 	ref_ptr<Material> mat = ref_ptr<Material>::alloc(updateFlags);
 
 	if (input.hasAttribute("max-offset")) {
-		mat->set_maxOffset(input.getValue<GLfloat>("max-offset", 0.1f));
+		mat->set_maxOffset(input.getValue<float>("max-offset", 0.1f));
 	}
 	if (input.hasAttribute("height-map-mode")) {
 		mat->set_heightMapMode(input.getValue<Material::HeightMapMode>("height-map-mode",
@@ -466,7 +466,7 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 		mat->set_colorBlendMode(input.getValue<BlendMode>("color-blend-mode", BLEND_MODE_SRC));
 	}
 	if (input.hasAttribute("color-blend-factor")) {
-		mat->set_colorBlendFactor(input.getValue<GLfloat>("color-blending-factor", 1.0f));
+		mat->set_colorBlendFactor(input.getValue<float>("color-blending-factor", 1.0f));
 	}
 
 	if (input.hasAttribute("asset")) {
@@ -513,7 +513,7 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 								   input.getValue<Vec3f>("specular", Vec3f::zero()));
 	if (input.hasAttribute("shininess"))
 		mat->shininess()->setVertex(0,
-									input.getValue<GLfloat>("shininess", 1.0f));
+									input.getValue<float>("shininess", 1.0f));
 	if (input.hasAttribute("emission"))
 		mat->set_emission(input.getValue<Vec3f>("emission", Vec3f::zero()));
 	if (input.hasAttribute("textures")) {
@@ -523,9 +523,9 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 	}
 
 	mat->alpha()->setVertex(0,
-							input.getValue<GLfloat>("alpha", 1.0f));
+							input.getValue<float>("alpha", 1.0f));
 	mat->refractionIndex()->setVertex(0,
-									  input.getValue<GLfloat>("refractionIndex", 0.95f));
+									  input.getValue<float>("refractionIndex", 0.95f));
 	mat->set_fillMode(glenum::fillMode(
 			input.getValue<std::string>("fill-mode", "FILL")));
 	if (input.getValue<bool>("two-sided", false)) {

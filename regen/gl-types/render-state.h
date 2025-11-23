@@ -626,13 +626,13 @@ namespace regen {
 		 * Specify the diameter of rasterized points.
 		 * The initial value is 1.
 		 */
-		inline ByValueStateStack<GLfloat> &pointSize() { return pointSize_; }
+		inline ByValueStateStack<float> &pointSize() { return pointSize_; }
 
 		/**
 		 * Specifies the threshold value to which point sizes are clamped
 		 * if they exceed the specified value. The default value is 1.0.
 		 */
-		inline KeyedStateStack<GLfloat> &pointFadeThreshold() { return pointFadeThreshold_; }
+		inline KeyedStateStack<float> &pointFadeThreshold() { return pointFadeThreshold_; }
 
 		/**
 		 * Specify the point sprite texture coordinate origin,
@@ -662,12 +662,12 @@ namespace regen {
 		 * Specify the width of rasterized lines.
 		 * The initial value is 1.
 		 */
-		inline ByValueStateStack<GLfloat> &lineWidth() { return lineWidth_; }
+		inline ByValueStateStack<float> &lineWidth() { return lineWidth_; }
 
 		/**
 		 * Specifies minimum rate at which sample shaing takes place.
 		 */
-		inline ByValueStateStack<GLfloat> &sampleShading() { return minSampleShading_; }
+		inline ByValueStateStack<float> &sampleShading() { return minSampleShading_; }
 
 		/**
 		 * Specify a logical pixel operation for rendering.
@@ -737,8 +737,8 @@ namespace regen {
 		KeyedStateStack<GLenum> polygonMode_;
 		ByReferenceStateStack<Vec2f> polygonOffset_;
 
-		ByValueStateStack<GLfloat> pointSize_;
-		KeyedStateStack<GLfloat> pointFadeThreshold_;
+		ByValueStateStack<float> pointSize_;
+		KeyedStateStack<float> pointFadeThreshold_;
 		KeyedStateStack<int> pointSpriteOrigin_;
 
 		KeyedStateStack<int> patchVertices_;
@@ -746,8 +746,8 @@ namespace regen {
 
 		IndexedStateStack<ColorMask> colorMask_;
 
-		ByValueStateStack<GLfloat> lineWidth_;
-		ByValueStateStack<GLfloat> minSampleShading_;
+		ByValueStateStack<float> lineWidth_;
+		ByValueStateStack<float> minSampleShading_;
 		ByValueStateStack<GLenum> logicOp_;
 		ByValueStateStack<GLenum> frontFace_;
 

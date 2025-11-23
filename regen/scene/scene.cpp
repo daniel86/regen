@@ -141,8 +141,8 @@ void Scene::updateMousePosition() {
 	auto viewport = screen_->viewport();
 	// mouse position in range [0,1] within viewport
 	mouseTexco_->setVertex(0, Vec2f(
-			mousePosition.r.x / (GLfloat) viewport.r.x,
-			1.0f - mousePosition.r.y / (GLfloat) viewport.r.y));
+			mousePosition.r.x / (float) viewport.r.x,
+			1.0f - mousePosition.r.y / (float) viewport.r.y));
 }
 
 void Scene::mouseMove(const Vec2i &pos) {

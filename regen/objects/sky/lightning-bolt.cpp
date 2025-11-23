@@ -334,7 +334,7 @@ void LightningBolt::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				strike->lifetimeConfig_ = lifetime;
 			}
 			if (child->hasAttribute("jitter-offset")) {
-				strike->jitterOffset_ = child->getValue<GLfloat>("jitter-offset", 8.0f);
+				strike->jitterOffset_ = child->getValue<float>("jitter-offset", 8.0f);
 			}
 			if (child->hasAttribute("frequency")) {
 				auto frequency = child->getValue<Vec2f>("frequency", Vec2f::zero());
@@ -342,19 +342,19 @@ void LightningBolt::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				strike->hasFrequency_ = (frequency.x != 0.0f || frequency.y != 0.0f);
 			}
 			if (child->hasAttribute("branch-probability")) {
-				strike->branchProbability_ = child->getValue<GLfloat>("branch-probability", 0.5f);
+				strike->branchProbability_ = child->getValue<float>("branch-probability", 0.5f);
 			}
 			if (child->hasAttribute("branch-offset")) {
-				strike->branchOffset_ = child->getValue<GLfloat>("branch-offset", 0.5f);
+				strike->branchOffset_ = child->getValue<float>("branch-offset", 0.5f);
 			}
 			if (child->hasAttribute("branch-length")) {
-				strike->branchLength_ = child->getValue<GLfloat>("branch-length", 0.5f);
+				strike->branchLength_ = child->getValue<float>("branch-length", 0.5f);
 			}
 			if (child->hasAttribute("branch-darkening")) {
-				strike->branchDarkening_ = child->getValue<GLfloat>("branch-darkening", 0.5f);
+				strike->branchDarkening_ = child->getValue<float>("branch-darkening", 0.5f);
 			}
 			if (child->hasAttribute("width-factor")) {
-				strike->widthFactor_ = child->getValue<GLfloat>("width-factor", 0.5f);
+				strike->widthFactor_ = child->getValue<float>("width-factor", 0.5f);
 			}
 			addLightningStrike(strike);
 		}

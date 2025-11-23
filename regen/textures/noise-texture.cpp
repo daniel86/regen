@@ -7,7 +7,7 @@
 using namespace regen;
 using namespace noise;
 
-static GLfloat sampleNoise(
+static float sampleNoise(
 		const NoiseGenerator &noiseGen,
 		double x, double y, double z,
 		bool isSeamless2D,
@@ -69,7 +69,7 @@ void NoiseTexture2D::updateNoise() {
 		for (uint32_t y = 0u; y < height(); ++y) {
 			float fx = noiseScale_ * float(x) / float(width());
 			float fy = noiseScale_ * float(y) / float(height());
-			GLfloat val = sampleNoise(gen, fx, fy, 0.0, isSeamless_, false);
+			float val = sampleNoise(gen, fx, fy, 0.0, isSeamless_, false);
 			*dataPtr = static_cast<GLubyte>(val * 255.0f);
 			++dataPtr;
 		}
@@ -106,7 +106,7 @@ void NoiseTexture3D::updateNoise() {
 				float fx = noiseScale_ * float(x) / float(width());
 				float fy = noiseScale_ * float(y) / float(height());
 				float fz = noiseScale_ * float(z) / float(depth());
-				GLfloat val = sampleNoise(gen, fx, fy, fz, false, isSeamless_);
+				float val = sampleNoise(gen, fx, fy, fz, false, isSeamless_);
 				*dataPtr = static_cast<GLubyte>(val * 255.0f);
 				++dataPtr;
 			}

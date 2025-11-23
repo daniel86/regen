@@ -385,7 +385,7 @@ void MeshViewerWidget::selectMesh(int32_t meshIndex, uint32_t lodIndex) {
 
 static ref_ptr<Camera> createUserCamera(const Vec2i &viewport) {
 	auto cam = ref_ptr<Camera>::alloc(1);
-	float aspect = (GLfloat) viewport.x / (GLfloat) viewport.y;
+	float aspect = (float) viewport.x / (float) viewport.y;
 	cam->set_isAudioListener(false);
 	cam->setPosition(0, Vec3f(0.0f, 0.0f, -3.0f));
 	cam->setDirection(0, Vec3f(0.0f, 0.0f, 1.0f));

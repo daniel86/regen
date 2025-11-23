@@ -260,7 +260,7 @@ namespace regen {
 		 * @param units is multiplied by an implementation-specific value to
 		 *    create a constant depth offset. The initial value is 0.
 		 */
-		PolygonOffsetState(GLfloat factor, GLfloat units)
+		PolygonOffsetState(float factor, float units)
 				: PolygonState(), factor_(factor), units_(units) {}
 
 		void enable(RenderState *rs) override {
@@ -274,7 +274,7 @@ namespace regen {
 		}
 
 	protected:
-		GLfloat factor_, units_;
+		float factor_, units_;
 	};
 
 	/**

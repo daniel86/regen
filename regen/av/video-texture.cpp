@@ -162,11 +162,11 @@ void VideoTexture::animate(GLdouble animateDT) {
 		}
 
 		// set next interval
-		auto *t = (GLfloat *) frame->opaque;
+		auto *t = (float *) frame->opaque;
 		if (!seeked_) {
 			// set timeout interval to time difference to last frame plus a correction
 			// value because the last timeout call was not exactly the wanted interval
-			GLfloat dt = (*t) - elapsedSeconds_;
+			float dt = (*t) - elapsedSeconds_;
 			intervalMili_ = std::max(0.0f, dt * 1000.0f - diff);
 		} else {
 			seeked_ = GL_FALSE;

@@ -49,11 +49,11 @@ FBO::FBO(uint32_t width, uint32_t height, uint32_t depth)
 	viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
 	viewport_->setEditable(false);
 	viewport_->setUniformData(
-			Vec2f((GLfloat) width, (GLfloat) height));
+			Vec2f((float) width, (float) height));
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
 	inverseViewport_->setEditable(false);
 	inverseViewport_->setUniformData(
-			Vec2f(1.0 / (GLfloat) width, 1.0 / (GLfloat) height));
+			Vec2f(1.0 / (float) width, 1.0 / (float) height));
 	glViewport_ = Vec4ui(0, 0, width, height);
 
 	applyReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -321,11 +321,11 @@ void FBO::blitCopy(
 	}
 	if (keepRatio) {
 		uint32_t dstWidth = dst.width();
-		uint32_t dstHeight = dst.width() * ((GLfloat) width() / height());
+		uint32_t dstHeight = dst.width() * ((float) width() / height());
 		uint32_t offsetX, offsetY;
 		if (dstHeight > dst.height()) {
 			dstHeight = dst.height();
-			dstWidth = dst.height() * ((GLfloat) height() / width());
+			dstWidth = dst.height() * ((float) height() / width());
 			offsetX = (dst.width() - dstWidth) / 2;
 			offsetY = 0;
 		} else {
@@ -368,11 +368,11 @@ void FBO::blitCopyToScreen(
 	glNamedFramebufferDrawBuffer(0, GL_FRONT);
 	if (keepRatio) {
 		uint32_t dstWidth = screenWidth;
-		uint32_t dstHeight = screenWidth * ((GLfloat) width() / height());
+		uint32_t dstHeight = screenWidth * ((float) width() / height());
 		uint32_t offsetX, offsetY;
 		if (dstHeight > screenHeight) {
 			dstHeight = screenHeight;
-			dstWidth = screenHeight * ((GLfloat) height() / width());
+			dstWidth = screenHeight * ((float) height() / width());
 			offsetX = (screenWidth - dstWidth) / 2;
 			offsetY = 0;
 		} else {
@@ -422,7 +422,7 @@ void FBO::clearColorAttachment(uint32_t attachmentIdx, const Vec4f &color) {
 			&color.x);
 }
 
-void FBO::clearDepthAttachment(GLfloat depth) {
+void FBO::clearDepthAttachment(float depth) {
 	glClearNamedFramebufferfv(
 			id(),
 			GL_DEPTH,
@@ -447,9 +447,9 @@ void FBO::resize(uint32_t w, uint32_t h, uint32_t depth) {
 	depth_ = depth;
 
 	viewport_->setVertex(0,
-		Vec2f((GLfloat) w, (GLfloat) h));
+		Vec2f((float) w, (float) h));
 	inverseViewport_->setVertex(0,
-		Vec2f(1.0f / (GLfloat) w, 1.0f / (GLfloat) h));
+		Vec2f(1.0f / (float) w, 1.0f / (float) h));
 	glViewport_ = Vec4ui(0, 0, w, h);
 
 	// resize depth attachment
@@ -528,7 +528,7 @@ namespace regen {
 		FBOResizer(Scene *scene,
 			const ref_ptr<FBO> &fbo,
 			const ref_ptr<Screen> &screen,
-			GLfloat wScale, GLfloat hScale)
+			float wScale, float hScale)
 				: EventHandler(),
 				  scene_(scene),
 				  fbo_(fbo),
@@ -549,7 +549,7 @@ namespace regen {
 		Scene *scene_;
 		ref_ptr<FBO> fbo_;
 		ref_ptr<Screen> screen_;
-		GLfloat wScale_, hScale_;
+		float wScale_, hScale_;
 	};
 }
 

@@ -89,7 +89,7 @@ KinematicPlayerController::~KinematicPlayerController() {
 	}
 }
 
-void KinematicPlayerController::setGravityForce(GLfloat force) {
+void KinematicPlayerController::setGravityForce(float force) {
 	btGravityForce_ = force;
 	if (btController_.get()) {
 		btController_->setGravity(btVector3(0, -btGravityForce_, 0));
@@ -97,7 +97,7 @@ void KinematicPlayerController::setGravityForce(GLfloat force) {
 }
 
 
-void KinematicPlayerController::setMaxSlope(GLfloat maxSlope) {
+void KinematicPlayerController::setMaxSlope(float maxSlope) {
 	btMaxSlope_ = maxSlope;
 	if (btController_.get()) {
 		btController_->setMaxSlope(btMaxSlope_);
@@ -183,7 +183,7 @@ void KinematicPlayerController::applyStep(float dt, const Vec3f &offset) {
 	ghostTransform.getOpenGLMatrix((btScalar *) &matVal_);
 	// decrease the y position by the collision height, else
 	// the character would float above the ground
-	GLfloat heightAdjust = btCollisionHeight_ * 0.5f + btCollisionRadius_;
+	float heightAdjust = btCollisionHeight_ * 0.5f + btCollisionRadius_;
 	matVal_.x[13] -= heightAdjust;
 
 	btVector3 btVelocity = btController_->getLinearVelocity();

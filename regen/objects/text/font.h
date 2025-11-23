@@ -52,19 +52,19 @@ namespace regen {
 		 */
 		typedef struct {
 			/** face width */
-			GLfloat width;
+			float width;
 			/** face height */
-			GLfloat height;
+			float height;
 			/** max uv.x in array texture (min is 0). */
-			GLfloat uvX;
+			float uvX;
 			/** max uv.y in array texture (min is 0). */
-			GLfloat uvY;
+			float uvY;
 			/** left margin */
-			GLfloat left;
+			float left;
 			/** top margin */
-			GLfloat top;
+			float top;
 			/** distance to net glyph */
-			GLfloat advanceX;
+			float advanceX;
 		} FaceData;
 
 		/**
@@ -128,7 +128,7 @@ namespace regen {
 		const uint32_t dpi_;
 		ref_ptr<Texture2DArray> arrayTexture_;
 		FaceData *faceData_;
-		GLfloat lineHeight_;
+		float lineHeight_;
 
 		Font(const Font &)
 				: fontPath_(""),

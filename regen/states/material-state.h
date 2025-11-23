@@ -160,12 +160,12 @@ namespace regen {
 		 * Sets the blending factor for color and diffuse maps
 		 * added to this material.
 		 */
-		void set_colorBlendFactor(GLfloat factor) { colorBlendFactor_ = factor; }
+		void set_colorBlendFactor(float factor) { colorBlendFactor_ = factor; }
 
 		/**
 		 * Sets the maximum height offset for height and displacement maps.
 		 */
-		void set_maxOffset(GLfloat offset);
+		void set_maxOffset(float offset);
 
 		/**
 		 * Sets the height map mode.

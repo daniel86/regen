@@ -94,8 +94,8 @@ namespace regen {
 		return i;
 	}
 
-	GLfloat glGetFloat(GLenum e) {
-		GLfloat i = 0;
+	float glGetFloat(GLenum e) {
+		float i = 0;
 		glGetFloatv(e, &i);
 		return i;
 	}

@@ -34,9 +34,9 @@ namespace regen {
 		 */
 		struct Config {
 			/** cosine of cone angle */
-			GLfloat cosAngle;
+			float cosAngle;
 			/** distance from apex to base */
-			GLfloat height;
+			float height;
 			/** generate normal attribute ? */
 			GLboolean isNormalRequired;
 			/** subdivisions = 4*levelOfDetail^2 */
@@ -89,9 +89,9 @@ namespace regen {
 		 */
 		struct Config {
 			/** the base radius */
-			GLfloat radius;
+			float radius;
 			/** the base apex distance */
-			GLfloat height;
+			float height;
 			/** generate cone normals */
 			GLboolean isNormalRequired;
 			/** generate cone base geometry */

@@ -26,10 +26,10 @@ QColor ColorWidget::initializeColor() {
 	uint32_t count = input_->valsPerElement();
 	QColor color;
 	if (input_->baseType() == GL_FLOAT) {
-		GLfloat r = ((GLfloat *) value)[0];
-		GLfloat g = ((GLfloat *) value)[1];
-		GLfloat b = ((GLfloat *) value)[2];
-		GLfloat a = (count == 4) ? ((GLfloat *) value)[3] : 1.0f;
+		float r = ((float *) value)[0];
+		float g = ((float *) value)[1];
+		float b = ((float *) value)[2];
+		float a = (count == 4) ? ((float *) value)[3] : 1.0f;
 		mapped.unmap();
 		color.setRgbF(r, g, b, a);
 	} else {
@@ -56,11 +56,11 @@ void ColorWidget::updateColor(const QColor &color) {
 	uint32_t count = input_->valsPerElement();
 	byte *changedData = new byte[input_->elementSize()];
 	if (input_->baseType() == GL_FLOAT) {
-		((GLfloat *) changedData)[0] = color.redF();
-		((GLfloat *) changedData)[1] = color.greenF();
-		((GLfloat *) changedData)[2] = color.blueF();
+		((float *) changedData)[0] = color.redF();
+		((float *) changedData)[1] = color.greenF();
+		((float *) changedData)[2] = color.blueF();
 		if (count == 4) {
-			((GLfloat *) changedData)[3] = color.alphaF();
+			((float *) changedData)[3] = color.alphaF();
 		}
 	}
 	input_->writeVertex(0, changedData);
@@ -82,10 +82,10 @@ void ColorWidget::pickColor() {
 	const byte *value = mapped.r;
 	QColor initialColor;
 	if (input_->baseType() == GL_FLOAT) {
-		GLfloat r = ((GLfloat *) value)[0];
-		GLfloat g = ((GLfloat *) value)[1];
-		GLfloat b = ((GLfloat *) value)[2];
-		GLfloat a = (count == 4) ? ((GLfloat *) value)[3] : 1.0f;
+		float r = ((float *) value)[0];
+		float g = ((float *) value)[1];
+		float b = ((float *) value)[2];
+		float a = (count == 4) ? ((float *) value)[3] : 1.0f;
 		mapped.unmap();
 		initialColor.setRgbF(r, g, b, a);
 	} else {
@@ -125,7 +125,7 @@ void ColorWidget::alphaChanged() {
 	auto mapped = input_->mapClientDataRaw(BUFFER_GPU_READ);
 	const byte *value = mapped.r;
 	if (input_->baseType() == GL_FLOAT) {
-		((GLfloat *) value)[3] = static_cast<GLfloat>(sliderValue) / 1000.0f;
+		((float *) value)[3] = static_cast<float>(sliderValue) / 1000.0f;
 	} else {
 		REGEN_WARN("Unsupported data type for color input.");
 		return;

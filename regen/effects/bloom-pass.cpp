@@ -59,8 +59,8 @@ void BloomPass::downsample(RenderState *rs) {
 
 	downsampleState_->enable(rs);
 	glUniform2f(inverseInputSizeLocDS_,
-				static_cast<GLfloat>(1.0 / nextInputTexture->width()),
-				static_cast<GLfloat>(1.0 / nextInputTexture->height()));
+				static_cast<float>(1.0 / nextInputTexture->width()),
+				static_cast<float>(1.0 / nextInputTexture->height()));
 
 	for (auto &mip: bloomTexture_->mips()) {
 		glNamedFramebufferTexture(fbo_->id(),

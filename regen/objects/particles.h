@@ -130,7 +130,7 @@ namespace regen {
 		 * @param attributeName name of the attribute.
 		 * @param factor advance factor.
 		 */
-		void setAdvanceFactor(const std::string &attributeName, GLfloat factor) { advanceFactors_.emplace(attributeName, factor); }
+		void setAdvanceFactor(const std::string &attributeName, float factor) { advanceFactors_.emplace(attributeName, factor); }
 
 		/**
 		 * Set the advance function for a particle attribute.
@@ -179,7 +179,7 @@ namespace regen {
 
 		std::map<std::string, AdvanceMode> advanceModes_;
 		std::map<std::string, std::string> advanceFunctions_;
-		std::map<std::string, GLfloat> advanceFactors_;
+		std::map<std::string, float> advanceFactors_;
 		struct Ramp {
 			ref_ptr<Texture> texture;
 			RampMode mode;

@@ -145,11 +145,11 @@ MeshAnimation::MeshAnimation(
 	}
 }
 
-void MeshAnimation::setFriction(GLfloat friction) {
+void MeshAnimation::setFriction(float friction) {
 	frictionUniform_->setUniformData(friction);
 }
 
-void MeshAnimation::setFrequency(GLfloat frequency) {
+void MeshAnimation::setFrequency(float frequency) {
 	frequencyUniform_->setUniformData(frequency);
 }
 
@@ -414,8 +414,8 @@ ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const std::string &name) {
 }
 
 void MeshAnimation::addSphereAttributes(
-		GLfloat horizontalRadius,
-		GLfloat verticalRadius,
+		float horizontalRadius,
+		float verticalRadius,
 		GLdouble timeInTicks,
 		const Vec3f &offset) {
 	if (!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
@@ -426,7 +426,7 @@ void MeshAnimation::addSphereAttributes(
 		REGEN_WARN("mesh has no input named '" << ATTRIBUTE_NAME_NOR << "'");
 		return;
 	}
-	//GLfloat radiusScale = horizontalRadius / verticalRadius;
+	//float radiusScale = horizontalRadius / verticalRadius;
 	//Vec3f scale(radiusScale, 1.0, radiusScale);
 
 	ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->positions());
@@ -597,9 +597,9 @@ static void cubizePoint(Vec3f& position)
 #endif
 
 void MeshAnimation::addBoxAttributes(
-		GLfloat width,
-		GLfloat height,
-		GLfloat depth,
+		float width,
+		float height,
+		float depth,
 		GLdouble timeInTicks,
 		const Vec3f &offset) {
 	if (!mesh_->hasInput(ATTRIBUTE_NAME_POS)) {
@@ -663,7 +663,7 @@ void MeshAnimation::addBoxAttributes(
 		GLdouble xAbs = abs(vCopy.x);
 		GLdouble yAbs = abs(vCopy.y);
 		GLdouble zAbs = abs(vCopy.z);
-		GLfloat h, factor;
+		float h, factor;
 		// set the coordinate for the face to the cube size
 		if (xAbs > yAbs && xAbs > zAbs) { // left/right face
 			factor = (v.x < 0.0f ? -1.0f : 1.0f);

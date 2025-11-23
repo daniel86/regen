@@ -75,7 +75,7 @@ namespace regen {
 	/**
 	 * Query a GL float attribute.
 	 */
-	GLfloat glGetFloat(GLenum e);
+	float glGetFloat(GLenum e);
 
 	int getGLBufferInteger(GLenum target, GLenum e);
 

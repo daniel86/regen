@@ -253,7 +253,7 @@ std::vector<ref_ptr<PersonController>> PersonController::load(
 		controller->setVelOrientationWeight(node.getValue<float>("velocity-orientation-weight", 0.5f));
 		controller->setFloorHeight(node.getValue<float>("floor-height", 0.0f));
 		if (node.hasAttribute("base-orientation")) {
-			controller->setBaseOrientation(node.getValue<GLfloat>("base-orientation", 0.0f));
+			controller->setBaseOrientation(node.getValue<float>("base-orientation", 0.0f));
 		}
 
 		auto &kb = controller->knowledgeBase();

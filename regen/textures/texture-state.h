@@ -206,7 +206,7 @@ namespace regen {
 		 * @param factor Specifies how this texture should be mixed with existing
 		 * pixels.
 		 */
-		void set_blendFactor(GLfloat factor);
+		void set_blendFactor(float factor);
 
 		/**
 		 * @param mapping Specifies how a texture should be mapped on geometry.

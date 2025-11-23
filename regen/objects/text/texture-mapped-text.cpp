@@ -7,7 +7,7 @@
 
 using namespace regen;
 
-TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height)
+TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const float &height)
 		: Mesh(GL_TRIANGLES, BufferUpdateFlags::NEVER ),
 		  font_(font),
 		  value_(),
@@ -34,14 +34,14 @@ void TextureMappedText::set_color(const Vec4f &color) {
 	textColor_->setVertex(0, color);
 }
 
-void TextureMappedText::set_height(GLfloat height) { height_ = height; }
+void TextureMappedText::set_height(float height) { height_ = height; }
 
 const std::list<std::wstring> &TextureMappedText::value() const { return value_; }
 
 void TextureMappedText::set_value(
 		const std::list<std::wstring> &value,
 		Alignment alignment,
-		GLfloat maxLineWidth) {
+		float maxLineWidth) {
 	value_ = value;
 	numCharacters_ = 0;
 	for (auto it = value.begin(); it != value.end(); ++it) {
@@ -53,17 +53,17 @@ void TextureMappedText::set_value(
 void TextureMappedText::set_value(
 		const std::wstring &value,
 		Alignment alignment,
-		GLfloat maxLineWidth) {
+		float maxLineWidth) {
 	std::list<std::wstring> v;
 	boost::split(v, value, boost::is_any_of("\n"));
 	set_value(v, alignment, maxLineWidth);
 }
 
-void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWidth) {
+void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth) {
 	Vec3f translation, glyphTranslation;
 	uint32_t vertexCounter = 0u;
 
-	GLfloat actualMaxLineWidth = 0.0;
+	float actualMaxLineWidth = 0.0;
 
 	posAttribute_->setVertexData(numCharacters_ * 6);
 	texcoAttribute_->setVertexData(numCharacters_ * 6);
@@ -80,12 +80,12 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	for (auto it = value_.begin(); it != value_.end(); ++it) {
 		translation.y -= font_->lineHeight() * height_;
 
-		GLfloat buf;
+		float buf;
 		// actual width for this line
-		GLfloat lineWidth = 0.0;
+		float lineWidth = 0.0;
 		// remember space for splitting string at words
 		int lastSpaceIndex = 0;
-		GLfloat lastSpaceWidth = 0.0;
+		float lastSpaceWidth = 0.0;
 
 		// get line width and split the line
 		// where it exceeds the width limit
@@ -156,7 +156,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 
 	// apply offset to each vertex
 	if (centerAtOrigin_) {
-		GLfloat centerOffset = actualMaxLineWidth * 0.5f;
+		float centerOffset = actualMaxLineWidth * 0.5f;
 		for (uint32_t i = 0; i < vertexCounter; ++i) {
 			v_pos.w[i].x -= centerOffset;
 		}
@@ -184,7 +184,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 void TextureMappedText::makeGlyphGeometry(
 		const Font::FaceData &data,
 		const Vec3f &translation,
-		GLfloat layer,
+		float layer,
 		ClientData_rw<Vec3f> &posAttribute,
 		ClientData_rw<Vec3f> &norAttribute,
 		ClientData_rw<Vec3f> &texcoAttribute,

@@ -89,7 +89,7 @@ namespace regen {
 		/**
 		 * @param v move velocity.
 		 */
-		void set_moveAmount(GLfloat v) { moveAmount_ = v; }
+		void set_moveAmount(float v) { moveAmount_ = v; }
 
 		/**
 		 * @param v moving forward toggle.
@@ -124,32 +124,32 @@ namespace regen {
 		/**
 		 * @param v the amount to step forward.
 		 */
-		void stepForward(const GLfloat &v);
+		void stepForward(const float &v);
 
 		/**
 		 * @param v the amount to step backward.
 		 */
-		void stepBackward(const GLfloat &v);
+		void stepBackward(const float &v);
 
 		/**
 		 * @param v the amount to step left.
 		 */
-		void stepLeft(const GLfloat &v);
+		void stepLeft(const float &v);
 
 		/**
 		 * @param v the amount to step right.
 		 */
-		void stepRight(const GLfloat &v);
+		void stepRight(const float &v);
 
 		/**
 		 * @param v the amount to step up.
 		 */
-		void stepUp(const GLfloat &v);
+		void stepUp(const float &v);
 
 		/**
 		 * @param v the amount to step down.
 		 */
-		void stepDown(const GLfloat &v);
+		void stepDown(const float &v);
 
 		/**
 		 * @param v the amount to change the position.
@@ -200,7 +200,7 @@ namespace regen {
 		 * @param distance the distance to the mesh.
 		 * @note only has an effect in third person mode.
 		 */
-		void setMeshDistance(GLfloat distance) { meshDistance_ = distance; }
+		void setMeshDistance(float distance) { meshDistance_ = distance; }
 
 		/**
 		 * @param offset the offset to the "eye position" of the mesh.
@@ -217,7 +217,7 @@ namespace regen {
 		 * Move a step in the direction of the given offset.
 		 * @param offset the offset.
 		 */
-		virtual void applyStep(GLfloat dt, const Vec3f &offset);
+		virtual void applyStep(float dt, const Vec3f &offset);
 
 		/**
 		 * Jump.
@@ -236,7 +236,7 @@ namespace regen {
 		ref_ptr<ModelTransformation> attachedToTransform_;
 		ref_ptr<Mesh> attachedToMesh_;
 		Vec3f meshPos_;
-		GLfloat meshDistance_;
+		float meshDistance_;
 
 		Vec3f pos_;
 		Vec3f step_;

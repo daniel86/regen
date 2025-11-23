@@ -69,12 +69,12 @@ namespace regen {
 		/**
 		 * Set the friction of the animation.
 		 */
-		void setFriction(GLfloat friction);
+		void setFriction(float friction);
 
 		/**
 		 * Set the frequency of the animation.
 		 */
-		void setFrequency(GLfloat frequency);
+		void setFrequency(float frequency);
 
 		/**
 		 * Add a custom mesh frame.
@@ -98,8 +98,8 @@ namespace regen {
 		 * @param timeInTicks number of ticks for this morph.
 		 */
 		void addSphereAttributes(
-				GLfloat horizontalRadius,
-				GLfloat verticalRadius,
+				float horizontalRadius,
+				float verticalRadius,
 				GLdouble timeInTicks,
 				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 
@@ -111,9 +111,9 @@ namespace regen {
 		 * @param timeInTicks number of ticks for this morph.
 		 */
 		void addBoxAttributes(
-				GLfloat width,
-				GLfloat height,
-				GLfloat depth,
+				float width,
+				float height,
+				float depth,
 				GLdouble timeInTicks,
 				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 

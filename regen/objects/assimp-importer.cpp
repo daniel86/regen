@@ -115,16 +115,16 @@ void AssetImporter::setAiProcessFlags_Regen() {
 ///////////// LIGHTS
 
 static void setLightRadius(aiLight *aiLight, ref_ptr<Light> &light) {
-	GLfloat ax = aiLight->mAttenuationLinear;
-	GLfloat ay = aiLight->mAttenuationConstant;
-	GLfloat az = aiLight->mAttenuationQuadratic;
-	GLfloat z = ay / (2.0f * az);
+	float ax = aiLight->mAttenuationLinear;
+	float ay = aiLight->mAttenuationConstant;
+	float az = aiLight->mAttenuationQuadratic;
+	float z = ay / (2.0f * az);
 
-	GLfloat start = 0.01;
-	GLfloat stop = 0.99;
+	float start = 0.01;
+	float stop = 0.99;
 
-	GLfloat inner = -z + sqrt(z * z - (ax / start - 1.0f / (start * az)));
-	GLfloat outer = -z + sqrt(z * z - (ax / stop - 1.0f / (stop * az)));
+	float inner = -z + sqrt(z * z - (ax / start - 1.0f / (start * az)));
+	float outer = -z + sqrt(z * z - (ax / stop - 1.0f / (stop * az)));
 
 	light->setRadius(0, Vec2f(inner, outer));
 }
@@ -863,7 +863,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 		texco->setVertexData(numVertices);
 		auto v_texco = (float*) texco->clientBuffer()->clientData(0);
 		for (uint32_t n = 0; n < numVertices; ++n) {
-			GLfloat *aiTexcoData = &(aiTexcos[n].x);
+			float *aiTexcoData = &(aiTexcos[n].x);
 			for (uint32_t x = 0; x < texcoComponents; ++x) v_texco[x] = aiTexcoData[x];
 			v_texco += texcoComponents;
 		}
@@ -879,7 +879,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			Vec3f &b = *((Vec3f *) &mesh.mBitangents[i].x);
 			Vec3f &n = *((Vec3f *) &mesh.mNormals[i].x);
 			// Calculate the handedness of the local tangent space.
-			GLfloat handeness;
+			float handeness;
 			if (n.cross(t).dot(b) < 0.0) {
 				handeness = -1.0;
 			} else {
@@ -896,7 +896,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	// Its offset matrix declares the transformation needed to transform from mesh space
 	// to the local space of this bone.
 	if (mesh.HasBones()) {
-		typedef list<pair<GLfloat, uint32_t> > WeightList;
+		typedef list<pair<float, uint32_t> > WeightList;
 		map<uint32_t, WeightList> vertexToWeights;
 		uint32_t maxNumWeights = 0;
 
@@ -920,7 +920,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			auto boneIndices = ref_ptr<ShaderInput1ui>::alloc("boneIndices", maxNumWeights);
 			boneWeights->setVertexData(numVertices);
 			boneIndices->setVertexData(numVertices);
-			auto v_weights = (GLfloat*) boneWeights->clientBuffer()->clientData(0);
+			auto v_weights = (float*) boneWeights->clientBuffer()->clientData(0);
 			auto v_indices = (uint32_t*) boneIndices->clientBuffer()->clientData(0);
 
 			for (uint32_t j = 0; j < numVertices; j++) {
@@ -1178,7 +1178,7 @@ ref_ptr<AssetImporter> AssetImporter::load(LoadingContext &ctx, scene::SceneInpu
 	animConfig.forceStates =
 			input.getValue<bool>("animation-force-states", true);
 	animConfig.ticksPerSecond =
-			input.getValue<GLfloat>("animation-tps", 20.0);
+			input.getValue<float>("animation-tps", 20.0);
 	animConfig.postState = input.getValue<AnimationChannelBehavior>(
 			"animation-post-state",
 			AnimationChannelBehavior::LINEAR);
@@ -1192,7 +1192,7 @@ ref_ptr<AssetImporter> AssetImporter::load(LoadingContext &ctx, scene::SceneInpu
 			asset->setTexturePath(resourcePath(input.getValue("texture-path")));
 		}
 		if (input.hasAttribute("emission-strength")) {
-			asset->setEmissionStrength(input.getValue<GLfloat>("emission-strength", 1.0f));
+			asset->setEmissionStrength(input.getValue<float>("emission-strength", 1.0f));
 		}
 		auto preset = input.getValue<std::string>("preset", "");
 		if (preset == "fast") {

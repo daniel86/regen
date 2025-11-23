@@ -185,7 +185,7 @@ ref_ptr<FilterSequence> FilterSequence::load(LoadingContext &ctx, scene::SceneIn
 		}
 		filterSeq->addFilter(ref_ptr<Filter>::alloc(
 				n->getValue("shader"),
-				n->getValue<GLfloat>("scale", 1.0f)));
+				n->getValue<float>("scale", 1.0f)));
 	}
 
 	StateConfigurer shaderConfigurer;

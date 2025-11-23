@@ -21,7 +21,7 @@ namespace regen {
 		 * @param timeScale scale for dt values.
 		 * @param name optional timer name.
 		 */
-		explicit TimerInput(GLfloat timeScale, const std::string &name = "time")
+		explicit TimerInput(float timeScale, const std::string &name = "time")
 				: ShaderInput1f(name),
 				  Animation(false, true),
 				  timeScale_(timeScale) {
@@ -35,7 +35,7 @@ namespace regen {
 		}
 
 	private:
-		GLfloat timeScale_;
+		float timeScale_;
 	};
 } // namespace
 
@@ -241,7 +241,7 @@ namespace regen {
 				else {
 					auto type = input.getValue<std::string>("type", "");
 					if (type == "time") {
-						auto scale = input.getValue<GLfloat>("scale", 1.0f);
+						auto scale = input.getValue<float>("scale", 1.0f);
 						auto timer = ref_ptr<TimerInput>::alloc(scale);
 						in = timer;
 						timer->startAnimation();

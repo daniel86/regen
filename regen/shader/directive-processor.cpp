@@ -115,7 +115,7 @@ string DirectiveProcessor::MacroTree::define(const string &arg) {
 		const string &arg0 = define(arg0_);
 		const string &arg1 = define(arg1_);
 		if (!isNumber(arg0) || !isNumber(arg1)) return arg;
-		GLfloat number0, number1;
+		float number0, number1;
 		stringstream(arg0) >> number0;
 		stringstream(arg1) >> number1;
 		if (op == "+") return REGEN_STRING(number0 + number1);

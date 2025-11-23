@@ -16,9 +16,9 @@ namespace regen {
 		/** aerosol profile */
 		Vec4f mie;
 		/** sun-spotlight */
-		GLfloat spot;
+		float spot;
 		/** scattering strength */
-		GLfloat scatterStrength;
+		float scatterStrength;
 		/** Absorption color */
 		Vec3f absorption;
 	};

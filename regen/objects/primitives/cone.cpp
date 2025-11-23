@@ -34,10 +34,10 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 	auto v_nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 
-	GLfloat phi = acos(cfg.cosAngle);
-	GLfloat radius = tan(phi) * cfg.height;
-	GLfloat angle = 0.0f;
-	GLfloat angleStep = 2.0f * M_PI / (GLfloat) lodLevel;
+	float phi = acos(cfg.cosAngle);
+	float radius = tan(phi) * cfg.height;
+	float angle = 0.0f;
+	float angleStep = 2.0f * M_PI / (float) lodLevel;
 	uint32_t i = vertexOffset;
 
 	v_pos[i] = Vec3f::zero();
@@ -47,8 +47,8 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 
 	for (; i < lodLevel + 1; ++i) {
 		angle += angleStep;
-		GLfloat s = sin(angle) * radius;
-		GLfloat c = cos(angle) * radius;
+		float s = sin(angle) * radius;
+		float c = cos(angle) * radius;
 		Vec3f pos(c, s, cfg.height);
 		v_pos[i + 1] = pos;
 		minPosition_.setMin(pos);
@@ -134,10 +134,10 @@ static void loadConeData(
 		Vec3f &max,
 		GLboolean useBase,
 		uint32_t subdivisions,
-		GLfloat radius,
-		GLfloat height) {
-	GLfloat angle = 0.0f;
-	GLfloat angleStep = 2.0f * M_PI / (GLfloat) subdivisions;
+		float radius,
+		float height) {
+	float angle = 0.0f;
+	float angleStep = 2.0f * M_PI / (float) subdivisions;
 	int i = 0;
 
 	// apex
@@ -156,8 +156,8 @@ static void loadConeData(
 	int numVertices = subdivisions + i;
 	for (; i < numVertices; ++i) {
 		angle += angleStep;
-		GLfloat s = sin(angle) * radius;
-		GLfloat c = cos(angle) * radius;
+		float s = sin(angle) * radius;
+		float c = cos(angle) * radius;
 		pos[i] = Vec3f(c, s, height);
 		min.setMin(pos[i]);
 		max.setMax(pos[i]);

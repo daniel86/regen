@@ -467,7 +467,7 @@ namespace regen {
 	public:
 		TextureResizer(const ref_ptr<Texture> &tex,
 					   const ref_ptr<Screen> &screen,
-					   GLfloat wScale, GLfloat hScale)
+					   float wScale, float hScale)
 				: EventHandler(),
 				  tex_(tex),
 				  screen_(screen),
@@ -486,7 +486,7 @@ namespace regen {
 	protected:
 		ref_ptr<Texture> tex_;
 		ref_ptr<Screen> screen_;
-		GLfloat wScale_, hScale_;
+		float wScale_, hScale_;
 	};
 }
 

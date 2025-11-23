@@ -114,12 +114,12 @@ ref_ptr<UserController> UserController::load(
 		}
 		auto characterController =
 				ref_ptr<KinematicPlayerController>::alloc(userCamera, scene->getPhysics());
-		characterController->setCollisionHeight(node.getValue<GLfloat>("collision-height", 0.8));
-		characterController->setCollisionRadius(node.getValue<GLfloat>("collision-radius", 0.8));
-		characterController->setStepHeight(node.getValue<GLfloat>("step-height", 0.35));
-		characterController->setMaxSlope(node.getValue<GLfloat>("max-slope", 0.8));
-		characterController->setGravityForce(node.getValue<GLfloat>("gravity-force", 30.0));
-		characterController->setJumpVelocity(node.getValue<GLfloat>("jump-velocity", 16.0f));
+		characterController->setCollisionHeight(node.getValue<float>("collision-height", 0.8));
+		characterController->setCollisionRadius(node.getValue<float>("collision-radius", 0.8));
+		characterController->setStepHeight(node.getValue<float>("step-height", 0.35));
+		characterController->setMaxSlope(node.getValue<float>("max-slope", 0.8));
+		characterController->setGravityForce(node.getValue<float>("gravity-force", 30.0));
+		characterController->setJumpVelocity(node.getValue<float>("jump-velocity", 16.0f));
 		if (animItem.get()) {
 			characterController->setBoneTree(animItem);
 		}
@@ -131,11 +131,11 @@ ref_ptr<UserController> UserController::load(
 	}
 
 	controller->setMeshEyeOffset(node.getValue<Vec3f>("eye-offset", Vec3f::zero()));
-	controller->set_moveAmount(node.getValue<GLfloat>("speed", 0.01f));
-	controller->setMeshDistance(node.getValue<GLfloat>("mesh-distance", 10.0f));
-	controller->setHorizontalOrientation(node.getValue<GLfloat>("horizontal-orientation", 0.0));
-	controller->setVerticalOrientation(node.getValue<GLfloat>("vertical-orientation", 0.0));
-	controller->setMeshHorizontalOrientation(node.getValue<GLfloat>("mesh-horizontal-orientation", 0.0));
+	controller->set_moveAmount(node.getValue<float>("speed", 0.01f));
+	controller->setMeshDistance(node.getValue<float>("mesh-distance", 10.0f));
+	controller->setHorizontalOrientation(node.getValue<float>("horizontal-orientation", 0.0));
+	controller->setVerticalOrientation(node.getValue<float>("vertical-orientation", 0.0));
+	controller->setMeshHorizontalOrientation(node.getValue<float>("mesh-horizontal-orientation", 0.0));
 	if (controllerMode == "third-person") {
 		controller->setCameraMode(CameraController::THIRD_PERSON);
 	} else {

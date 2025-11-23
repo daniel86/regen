@@ -38,7 +38,7 @@ extern "C" {
 
 using namespace std;
 
-static QString formatTime(GLfloat elapsedSeconds) {
+static QString formatTime(float elapsedSeconds) {
 	uint32_t seconds = (uint32_t) elapsedSeconds;
 	uint32_t minutes = seconds / 60;
 	seconds = seconds % 60;
@@ -130,7 +130,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 // Resizes Framebuffer texture when the window size changed
 class FBOResizer : public EventHandler {
 public:
-	FBOResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
+	FBOResizer(const ref_ptr<FBOState> &fbo, float wScale, float hScale)
 			: EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) {}
 
 	~FBOResizer() override = default;
@@ -143,7 +143,7 @@ public:
 
 protected:
 	ref_ptr<FBOState> fboState_;
-	GLfloat wScale_, hScale_;
+	float wScale_, hScale_;
 };
 
 void setBlitToScreen(Scene *app, const ref_ptr<FBO> &fbo, GLenum attachment) {
@@ -251,7 +251,7 @@ void VideoPlayerWidget::changeVolume(int val) {
 }
 
 void VideoPlayerWidget::updateElapsedTime() {
-	GLfloat elapsed = vid_->elapsedSeconds();
+	float elapsed = vid_->elapsedSeconds();
 	ui_.progressLabel->setText(formatTime(elapsed));
 	ui_.progressSlider->blockSignals(true);
 	ui_.progressSlider->setValue((int) (
@@ -339,8 +339,8 @@ void VideoPlayerWidget::addLocalPath(const string &filePath) {
 
 void VideoPlayerWidget::updateSize() {
 	if (!vid_.get()) return;
-	GLfloat widgetRatio = ui_.blackBackground->width() / (GLfloat) ui_.blackBackground->height();
-	GLfloat videoRatio = vid_->width() / (GLfloat) vid_->height();
+	float widgetRatio = ui_.blackBackground->width() / (float) ui_.blackBackground->height();
+	float videoRatio = vid_->width() / (float) vid_->height();
 	int w, h;
 	if (widgetRatio > videoRatio) {
 		w = (int) (ui_.blackBackground->height() * videoRatio);

@@ -2,16 +2,16 @@
 
 using namespace regen;
 
-static GLfloat readInputValue(const ref_ptr<ShaderInput> &input, const byte *value, uint32_t i) {
+static float readInputValue(const ref_ptr<ShaderInput> &input, const byte *value, uint32_t i) {
 	switch (input->baseType()) {
 		case GL_FLOAT: {
-			return ((GLfloat *) value)[i];
+			return ((float *) value)[i];
 		}
 		case GL_INT: {
-			return static_cast<GLfloat>((((int *) value)[i]));
+			return static_cast<float>((((int *) value)[i]));
 		}
 		case GL_UNSIGNED_INT: {
-			return static_cast<GLfloat>((((uint32_t *) value)[i]));
+			return static_cast<float>((((uint32_t *) value)[i]));
 		}
 		default:
 			REGEN_WARN("Unknown data type " << input->baseType());
@@ -55,7 +55,7 @@ VectorWidget::VectorWidget(const RegenWidgetData &data, QWidget *parent)
 			valueWidgets[i]->setMinimum(static_cast<int>(limits->first * 1000.0f));
 			valueWidgets[i]->setMaximum(static_cast<int>(limits->second * 1000.0f));
 		} else {
-			GLfloat x = readInputValue(input_, value, i);
+			float x = readInputValue(input_, value, i);
 			valueWidgets[i]->setMinimum(0);
 			valueWidgets[i]->setMaximum(static_cast<int>(std::max(1.0, fabs(x) * 2.0) * 1000.0f));
 		}
@@ -63,7 +63,7 @@ VectorWidget::VectorWidget(const RegenWidgetData &data, QWidget *parent)
 
 	// show and set active components
 	for (i = 0; i < count; ++i) {
-		GLfloat x = readInputValue(input_, value, i);
+		float x = readInputValue(input_, value, i);
 		valueWidgets[i]->setValue(static_cast<int>(x * 1000.0f));
 		valueTexts[i]->setText(QString::number(x));
 
@@ -137,7 +137,7 @@ void VectorWidget::valueUpdated() {
 	byte *changedData = nullptr;
 	switch (input_->baseType()) {
 		case GL_FLOAT:
-			changedData = createData<GLfloat>(input_, valueWidgets, valueTexts, count);
+			changedData = createData<float>(input_, valueWidgets, valueTexts, count);
 			break;
 		case GL_INT:
 			changedData = createData<int>(input_, valueWidgets, valueTexts, count);

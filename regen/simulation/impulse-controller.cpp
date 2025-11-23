@@ -86,11 +86,11 @@ ref_ptr<ImpulseController> ImpulseController::load(
 		ref_ptr<ImpulseController>::alloc(userCamera, physicalObject);
 	controller = impulseController;
 	controller->setMeshEyeOffset(node.getValue<Vec3f>("eye-offset", Vec3f::zero()));
-	controller->set_moveAmount(node.getValue<GLfloat>("speed", 0.01f));
-	controller->setMeshDistance(node.getValue<GLfloat>("mesh-distance", 10.0f));
-	controller->setHorizontalOrientation(node.getValue<GLfloat>("horizontal-orientation", 0.0));
-	controller->setVerticalOrientation(node.getValue<GLfloat>("vertical-orientation", 0.0));
-	controller->setMeshHorizontalOrientation(node.getValue<GLfloat>("mesh-horizontal-orientation", 0.0));
+	controller->set_moveAmount(node.getValue<float>("speed", 0.01f));
+	controller->setMeshDistance(node.getValue<float>("mesh-distance", 10.0f));
+	controller->setHorizontalOrientation(node.getValue<float>("horizontal-orientation", 0.0));
+	controller->setVerticalOrientation(node.getValue<float>("vertical-orientation", 0.0));
+	controller->setMeshHorizontalOrientation(node.getValue<float>("mesh-horizontal-orientation", 0.0));
 	if (controllerMode == "third-person") {
 		controller->setCameraMode(CameraController::THIRD_PERSON);
 	} else {

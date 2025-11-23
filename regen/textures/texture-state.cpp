@@ -282,7 +282,7 @@ void TextureState::set_ignoreAlpha(GLboolean v) {
 	shaderDefine(REGEN_TEX_NAME("TEX_IGNORE_ALPHA"), v ? "TRUE" : "FALSE");
 }
 
-void TextureState::set_blendFactor(GLfloat blendFactor) {
+void TextureState::set_blendFactor(float blendFactor) {
 	blendFactor_ = blendFactor;
 	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_FACTOR"), REGEN_STRING(blendFactor_));
 }
@@ -502,7 +502,7 @@ ref_ptr<TextureState> TextureState::load(LoadingContext &ctx, scene::SceneInputN
 				input.getValue<BlendMode>("blend-mode", BLEND_MODE_SRC));
 	}
 	texState->set_blendFactor(
-			input.getValue<GLfloat>("blend-factor", 1.0f));
+			input.getValue<float>("blend-factor", 1.0f));
 
 	// Defines how a texture should be mapped on geometry.
 	auto customMapping = ShaderFunction::load(input, "mapping-function");
@@ -537,7 +537,7 @@ ref_ptr<TextureState> TextureState::load(LoadingContext &ctx, scene::SceneInputN
 	}
 
 	if (input.hasAttribute("texco-scale")) {
-		auto scale = input.getValue<GLfloat>("texco-scale", 1.0f);
+		auto scale = input.getValue<float>("texco-scale", 1.0f);
 		texState->set_texcoScale(scale);
 	}
 

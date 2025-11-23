@@ -12,7 +12,7 @@ using namespace regen::scene;
 using namespace regen;
 
 static ref_ptr<btCollisionShape> createSphere(SceneInputNode &input) {
-	auto radius = input.getValue<GLfloat>("radius", 1.0f) * 0.5;
+	auto radius = input.getValue<float>("radius", 1.0f) * 0.5;
 	return ref_ptr<btSphereShape>::alloc(radius);
 }
 
@@ -24,7 +24,7 @@ static ref_ptr<btCollisionShape> createWall(SceneInputNode &input) {
 
 static ref_ptr<btCollisionShape> createInfiniteWall(SceneInputNode &input) {
 	auto planeNormal = input.getValue<Vec3f>("normal", Vec3f(0.0f, 1.0f, 0.0f));
-	auto planeConstant = input.getValue<GLfloat>("constant", GLfloat(0.0f));
+	auto planeConstant = input.getValue<float>("constant", float(0.0f));
 	return ref_ptr<btStaticPlaneShape>::alloc(
 			btVector3(planeNormal.x, planeNormal.y, planeNormal.z),
 			planeConstant);
@@ -44,14 +44,14 @@ static ref_ptr<btCollisionShape> createCylinder(SceneInputNode &input) {
 
 static ref_ptr<btCollisionShape> createCapsule(SceneInputNode &input) {
 	return ref_ptr<btCapsuleShape>::alloc(
-			input.getValue<GLfloat>("radius", 1.0f),
-			input.getValue<GLfloat>("height", 1.0f));
+			input.getValue<float>("radius", 1.0f),
+			input.getValue<float>("height", 1.0f));
 }
 
 static ref_ptr<btCollisionShape> createCone(SceneInputNode &input) {
 	return ref_ptr<btConeShape>::alloc(
-			input.getValue<GLfloat>("radius", 1.0f),
-			input.getValue<GLfloat>("height", 1.0f));
+			input.getValue<float>("radius", 1.0f),
+			input.getValue<float>("height", 1.0f));
 }
 
 static ref_ptr<btCollisionShape>
@@ -152,7 +152,7 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 		const ref_ptr<Mesh> &mesh,
 		const ref_ptr<btMotionState> &motion) {
 	const std::string shapeName(input.getValue("shape"));
-	auto mass = input.getValue<GLfloat>("mass", 1.0f);
+	auto mass = input.getValue<float>("mass", 1.0f);
 
 	// create a collision shape
 	ref_ptr<btCollisionShape> shape;
@@ -192,34 +192,34 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 	props->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
 
 	props->setRestitution(
-			input.getValue<GLfloat>("restitution", 0.0f));
+			input.getValue<float>("restitution", 0.0f));
 
 	props->setLinearSleepingThreshold(
-			input.getValue<GLfloat>("linear-sleeping-threshold", 0.8f));
+			input.getValue<float>("linear-sleeping-threshold", 0.8f));
 	props->setAngularSleepingThreshold(
-			input.getValue<GLfloat>("angular-sleeping-threshold", 1.0f));
+			input.getValue<float>("angular-sleeping-threshold", 1.0f));
 
 	props->setFriction(
-			input.getValue<GLfloat>("friction", 0.5f));
+			input.getValue<float>("friction", 0.5f));
 	props->setRollingFriction(
-			input.getValue<GLfloat>("rolling-friction", 0.0f));
+			input.getValue<float>("rolling-friction", 0.0f));
 
 	props->setAdditionalDamping(
 			input.getValue<bool>("additional-damping", false));
 	props->setAdditionalDampingFactor(
-			input.getValue<GLfloat>("additional-damping-factor", 0.005f));
+			input.getValue<float>("additional-damping-factor", 0.005f));
 
 	props->setLinearDamping(
-			input.getValue<GLfloat>("linear-damping", 0.0f));
+			input.getValue<float>("linear-damping", 0.0f));
 	props->setAdditionalLinearDampingThresholdSqr(
-			input.getValue<GLfloat>("additional-linear-damping-threshold", 0.01f));
+			input.getValue<float>("additional-linear-damping-threshold", 0.01f));
 
 	props->setAngularDamping(
-			input.getValue<GLfloat>("angular-damping", 0.0f));
+			input.getValue<float>("angular-damping", 0.0f));
 	props->setAdditionalAngularDampingFactor(
-			input.getValue<GLfloat>("additional-angular-damping-factor", 0.01f));
+			input.getValue<float>("additional-angular-damping-factor", 0.01f));
 	props->setAdditionalAngularDampingThresholdSqr(
-			input.getValue<GLfloat>("additional-angular-damping-threshold", 0.01f));
+			input.getValue<float>("additional-angular-damping-threshold", 0.01f));
 
 	if (mass > 0) props->calculateLocalInertia();
 
@@ -228,7 +228,7 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 
 static std::optional<float> getRadius(SceneInputNode &input) {
 	if (input.hasAttribute("radius")) {
-		return input.getValue<GLfloat>("radius", 1.0f);
+		return input.getValue<float>("radius", 1.0f);
 	}
 	REGEN_WARN("Ignoring sphere " << input.getDescription() << " without radius or mesh.");
 	return std::nullopt;

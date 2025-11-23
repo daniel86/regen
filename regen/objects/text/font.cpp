@@ -166,12 +166,12 @@ void Font::initGlyph(FT_Face face, GLushort ch, uint32_t textureWidth, uint32_t 
 	FT_Bitmap &bitmap = bitmap_glyph->bitmap;
 
 	{
-		auto bitmapWith = (GLfloat) bitmap.width;
-		auto bitmapHeight = (GLfloat) bitmap.rows;
-		GLfloat sizeFactor = 1.0f / (GLfloat) size();
+		auto bitmapWith = (float) bitmap.width;
+		auto bitmapHeight = (float) bitmap.rows;
+		float sizeFactor = 1.0f / (float) size();
 
-		glyphData.uvX = bitmapWith / ((GLfloat) textureWidth);
-		glyphData.uvY = bitmapHeight / ((GLfloat) textureHeight);
+		glyphData.uvX = bitmapWith / ((float) textureWidth);
+		glyphData.uvY = bitmapHeight / ((float) textureHeight);
 		glyphData.height = bitmapHeight * sizeFactor;
 		glyphData.width = bitmapWith * sizeFactor;
 		glyphData.advanceX = (face->glyph->advance.x >> 6) * sizeFactor;

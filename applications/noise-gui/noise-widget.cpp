@@ -43,7 +43,7 @@ NoiseWidget::NoiseWidget(QtApplication *app)
 // Resizes Framebuffer texture when the window size changed
 class FBOResizer : public EventHandler {
 public:
-	FBOResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
+	FBOResizer(const ref_ptr<FBOState> &fbo, float wScale, float hScale)
 			: EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) {}
 
 	~FBOResizer() override = default;
@@ -56,7 +56,7 @@ public:
 
 protected:
 	ref_ptr<FBOState> fboState_;
-	GLfloat wScale_, hScale_;
+	float wScale_, hScale_;
 };
 
 void NoiseWidget::gl_loadScene() {

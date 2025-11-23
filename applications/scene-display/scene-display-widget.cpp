@@ -643,16 +643,16 @@ void SceneDisplayWidget::handleControllerConfiguration(
 
 		auto cameraEventHandler =
 			ref_ptr<QtCameraEventHandler>::alloc(userController_, camKeyMappings);
-		cameraEventHandler->set_sensitivity(node->getValue<GLfloat>("sensitivity", 0.005f));
+		cameraEventHandler->set_sensitivity(node->getValue<float>("sensitivity", 0.005f));
 		app_->connect(Scene::KEY_EVENT, cameraEventHandler);
 		app_->connect(Scene::BUTTON_EVENT, cameraEventHandler);
 		app_->connect(Scene::MOUSE_MOTION_EVENT, cameraEventHandler);
 		eventHandler_.emplace_back(cameraEventHandler);
 
 		// Handle anchor points
-		anchorEaseInOutIntensity_ = node->getValue<GLfloat>("ease-in-out", 1.0);
-		anchorPauseTime_ = node->getValue<GLfloat>("anchor-pause-time", 0.5);
-		anchorTimeScale_ = node->getValue<GLfloat>("anchor-time-scale", 1.0);
+		anchorEaseInOutIntensity_ = node->getValue<float>("ease-in-out", 1.0);
+		anchorPauseTime_ = node->getValue<float>("anchor-pause-time", 0.5);
+		anchorTimeScale_ = node->getValue<float>("anchor-time-scale", 1.0);
 		for (const auto &x: node->getChildren("anchor")) {
 			if (x->hasAttribute("transform")) {
 				auto transform = scene.getResources()->getTransform(&scene, x->getValue("transform"));

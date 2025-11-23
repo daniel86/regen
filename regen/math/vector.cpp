@@ -22,7 +22,7 @@ namespace regen {
 		Vec3f edge2 = vertices[2] - vertices[0];
 		Vec2f texEdge1 = texco[1] - texco[0];
 		Vec2f texEdge2 = texco[2] - texco[0];
-		GLfloat det = texEdge1.x * texEdge2.y - texEdge2.x * texEdge1.y;
+		float det = texEdge1.x * texEdge2.y - texEdge2.x * texEdge1.y;
 
 		if (math::isApprox(det, 0.0)) {
 			tangent = Vec3f(1.0, 0.0, 0.0);
@@ -47,7 +47,7 @@ namespace regen {
 
 		Vec3f bitangent = normal.cross(tangent);
 		// Calculate the handedness of the local tangent space.
-		GLfloat handedness = (bitangent.dot(binormal) < 0.0f) ? 1.0f : -1.0f;
+		float handedness = (bitangent.dot(binormal) < 0.0f) ? 1.0f : -1.0f;
 
 		return {tangent.x, tangent.y, tangent.z, handedness};
 	}

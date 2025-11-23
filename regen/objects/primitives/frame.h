@@ -45,7 +45,7 @@ namespace regen {
 			/** generate tangent attribute ?. */
 			GLboolean isTangentRequired;
 			/** size of the frame border. */
-			GLfloat borderSize;
+			float borderSize;
 			/** Buffer usage hints. */
 			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
