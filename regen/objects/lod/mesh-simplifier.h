@@ -19,6 +19,8 @@ namespace regen {
 	 * This class implements a mesh simplification algorithm based on
 	 * edge collapses. It uses a priority queue to select the edges to
 	 * collapse based on the cost of the collapse.
+	 *
+	 * Currently, it supports only triangle meshes with position and normal attributes.
 	 */
 	class MeshSimplifier {
 	public:

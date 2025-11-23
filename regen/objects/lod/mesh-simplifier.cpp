@@ -19,7 +19,6 @@ MeshSimplifier::MeshSimplifier(const ref_ptr<Mesh> &mesh) : mesh_(mesh) {
 		case GL_LINE_LOOP:
 		case GL_LINE_STRIP:
 		default:
-			// TODO: Support other primitive types than triangles.
 			REGEN_ERROR("Mesh simplifier only supports triangle meshes.");
 			hasValidAttributes_ = false;
 			break;

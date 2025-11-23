@@ -18,7 +18,6 @@ static ref_ptr<btCollisionShape> createSphere(SceneInputNode &input) {
 
 static ref_ptr<btCollisionShape> createWall(SceneInputNode &input) {
 	auto size = input.getValue<Vec2f>("size", Vec2f::one());
-	// TODO: allow configuration of orientation and position
 	btVector3 halfExtend(size.x * 0.5f, 0.001f, size.y * 0.5f);
 	return ref_ptr<btBoxShape>::alloc(halfExtend);
 }

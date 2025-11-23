@@ -81,9 +81,7 @@ bool Light::updateConeMatrix() {
 	if (lightConeStamp_ == stamp) return false; // no update needed
 
 	// Note: cone opens in positive z direction.
-	// FIXME: where are num instances set for light? probably best to hook resize there!
-	//         here is too late!
-	auto numInstances = std::max(lightPosition_->numInstances(), lightDirection_->numInstances());
+	auto numInstances = this->numInstances();
 	if (coneMatrix_->numInstances() != numInstances) {
 		// ensure cone matrix has numInstances
 		coneMatrix_->setInstanceData(numInstances, 1, nullptr);
@@ -181,6 +179,8 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	updateFlags.scope = input.getValue<BufferUpdateScope>(
 		"update-scope", BUFFER_UPDATE_FULLY);
 
+	uint32_t numInstances = input.getValue<uint32_t>("num-instances", 1u);
+
 	auto lightType = input.getValue<Light::Type>("type", Light::SPOT);
 	ref_ptr<Light> light = ref_ptr<Light>::alloc(lightType, updateFlags);
 	light->set_isAttenuated(
@@ -212,12 +212,13 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				continue;
 			}
 			auto setTarget = target_opt.value().in;
-			auto numInstances = std::max(
+			auto numInstances0 = std::max(
 					child->getValue<uint32_t>("num-instances", 1u),
 					setTarget->numInstances());
+			numInstances = std::max(numInstances, numInstances0);
 			// allocate memory for the shader input
-			setTarget->setInstanceData(numInstances, 1, nullptr);
-			scene::ShaderInputProcessor::setInput(*child.get(), setTarget.get(), numInstances);
+			setTarget->setInstanceData(numInstances0, 1, nullptr);
+			scene::ShaderInputProcessor::setInput(*child.get(), setTarget.get(), numInstances0);
 		}
 		if (child->getCategory() == "animation") {
 			auto animationType = child->getValue("type");
@@ -228,7 +229,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				// TODO: this will update position, without updating the light!
 				//   Which is fine in most cases, but eg. in case of spot light,
 				//   the cone matrix may need to be updated.
-				// TODO: also attach orientation for spot cameras.
+				//   - also attach orientation for spot cameras.
 				auto boids = ref_ptr<BoidsCPU>::alloc(light->position());
 				boids->loadSettings(ctx, *child.get());
 
@@ -239,6 +240,8 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			}
 		}
 	}
+	light->set_numInstances(numInstances);
+
 	// remove visited children
 	for (auto &child : visited) {
 		input.removeChild(child);

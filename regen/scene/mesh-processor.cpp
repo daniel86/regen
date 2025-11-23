@@ -147,7 +147,7 @@ void MeshNodeProvider::processInput(
 		bool hasShader = false;
 		if (!meshCopy->hasShaderKey()) {
 			// try to find a shader in the parent node
-			// TODO: what about the LOD levels? might be better to refer to the shader by ID instead
+			// TODO: What about the LOD levels? might be better to refer to the shader by ID instead
 			//        of getting it from the parent. there is also the problem with configuration for compilation
 			//        if shader is shared.
 			auto meshShader = ShaderState::findShader(parent.get());

@@ -455,7 +455,7 @@ void MeshAnimation::addSphereAttributes(
 	// Note: this is a very simple sphere mapping, it is not perfect.
 	//       There might be artifacts caused by faces that are flipped.
 	//       Also make sure to use polygon offset to avoid shadow map fighting.
-	// TODO: it should be possible to do this with less artifacts by taking the faces into account.
+	// NOTE: It should be possible to do this with fewer artifacts by taking the faces into account.
 	for (uint32_t i = 0; i < spherePos->numVertices(); ++i) {
 		Vec3f v = posAtt->getVertex(i).r;
 		Vec3f direction = v - centroid;
