@@ -287,21 +287,6 @@ void BoneTree::setTickRange(uint32_t instanceIdx, AnimationHandle animHandle, co
 }
 
 // Look for present frame number.
-// Search from last position if time is after the last time, else from beginning
-
-template<class T>
-static void findFrameAfterTick(double tick, uint32_t &frame, const std::vector<T> &keys) {
-	const uint32_t numKeys = keys.size();
-	double dt;
-	while (frame < numKeys - 1) {
-		dt = tick - keys[++frame].time;
-		if (dt < 0.00001) {
-			--frame;
-			return;
-		}
-	}
-}
-
 template<class T>
 static void findFrameBeforeTick(double &tick, uint32_t &frame, const std::vector<T> &keys) {
 	const uint32_t numKeys = keys.size();
@@ -338,6 +323,10 @@ void BoneTree::setTickRange(ActiveBoneRange &ar, const Vec2d &forcedTickRange) {
 	if (tickRange.x == ar.tickRange_.x && tickRange.y == ar.tickRange_.y) {
 		// nothing changed
 		return;
+	}
+	if (tickRange.x > tickRange.y) {
+		REGEN_WARN("Reverse playback not yet implemented for bone animations.");
+		tickRange.y = tickRange.x;
 	}
 	ar.tickRange_ = tickRange;
 
@@ -463,28 +452,9 @@ void BoneTree::animate(double dt_ms) {
 #endif
 }
 
-template<typename T,int I> static REGEN_FORCE_INLINE
-void findFrame(ActiveBoneRange &ar,
-		uint32_t i,
-		uint32_t &frame,
-		uint32_t &lastFrame,
-		const std::vector<Stamped<T>> &keys) {
-	lastFrame = ar.lastFramePosition_[i][I];
-	// Search from last position if time is after the last time, else from beginning
-	// This is a bit tricky if the animation runs backwards.
-	if (ar.tickRange_.x > ar.tickRange_.y) {
-		frame = (ar.timeInTicks_ <= ar.lastTime_ ? lastFrame : ar.startFramePosition_[i][I]);
-		findFrameBeforeTick(ar.timeInTicks_, frame, keys);
-	} else {
-		frame = (ar.timeInTicks_ >= ar.lastTime_ ? lastFrame : ar.startFramePosition_[i][I]);
-		findFrameAfterTick(ar.timeInTicks_, frame, keys);
-	}
-	ar.lastFramePosition_[i][I] = frame;
-}
-
 namespace regen {
 	template<typename T> static REGEN_FORCE_INLINE
-	float computeInterpolation(ActiveBoneRange &ar, const Stamped<T> &key, const Stamped<T> &nextKey) {
+	float computeBoneInterpolation(ActiveBoneRange &ar, const Stamped<T> &key, const Stamped<T> &nextKey) {
 		double timeDifference = nextKey.time - key.time;
 		if (timeDifference < 0.0) {
 			timeDifference += ar.duration_;
@@ -493,17 +463,17 @@ namespace regen {
 		return facOut > 0.0 ? facOut : 0.0f;
 	}
 
-	template <typename T> T interpolateTypedChannel(ActiveBoneRange&, const Stamped<T>&, const Stamped<T>&);
+	template <typename T> T boneInterpolateTyped(ActiveBoneRange&, const Stamped<T>&, const Stamped<T>&);
 
-	template<> Vec3f interpolateTypedChannel<Vec3f>(ActiveBoneRange &ar,
+	template<> Vec3f boneInterpolateTyped<Vec3f>(ActiveBoneRange &ar,
 				const Stamped<Vec3f> &key, const Stamped<Vec3f> &nextKey) {
-		const float fac = computeInterpolation<Vec3f>(ar, key, nextKey);
+		const float fac = computeBoneInterpolation<Vec3f>(ar, key, nextKey);
 		return key.value + (nextKey.value - key.value) * fac;
 	}
 
-	template<> Quaternion interpolateTypedChannel<Quaternion>(ActiveBoneRange &ar,
+	template<> Quaternion boneInterpolateTyped<Quaternion>(ActiveBoneRange &ar,
 				const Stamped<Quaternion> &key, const Stamped<Quaternion> &nextKey) {
-		float fac = computeInterpolation<Quaternion>(ar, key, nextKey);
+		float fac = computeBoneInterpolation<Quaternion>(ar, key, nextKey);
 		Quaternion value;
 		if constexpr(BONE_INTERPOLATE_QUATERNION_LINEAR) {
 			value.interpolateLinear(key.value, nextKey.value, fac);
@@ -512,26 +482,29 @@ namespace regen {
 		}
 		return value;
 	}
-}
 
-template <typename T, int I>
-static REGEN_FORCE_INLINE  T interpolateChannel(ActiveBoneRange &ar,
-			const AnimationChannel &channel, const std::vector<Stamped<T>> &keys, uint32_t i) {
-	const uint32_t keyCount = keys.size();
-	// Find present frame number.
-	uint32_t frame, lastFrame;
-	findFrame<T,I>(ar, i, frame, lastFrame, keys);
-	// Lookup nearest key
-	const Stamped<T> &key = keys[frame];
+	template <typename T, int I>
+	static REGEN_FORCE_INLINE  T boneInterpolate(ActiveBoneRange &ar,
+				const std::vector<Stamped<T>> &keys, uint32_t i) {
+		const uint32_t keyCount = keys.size();
+		const uint32_t lastFrame = ar.lastFramePosition_[i][I];
 
-	// interpolate between this frame's value and next frame's value
-	if (frame < lastFrame && channel.postState == AnimationChannelBehavior::DEFAULT) {
-		return keys[0].value;
-	} else if (frame < lastFrame && channel.postState == AnimationChannelBehavior::CONSTANT) {
-		return key.value;
-	} else [[likely]] {
-		auto &nextKey = keys[(frame + 1) % keyCount];
-		return interpolateTypedChannel<T>(ar, key, nextKey);
+		// Wrap around if needed, else start from last frame
+		// Note: ar.lastTime_ stores last time in ticks.
+		const uint32_t startFrame = (ar.timeInTicks_ >= ar.lastTime_ ?
+				lastFrame : ar.startFramePosition_[i][I]);
+		// Find present frame number.
+		uint32_t frame;
+		for (frame = startFrame; frame < keyCount - 1; frame++) {
+			if (ar.timeInTicks_ < keys[frame + 1].time) break;
+		}
+		// Store active frame for next time
+		ar.lastFramePosition_[i][I] = frame;
+
+		// interpolate between this frame's value and next frame's value
+		const Stamped<T> &key = keys[frame];
+		const Stamped<T> &nextKey = keys[(frame + 1) % keyCount];
+		return boneInterpolateTyped<T>(ar, key, nextKey);
 	}
 }
 
@@ -539,7 +512,6 @@ template <bool HasScaleKeys>
 void BoneTree::updateLocalTransforms(BoneTreeTraversal &td, uint32_t itemBase, InstanceData &instance) {
 	const auto numNodes = static_cast<uint32_t>(nodes_.size());
 	const auto numRanges = instance.numActiveRanges_;
-	//const uint32_t* __restrict numActive = numActive_.data() + itemBase;
 	const Mat4f* __restrict localTF = localTransform_.data();
 	Mat4f* __restrict blendedTF = blendedTransforms_.data() + itemBase;
 	int8_t* __restrict localDirty = td.localDirty.data();
@@ -550,14 +522,6 @@ void BoneTree::updateLocalTransforms(BoneTreeTraversal &td, uint32_t itemBase, I
 	Vec3f &accScale = td.accScale;
 
 	for (uint32_t nodeIdx = 0; nodeIdx < numNodes; nodeIdx++) {
-		// fast-check with numActive
-		/**
-		if (numActive[nodeIdx] == 0) {
-			blendedTF[nodeIdx] = localTF[nodeIdx];
-			continue;
-		}
-		**/
-
 		// Compute per-bone effective weights
 		float weightSum = 0.0f;
 		for (uint32_t rangeIdx : instance.activeRanges_) {
@@ -599,17 +563,18 @@ void BoneTree::updateLocalTransforms(BoneTreeTraversal &td, uint32_t itemBase, I
 			weight *= weightSum;
 
 			// Accumulate position
-			accPos += interpolateChannel<Vec3f,0>(range, channel, channel.positionKeys_, nodeIdx) * weight;
+			accPos += boneInterpolate<Vec3f,0>(range, channel.positionKeys_, nodeIdx) * weight;
 			// Accumulate rotation
-			Quaternion rotation = interpolateChannel<Quaternion,1>(range, channel, channel.rotationKeys_, nodeIdx);
+			Quaternion rotation = boneInterpolate<Quaternion,1>(range, channel.rotationKeys_, nodeIdx);
 			if (accRot.dot(rotation) < 0.0f) { rotation = -rotation; }
 			accRot += rotation * weight;
 			// Accumulate scaling
 			if constexpr (HasScaleKeys) {
-				accScale += interpolateChannel<Vec3f,2>(range, channel, channel.scalingKeys_, nodeIdx) * weight;
+				accScale += boneInterpolate<Vec3f,2>(range, channel.scalingKeys_, nodeIdx) * weight;
 			}
 		}
 
+		// Finally, write blended local transform
 		{
 			localDirty[nodeIdx] = true;
 			if (numRanges > 1) {
@@ -689,6 +654,9 @@ void BoneTree::updateBoneTree(uint32_t instanceBase, uint32_t numInstances, doub
 	const uint32_t instanceEnd = instanceBase + numInstances;
 	const auto numNodes = static_cast<uint32_t>(nodes_.size());
 
+	InstanceData* __restrict instanceData = instanceData_.data();
+	Track* __restrict animTracks = animTracks_.data();
+
 	thread_local BoneTreeTraversal td;
 	// make sure traversal data arrays are large enough
 	if (td.localDirty.size() < numNodes) {
@@ -698,7 +666,7 @@ void BoneTree::updateBoneTree(uint32_t instanceBase, uint32_t numInstances, doub
 
 	for (uint32_t instanceIdx = instanceBase; instanceIdx < instanceEnd; instanceIdx++) {
 		const uint32_t itemBase = instanceIdx * numNodes;
-		auto &instance = instanceData_[instanceIdx];
+		auto &instance = instanceData[instanceIdx];
 		const auto numRanges = instance.numActiveRanges_;
 
 		if (numRanges == 0) continue;
@@ -706,17 +674,12 @@ void BoneTree::updateBoneTree(uint32_t instanceBase, uint32_t numInstances, doub
 		// Pass 1: Advance time in active ranges
 		for (uint32_t rangeIdx : instance.activeRanges_) {
 			ActiveBoneRange &range = instance.ranges_[rangeIdx];
-			const Track &track = animTracks_[range.trackIdx_];
+			const Track &track = animTracks[range.trackIdx_];
 			range.elapsedTime_ += dt_ms;
 			range.lastTime_ = range.timeInTicks_;
-
 			// Map into anim's duration
 			range.timeInTicks_ = std::min(range.duration_,
 				range.elapsedTime_ * timeFactor_ * track.ticksPerSecond_);
-			// Time runs backwards when start tick is higher than stop tick
-			if (range.tickRange_.x > range.tickRange_.y) {
-				range.timeInTicks_ = -range.timeInTicks_;
-			}
 			range.timeInTicks_ += range.startTick_;
 		}
 
