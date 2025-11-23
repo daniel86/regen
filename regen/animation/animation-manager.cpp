@@ -75,10 +75,6 @@ void AnimationManager::setRootState(const ref_ptr<State> &rootState) {
 	}
 }
 
-void AnimationManager::setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices) {
-	spatialIndices_ = indices;
-}
-
 void AnimationManager::addAnimation(Animation *animation) {
 	// Don't add while removing
 	while (removeInProgress_) usleepRegen(1000);
@@ -191,7 +187,7 @@ void AnimationManager::removeAnimation(Animation *animation) {
 	removeInProgress_ = false;
 }
 
-void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
+void AnimationManager::updateSynchronized_GPU(double dt) {
 	if (pauseFlag_) { return; }
 	glThreadID_ = boost::this_thread::get_id();
 
@@ -227,57 +223,7 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 	glInProgress_ = false;
 }
 
-void AnimationManager::flushGraphics() {
-	frameBarrier_.arrive_and_wait();
-}
-
-void AnimationManager::runUnsynchronized(Animation *animation) const {
-	using Clock = std::chrono::steady_clock;
-	using ms = std::chrono::duration<double, std::milli>;
-
-	const double targetMs = 1000.0 / animation->desiredFrameRate();
-	const auto d_frameDuration = ms(targetMs);
-	const auto frameDuration = std::chrono::duration_cast<Clock::duration>(d_frameDuration);
-	auto nextFrame = Clock::now();
-
-	while (!closeFlag_ && animation->isRunning()) {
-		if (pauseFlag_) {
-			usleepRegen(IDLE_SLEEP);  // or sleep_for()
-			nextFrame += std::chrono::microseconds(IDLE_SLEEP);
-			continue;
-		}
-
-		auto frameStart = Clock::now();
-		double dt = std::chrono::duration<double, std::milli>(frameStart - nextFrame + frameDuration).count();
-
-		// Run the animation logic
-		animation->animate(dt);
-
-		// Schedule next frame
-		nextFrame += frameDuration;
-
-		auto now = Clock::now();
-		if (now < nextFrame) {
-			std::this_thread::sleep_until(nextFrame);
-		} else {
-			// Missed the frame deadline: resync
-			nextFrame = now;
-		}
-	}
-}
-
-void AnimationManager::swapClientData() {
-	if (closeFlag_) return;
-	auto &staging = StagingSystem::instance();
-	// Wait for the staging system to finish copying client data for this frame.
-	while (staging.isCopyInProgress()) {
-		CPU_PAUSE();
-		if (closeFlag_) return;
-	}
-	staging.swapClientData();
-}
-
-void AnimationManager::updateAnimations_cpu(double dt) {
+void AnimationManager::updateSynchronized_CPU(double dt) {
 	if (synchronizedAnimations_.empty()) return;
 
 	bool areAnimationsRemaining = true;
@@ -318,7 +264,7 @@ void AnimationManager::run() {
 			// Advance each CPU animation.
 			// Main point is writing shader data that will be added to
 			// staging next frame.
-			updateAnimations_cpu(dt);
+			updateSynchronized_CPU(dt);
 			// Update visibility using spatial indices.
 			// Note: this might be computationally heavy!
 			for (auto &index : spatialIndices_) {
@@ -374,4 +320,54 @@ void AnimationManager::resume(bool runOnce) {
 		}
 	}
 	pauseFlag_ = false;
+}
+
+void AnimationManager::runUnsynchronized(Animation *animation) const {
+	using Clock = std::chrono::steady_clock;
+	using ms = std::chrono::duration<double, std::milli>;
+
+	const double targetMs = 1000.0 / animation->desiredFrameRate();
+	const auto d_frameDuration = ms(targetMs);
+	const auto frameDuration = std::chrono::duration_cast<Clock::duration>(d_frameDuration);
+	auto nextFrame = Clock::now();
+
+	while (!closeFlag_ && animation->isRunning()) {
+		if (pauseFlag_) {
+			usleepRegen(IDLE_SLEEP);  // or sleep_for()
+			nextFrame += std::chrono::microseconds(IDLE_SLEEP);
+			continue;
+		}
+
+		auto frameStart = Clock::now();
+		double dt = std::chrono::duration<double, std::milli>(frameStart - nextFrame + frameDuration).count();
+
+		// Run the animation logic
+		animation->animate(dt);
+
+		// Schedule next frame
+		nextFrame += frameDuration;
+
+		auto now = Clock::now();
+		if (now < nextFrame) {
+			std::this_thread::sleep_until(nextFrame);
+		} else {
+			// Missed the frame deadline: resync
+			nextFrame = now;
+		}
+	}
+}
+
+void AnimationManager::flushGraphics() {
+	frameBarrier_.arrive_and_wait();
+}
+
+void AnimationManager::swapClientData() {
+	if (closeFlag_) return;
+	auto &staging = StagingSystem::instance();
+	// Wait for the staging system to finish copying client data for this frame.
+	while (staging.isCopyInProgress()) {
+		CPU_PAUSE();
+		if (closeFlag_) return;
+	}
+	staging.swapClientData();
 }

@@ -34,10 +34,9 @@ namespace regen {
 
 		/**
 		 * Invoke glAnimate() on added glAnimations.
-		 * @param rs the render state.
-		 * @param dt time difference to last call in milliseconds.
+		 * @param dt_ms time difference to last call in milliseconds.
 		 */
-		void updateGraphics(RenderState *rs, GLdouble dt);
+		void updateSynchronized_GPU(double dt_ms);
 
 		/**
 		 * Close animation thread.
@@ -95,7 +94,7 @@ namespace regen {
 		 * Set the spatial indices.
 		 * @param indices the spatial indices.
 		 */
-		void setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices);
+		void setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices) { spatialIndices_ = indices; }
 
 	private:
 		boost::posix_time::ptime time_;
@@ -138,7 +137,7 @@ namespace regen {
 
 		void runUnsynchronized(Animation *animation) const;
 
-		void updateAnimations_cpu(double dt);
+		void updateSynchronized_CPU(double dt);
 
 		void swapClientData();
 	};

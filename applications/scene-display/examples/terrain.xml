@@ -230,8 +230,6 @@
              swizzle-g="RED" swizzle-b="RED"/>
 
     <!-- water surface mesh used for depth rendering and post-processing effects -->
-    <!-- FIXME: This does not work well when camera is facing downwards,
-                effectively looking behind its position in xz plane. Also the case in other scenes. -->
     <mesh id="water-mesh" type="rectangle" lod="0" center="1"
           use-normal="0" use-texco="0" use-tangent="0"
           rotation="0.0,0.0,3.1415"
