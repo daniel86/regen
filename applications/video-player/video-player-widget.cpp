@@ -83,7 +83,7 @@ public:
 	explicit VideoInitAnimation(VideoPlayerWidget *widget)
 			: Animation(true, false), widget_(widget) {}
 
-	void glAnimate(RenderState *rs, double dt) override { widget_->gl_loadScene(); }
+	void gpuUpdate(RenderState *rs, double dt) override { widget_->gl_loadScene(); }
 
 	VideoPlayerWidget *widget_;
 };

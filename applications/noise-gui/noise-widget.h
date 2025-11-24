@@ -26,9 +26,9 @@ public:
 	// Override
 	void call(EventObject *ev, EventData *data);
 
-	void animate(double dt);
+	void cpuUpdate(double dt);
 
-	void glAnimate(RenderState *rs, double dt);
+	void gpuUpdate(RenderState *rs, double dt);
 
 public slots:
 

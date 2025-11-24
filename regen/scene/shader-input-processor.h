@@ -29,7 +29,7 @@ namespace regen {
 		}
 
 		// Override
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			auto mapped = mapClientVertex<float>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
 			mapped.w = mapped.r + static_cast<float>(dt) * timeScale_;
 		}

@@ -8,7 +8,7 @@ namespace regen {
 		explicit LightCameraAnimation(LightCamera *camera)
 				: Animation(false, true),
 				  camera_(camera) {}
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			if(camera_->updateLight()) {
 				camera_->lightCamera()->updateShaderData(static_cast<float>(dt));
 				camera_->updateShadowData();

@@ -25,7 +25,7 @@ namespace regen {
 		auto numBoneWeights() const  { return numBoneWeights_->getVertex(0); }
 
 		// override
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 	protected:
 		ref_ptr<BoneTree> boneTree_;

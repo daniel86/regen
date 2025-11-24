@@ -146,7 +146,7 @@ void RootNode::postRender(double dt) {
 	//AnimationManager::get().nextFrame();
 	// some animations modify the vertex data,
 	// updating the vbo needs a context so we do it here in the main thread..
-	AnimationManager::get().updateSynchronized_GPU(dt);
+	AnimationManager::get().gpuUpdateStep(dt);
 }
 
 //////////////

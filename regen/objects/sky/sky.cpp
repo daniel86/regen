@@ -96,7 +96,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	// mae some parts of the sky configurable from the GUI.
 	setAnimationName("sky");
 	// make sure the client buffer data is initialized
-	Sky::animate(0.0f);
+	Sky::cpuUpdate(0.0f);
 	// Note: disabled because animation manager allways activates this state,
 	//       but we do not need to if sky does not need update.
 	// TODO: Make the "idle" state part of animation, then animation manager can
@@ -154,12 +154,12 @@ void Sky::createShader() {
 }
 
 void Sky::startAnimation() {
-	if (isRunning_) return;
+	if (isRunning()) return;
 	Animation::startAnimation();
 }
 
 void Sky::stopAnimation() {
-	if (!isRunning_) return;
+	if (!isRunning()) return;
 	Animation::stopAnimation();
 }
 
@@ -195,7 +195,7 @@ static Vec3f computeColor(const Vec3f &color, float ext) {
 	}
 }
 
-void Sky::animate(double dt) {
+void Sky::cpuUpdate(double dt) {
 	if (worldTime_) {
 		time_osg_.sett(boost::posix_time::to_time_t(worldTime_->p_time));
 		time_osg_.setUtcOffset(14400); // UTC+4, Berlin time
@@ -233,7 +233,7 @@ void Sky::animate(double dt) {
 	updateSeed();
 }
 
-void Sky::glAnimate(RenderState *rs, double dt) {
+void Sky::gpuUpdate(RenderState *rs, double dt) {
 	bool needsUpdate = false;
 	for (auto &layer: layer_) {
 		if (layer->advanceTime(dt)) {

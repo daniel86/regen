@@ -1,20 +1,15 @@
 #include <regen/animation/animation-manager.h>
-#include <regen/utility/threading.h>
-#include <regen/utility/logging.h>
-#include <regen/config.h>
 
 #include "animation.h"
 
 using namespace regen;
 
-uint32_t Animation::ANIMATION_STARTED = EventObject::registerEvent("animationStarted");
 uint32_t Animation::ANIMATION_STOPPED = EventObject::registerEvent("animationStopped");
 
 Animation::Animation(bool isGPUAnimation, bool isCPUAnimation)
 		: EventObject(),
 		  isGPUAnimation_(isGPUAnimation),
-		  isCPUAnimation_(isCPUAnimation),
-		  isRunning_(false) {
+		  isCPUAnimation_(isCPUAnimation) {
 	animationState_ = ref_ptr<State>::alloc();
 	if (AnimationManager::get().rootState().get()) {
 		animationState_->joinStates(AnimationManager::get().rootState());
@@ -22,51 +17,23 @@ Animation::Animation(bool isGPUAnimation, bool isCPUAnimation)
 }
 
 Animation::~Animation() {
-	if (!try_lock()) {
-		REGEN_WARN("Destroying Animation during it's locked.");
-	} else {
-		unlock();
-	}
-	if (!try_lock_gl()) {
-		REGEN_WARN("Destroying GL Animation during it's locked.");
-	} else {
-		unlock_gl();
-	}
-	doStopAnimation();
+	isRunning_.clear(std::memory_order_release);
+	unQueueEmit(ANIMATION_STOPPED);
+	AnimationManager::get().removeAnimation(this);
 }
 
 void Animation::startAnimation() {
-	if (isRunning_) return;
-	isRunning_ = true;
-
+	if (isRunning()) return;
+	isRunning_.test_and_set(std::memory_order_acquire);
 	unQueueEmit(ANIMATION_STOPPED);
-	queueEmit(ANIMATION_STARTED);
 	AnimationManager::get().addAnimation(this);
 }
 
 void Animation::doStopAnimation() {
-	if (!isRunning_) return;
-
-	isRunning_ = false;
-	unQueueEmit(ANIMATION_STARTED);
+	if (!isRunning()) return;
+	isRunning_.clear(std::memory_order_release);
 	queueEmit(ANIMATION_STOPPED);
 	AnimationManager::get().removeAnimation(this);
-}
-
-bool Animation::try_lock() { return mutex_.try_lock(); }
-
-void Animation::lock() { mutex_.lock(); }
-
-void Animation::unlock() { mutex_.unlock(); }
-
-bool Animation::try_lock_gl() { return mutex_gl_.try_lock(); }
-
-void Animation::lock_gl() { mutex_gl_.lock(); }
-
-void Animation::unlock_gl() { mutex_gl_.unlock(); }
-
-void Animation::wait(uint32_t milliseconds) {
-	usleepRegen(1000 * milliseconds);
 }
 
 void Animation::joinAnimationState(const ref_ptr<State> &state) {

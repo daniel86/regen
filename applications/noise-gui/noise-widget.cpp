@@ -120,9 +120,9 @@ void NoiseWidget::updateTexture() {
 	updateTexture_ = true;
 }
 
-void NoiseWidget::animate(double dt) {}
+void NoiseWidget::cpuUpdate(double dt) {}
 
-void NoiseWidget::glAnimate(RenderState *rs, double dt) {
+void NoiseWidget::gpuUpdate(RenderState *rs, double dt) {
 	if (!updateTexture_ || !texture_.get()) return;
 
 	auto noiseModuleName = ui_.textureSelectionBox->itemText(

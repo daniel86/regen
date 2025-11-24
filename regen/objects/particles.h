@@ -157,7 +157,7 @@ namespace regen {
 		void setRampFunction(const std::string &attributeName, const std::string &shaderFunction) { rampFunctions_.emplace(attributeName, shaderFunction); }
 
 		// override
-		void glAnimate(RenderState *rs, double dt) override;
+		void gpuUpdate(RenderState *rs, double dt) override;
 
 		void begin();
 

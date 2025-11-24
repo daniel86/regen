@@ -51,7 +51,7 @@ namespace regen {
 		void setRepeat(bool repeat) { repeat_ = repeat; }
 
 		// override
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 	protected:
 		struct CameraKeyFrame {

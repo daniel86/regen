@@ -1,11 +1,7 @@
 #ifndef REGEN_ANIMATION_MANAGER_H_
 #define REGEN_ANIMATION_MANAGER_H_
 
-#include <list>
-#include <set>
 #include <barrier>
-
-#include <regen/utility/threading.h>
 #include <regen/animation/animation.h>
 #include "regen/shapes/spatial-index.h"
 
@@ -21,7 +17,87 @@ namespace regen {
 		static AnimationManager &get();
 
 		/**
-		 * Adds an animation.
+		 * Command types for adding/removing animations.
+		 */
+		enum CommandType : uint8_t {
+			ADD,
+			REMOVE
+		};
+
+		/**
+		 * Animation command structure.
+		 */
+		struct Command {
+			CommandType type;
+			Animation *animation;
+		};
+
+		AnimationManager();
+
+		~AnimationManager();
+
+		/**
+		 * Set the root state.
+		 * @param rootState the root state.
+		 */
+		void setRootState(const ref_ptr<State> &rootState);
+
+		/**
+		 * @return the root state.
+		 */
+		const ref_ptr<State> &rootState() const { return rootState_; }
+
+		/**
+		 * Set the spatial indices.
+		 * @param indices the spatial indices.
+		 */
+		void setSpatialIndices(const std::vector<ref_ptr<SpatialIndex>> &indices) { spatialIndices_ = indices; }
+
+		/**
+		 * @return the set of animations.
+		 */
+		const std::vector<Animation*>& cpuAnimations() { return cpuAnimations_; }
+
+		/**
+		 * @return the set of glAnimations.
+		 */
+		const std::vector<Animation*>& gpuAnimations() { return gpuAnimations_; }
+
+		/**
+		 * @return the set of unsynchronized animations.
+		 */
+		const std::vector<Animation*>& unsyncedAnimations() { return unsyncedAnimations_; }
+
+		/**
+		 * Shutdown the animation manager.
+		 * @param blocking if true, wait for completion of any active animations.
+		 */
+		void shutdown(bool blocking = false);
+
+		/**
+		 * Pauses all animations.
+		 * @param blocking if true, wait for completion of any active animations.
+		 */
+		void pause(bool blocking = false);
+
+		/**
+		 * Remove all animations from the manager.
+		 */
+		void clear();
+
+		/**
+		 * Resumes previously paused animations.
+		 * @param runOnce if true, run one update step immediately upon resuming.
+		 */
+		void resume(bool runOnce = true);
+
+		/**
+		 * Reset the time of the animation manager.
+		 */
+		void resetTime();
+
+		/**
+		 * Adds an animation to the manager.
 		 * @param animation a Animation instance.
 		 */
 		void addAnimation(Animation *animation);
@@ -33,113 +109,69 @@ namespace regen {
 		void removeAnimation(Animation *animation);
 
 		/**
-		 * Invoke glAnimate() on added glAnimations.
-		 * @param dt_ms time difference to last call in milliseconds.
+		 * Performs a single GPU update step.
+		 * This should be called from the GPU thread each frame.
+		 * @param dt_ms time delta in milliseconds since last update.
 		 */
-		void updateSynchronized_GPU(double dt_ms);
-
-		/**
-		 * Close animation thread.
-		 */
-		void close(bool blocking = false);
-
-		/**
-		 * Pause glAnimations.
-		 * Can be resumed by call to resume().
-		 */
-		void pause(bool blocking = false);
-
-		/**
-		 * Clear all animations.
-		 */
-		void clear();
-
-		/**
-		 * Resumes previously paused glAnimations.
-		 */
-		void resume(bool runOnce = true);
-
-		/**
-		 * Reset the time of the animation manager.
-		 */
-		void resetTime();
-
-		/**
-		 * @return the set of glAnimations.
-		 */
-		auto& graphicsAnimations() { return gpuAnimations_; }
-
-		/**
-		 * @return the set of animations.
-		 */
-		auto& synchronizedAnimations() { return synchronizedAnimations_; }
-
-		/**
-		 * @return the set of unsynchronized animations.
-		 */
-		auto& unsynchronizedAnimations() { return unsynchronizedAnimations_; }
-
-		/**
-		 * Set the root state.
-		 * @param rootState the root state.
-		 */
-		void setRootState(const ref_ptr<State> &rootState);
-
-		/**
-		 * @return the root state.
-		 */
-		auto &rootState() const { return rootState_; }
-
-		/**
-		 * Set the spatial indices.
-		 * @param indices the spatial indices.
-		 */
-		void setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices) { spatialIndices_ = indices; }
+		void gpuUpdateStep(double dt_ms);
 
 	private:
+		// Time tracking
 		boost::posix_time::ptime time_;
 		boost::posix_time::ptime lastTime_;
-		std::vector<Animation *> synchronizedAnimations_;
-		std::vector<Animation *> unsynchronizedAnimations_;
-		std::vector<boost::thread> unsynchronizedThreads_;
-		std::set<Animation *> gpuAnimations_;
+
+		// GPU and CPU update threads
+		boost::thread cpuUpdateThread_;
+		boost::thread::id gpu_threadID_;
+		boost::thread::id cpu_threadID_;
+
+		// The root state for all animations
 		ref_ptr<State> rootState_;
-		std::map<std::string, ref_ptr<SpatialIndex>> spatialIndices_;
+		// Spatial indices for visibility updates
+		std::vector<ref_ptr<SpatialIndex>> spatialIndices_;
 
-		boost::thread::id animationThreadID_;
-		boost::thread::id glThreadID_;
-		boost::thread::id removeThreadID_;
-		boost::thread::id addThreadID_;
-		boost::thread thread_;
-		boost::mutex threadLock_;
+		// Synchronized GPU/CPU threads
+		std::vector<Animation *> cpuAnimations_; // only touch in CPU thread
+		std::vector<Animation *> gpuAnimations_; // only touch in GPU thread
+		// Unsynchronized threads that run independently
+		std::vector<Animation *> unsyncedAnimations_;
+		std::vector<boost::thread> unsyncedThreads_;
 
+		// Barrier to synchronize CPU and GPU threads at the end of each frame
 		using BarrierCompletionFun = std::function<void()>;
 		std::barrier<BarrierCompletionFun> frameBarrier_;
-		boost::mutex unsynchronizedMut_;
+		// This lock is only used for adding/removing unsynced animations,
+		// since there is no hot loop over the unsyncedAnimations_ list, this is acceptable.
+		boost::mutex unsyncedListLock_;
 
-		bool animInProgress_;
-		bool glInProgress_;
-		bool removeInProgress_;
-		bool addInProgress_;
-		bool animChangedDuringLoop_;
-		bool glChangedDuringLoop_;
-		bool closeFlag_;
-		bool pauseFlag_;
+		// The close flag is only toggled to true when system shuts down
+		std::atomic_flag closeFlag_ = { false };
+		// The pause flag is toggled to true when animations are paused, eg.
+		// when a new scene is loaded
+		std::atomic_flag pauseFlag_ = { false };
+		// Flags to indicate if an update is active, one for each thread.
+		// Unsynced animations currently have their dedicated threads, so each has its own flag.
+		std::atomic_flag cpu_isUpdateActive_ = { false };
+		std::atomic_flag gpu_isUpdateActive_ = { false };
+		std::atomic<int> unsynced_numActiveUpdates_{0};
 
-		AnimationManager();
+		// Command queues for adding/removing animations
+		ThreadSafeQueue<Command> gpu_commandQueue_;
+		ThreadSafeQueue<Command> cpu_commandQueue_;
 
-		~AnimationManager();
+		void flushGraphics() { frameBarrier_.arrive_and_wait(); }
 
-		void flushGraphics();
-		friend class Scene;
+		void cpuUpdate();
 
-		void run();
+		void cpuUpdateStep();
 
-		void runUnsynchronized(Animation *animation) const;
+		void unsyncedUpdate(Animation *animation);
 
-		void updateSynchronized_CPU(double dt);
+		void waitForAnimations() const;
 
 		void swapClientData();
+
+		friend class Scene;
 	};
 } // namespace
 

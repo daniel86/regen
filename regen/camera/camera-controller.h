@@ -225,7 +225,7 @@ namespace regen {
 		virtual void jump();
 
 		// override Animation
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 	protected:
 		Mode cameraMode_;

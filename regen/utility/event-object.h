@@ -110,7 +110,6 @@ namespace regen {
 			ref_ptr<EventData> data;
 			uint32_t eventID;
 		};
-		ref_ptr<EventData> fallbackEventData_;
 
 		struct StaticData {;
 			std::vector<QueuedEvent> eventQueue_[2];

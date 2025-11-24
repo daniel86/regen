@@ -83,7 +83,7 @@ int QtApplication::mainLoop() {
 	}
 	((SceneWidget*)glWidget_)->stopRendering();
 #endif
-	AnimationManager::get().close();
+	AnimationManager::get().shutdown();
 	BufferObject::destroyMemoryPools();
 	Font::closeLibrary();
 

@@ -150,7 +150,7 @@ void CameraController::jump() {
 	// do nothing
 }
 
-void CameraController::animate(double dt) {
+void CameraController::cpuUpdate(double dt) {
 	step_ = Vec3f::zero();
 	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
 	auto orientation = horizontalOrientation_ + meshHorizontalOrientation_;

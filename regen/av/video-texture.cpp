@@ -131,7 +131,7 @@ void VideoTexture::decode() {
 	}
 }
 
-void VideoTexture::animate(double animateDT) {
+void VideoTexture::cpuUpdate(double animateDT) {
 	if (!demuxer_->isPlaying()) { return; }
 	interval_ -= animateDT;
 	dt_ += animateDT;
@@ -186,7 +186,7 @@ void VideoTexture::animate(double animateDT) {
 	dt_ = 0.0;
 }
 
-void VideoTexture::glAnimate(RenderState *rs, double dt) {
+void VideoTexture::gpuUpdate(RenderState *rs, double dt) {
 	if (fileToLoaded_) { // setup the texture target
 		allocTexture();
 		set_filter(TextureFilter::create(GL_LINEAR));

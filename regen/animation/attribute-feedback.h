@@ -27,7 +27,7 @@ namespace regen {
 		void initializeResources();
 
 		// Override
-		void glAnimate(regen::RenderState *rs, double dt) override;
+		void gpuUpdate(regen::RenderState *rs, double dt) override;
 
 		/**
 		 * Create a new animation node.

@@ -277,7 +277,7 @@ namespace regen {
 		double ticksPerSecond(uint32_t trackIdx) const;
 
 		// override
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 		/**
 		 * Find node with given name.

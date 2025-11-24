@@ -401,7 +401,7 @@ static void boneSliceJob(void *arg) {
 	BoneSliceJob::run(arg);
 }
 
-void BoneTree::animate(double dt_ms) {
+void BoneTree::cpuUpdate(double dt_ms) {
 #ifdef BONE_TREE_DEBUG_TIME
 	static ElapsedTimeDebugger elapsedTime("NodeAnimation Update", 300);
 	elapsedTime.beginFrame();

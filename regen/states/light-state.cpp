@@ -10,7 +10,7 @@ namespace regen {
 		explicit SpotConeAnimation(Light *light)
 				: Animation(false, true), light_(light) {}
 
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			light_->updateConeMatrix();
 		}
 

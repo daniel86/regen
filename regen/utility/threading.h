@@ -5,7 +5,6 @@
 #include <thread>
 #include <atomic>
 #include <vector>
-#include <functional>
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
     #include <immintrin.h>
@@ -46,8 +45,11 @@ namespace regen {
 		void lock() {
 			int spins = 0;
 			while (flag.test_and_set(std::memory_order_acquire)) {
-				if (++spins > 1000)
-					std::this_thread::sleep_for(std::chrono::nanoseconds(50));
+				if (++spins < 200) {
+					CPU_PAUSE();
+				} else {
+					std::this_thread::yield();
+				}
 			}
 		}
 		void unlock() {
@@ -321,6 +323,197 @@ namespace regen {
 		std::atomic<bool> running_{true};
 		// number of jobs pushed in the current frame
 		uint32_t numPushed_ = 0u;
+	};
+
+	/**
+	 * \brief A thread-safe queue implementation.
+	 *
+	 * This is supposed to be used in producer-consumer scenarios.
+	 * Currently only a single producer and a single consumer is supported.
+	 * E.g. GUI thread producing tasks, CPU thread consuming tasks.
+	 *
+	 * Internally, the queue is composed of segments of fixed size (SEG_SIZE),
+	 * this is done to allow dynamic growth without requiring complex memory management.
+	 * Producers write to the head segment, while consumers read from the tail segment.
+	 * When a segment is full, a new segment is allocated and linked to the previous one.
+	 * When a segment is fully consumed, it is deleted to free memory.
+	 *
+	 * At the moment, this implementation is not entirely lock-free, as it uses a spin lock
+	 * to manage a pool of pre-allocated segments for reuse. However, often this lock
+	 * won't be used as one segment is usually sufficient for most workloads.
+	 */
+	template <typename T, size_t SEG_SIZE = 512>
+	class ThreadSafeQueue {
+		/** \brief A segment of the lock-free queue. */
+	    struct Segment {
+	    	// The cursor for writing items into the segment.
+	    	// Only modified by the producer.
+	    	// Conceptually the write cursor is "behind" the read cursor,
+	    	// and stands still when reaching the read cursor.
+	        std::atomic<size_t> writeCursor{0};
+	    	// The cursor for reading items from the segment.
+	    	// Only modified by the consumer.
+	        std::atomic<size_t> readCursor{0};
+	    	// Segments are linked in a singly linked list.
+	    	// Only modified by the producer.
+	        std::atomic<Segment*> next{nullptr};
+	    	// The items in the segment.
+	        T items[SEG_SIZE];
+	    };
+
+	    // Producer writes to head_
+	    std::atomic<Segment*> head_;
+	    // Consumer reads from tail_
+	    std::atomic<Segment*> tail_;
+
+		// A pool of pre-allocated segments
+		std::vector<Segment*> segmentPool_;
+
+	public:
+		/**
+		 * \brief Constructs an empty lock-free queue.
+		 */
+		ThreadSafeQueue() {
+			// Initially, create a single empty segment used for both head and tail.
+	        auto* s = acquireSegment();
+	        head_.store(s, std::memory_order_relaxed);
+	        tail_.store(s, std::memory_order_relaxed);
+	    }
+
+		/**
+		 * \brief Destructor for the lock-free queue.
+		 */
+		~ThreadSafeQueue() {
+	        // Free all remaining segments, for this we traverse the list structure.
+	        Segment* seg = tail_.load(std::memory_order_relaxed);
+	        while (seg) {
+	            Segment* next = seg->next.load(std::memory_order_relaxed);
+	            delete seg;
+	            seg = next;
+	        }
+			// Free segments in the pool
+			for (Segment* s : segmentPool_) {
+				delete s;
+			}
+	    }
+
+		/**
+		 * \brief Pushes an item onto the queue.
+		 * @param item The item to push.
+		 */
+	    void push(const T& item) {
+			// Load the current head segment which we will write to.
+	        Segment* seg = head_.load(std::memory_order_acquire);
+			// Load the cursor positions for this segment.
+	        const size_t w = seg->writeCursor.load(std::memory_order_relaxed);
+	        const size_t r = seg->readCursor.load(std::memory_order_acquire);
+
+	        if (w - r < SEG_SIZE) {
+	            // there is enough space in current segment.
+	            seg->items[w % SEG_SIZE] = item;
+	            seg->writeCursor.store(w + 1, std::memory_order_release);
+	            return;
+	        }
+
+	        // Current segment overflow -> allocate a new one.
+			// This means the consumer is at least SEG_SIZE items behind.
+			// In this case, we create a new segment and link it to previous segment.
+			// NOTE: The consumer can release the old segment when it is done with it.
+	        auto* newSeg = acquireSegment();
+	        newSeg->items[0] = item;
+	        newSeg->writeCursor.store(1, std::memory_order_release);
+
+			// Link new segment to current head segment, and update head_ to point to new segment.
+	        seg->next.store(newSeg, std::memory_order_release);
+	        head_.store(newSeg, std::memory_order_release);
+	    }
+
+		/**
+		 * \brief Checks if the queue is empty.
+		 * @return True if the queue is empty, false otherwise.
+		 */
+	    bool empty() const {
+	        const Segment* seg = tail_.load(std::memory_order_acquire);
+	        const size_t w = seg->writeCursor.load(std::memory_order_acquire);
+	        const size_t r = seg->readCursor.load(std::memory_order_relaxed);
+			// if cursors are at different positions, queue is not empty
+	        if (r != w) return false;
+			// also if there is a next segment, queue is not empty
+	        return seg->next.load(std::memory_order_acquire) == nullptr;
+	    }
+
+		/**
+		 * \brief Returns a reference to the front item in the queue.
+		 * This is only safe to call if the queue is not empty.
+		 * @return A reference to the front item.
+		 */
+		T& front() {
+	        Segment* seg = tail_.load(std::memory_order_acquire);
+	        const size_t r = seg->readCursor.load(std::memory_order_relaxed);
+	        const size_t w = seg->writeCursor.load(std::memory_order_acquire);
+
+	        if (r == w) {
+				// Advance to next segment if we hit the write cursor.
+	            Segment* next = seg->next.load(std::memory_order_acquire);
+	            const size_t r_next = next->readCursor.load(std::memory_order_relaxed);
+	            tail_.store(next, std::memory_order_release);
+	            // Old segment can now be released
+	        	releaseSegment(seg);
+				return next->items[r_next % SEG_SIZE];
+	        } else {
+				return seg->items[r % SEG_SIZE];
+	        }
+	    }
+
+		/**
+		 * \brief Pops the front item from the queue.
+		 * This is only safe to call if the queue is not empty.
+		 */
+		void pop() {
+	        Segment* seg = tail_.load(std::memory_order_acquire);
+	        const size_t r = seg->readCursor.load(std::memory_order_relaxed) + 1;
+
+			// Advance read cursor
+	        seg->readCursor.store(r, std::memory_order_release);
+
+	        // If segment fully consumed and next exists -> move to next
+	        size_t w = seg->writeCursor.load(std::memory_order_acquire);
+	        if (r == w) {
+	            Segment* next = seg->next.load(std::memory_order_acquire);
+	            if (next != nullptr) {
+	                tail_.store(next, std::memory_order_release);
+	            	// Old segment can now be released
+	            	releaseSegment(seg);
+	            }
+	        }
+	    }
+
+	private:
+		AdaptiveLock poolLock_;
+
+		Segment* acquireSegment() {
+			poolLock_.lock();
+			if (!segmentPool_.empty()) {
+				Segment* seg = segmentPool_.back();
+				segmentPool_.pop_back();
+				poolLock_.unlock();
+
+				seg->writeCursor.store(0, std::memory_order_relaxed);
+				seg->readCursor.store(0, std::memory_order_relaxed);
+				seg->next.store(nullptr, std::memory_order_relaxed);
+
+				return seg;
+			} else {
+				poolLock_.unlock();
+				return new Segment();
+			}
+		}
+
+		void releaseSegment(Segment* seg) {
+			poolLock_.lock();
+			segmentPool_.push_back(seg);
+			poolLock_.unlock();
+		}
 	};
 
 	// i have a strange problem with boost::this_thread here.

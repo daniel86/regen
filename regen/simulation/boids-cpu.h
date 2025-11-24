@@ -33,7 +33,7 @@ namespace regen {
 		static ref_ptr<BoidsCPU> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ModelTransformation> &tf);
 
 		// Animation interface
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 		void initBoidSimulation() override;
 

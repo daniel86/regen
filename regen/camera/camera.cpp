@@ -16,7 +16,7 @@ namespace regen {
 				: Animation(false, true),
 				  camera_(camera) {}
 
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			if(camera_->updatePose()) {
 				camera_->updateShaderData(dt);
 			}

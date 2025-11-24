@@ -118,7 +118,7 @@ namespace regen {
 				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 
 		// override
-		void glAnimate(RenderState *rs, double dt) override;
+		void gpuUpdate(RenderState *rs, double dt) override;
 
 	protected:
 		struct KeyFrame {

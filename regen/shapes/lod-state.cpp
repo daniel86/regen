@@ -37,7 +37,7 @@ namespace regen {
 				: Animation(false, true),
 				  lodState_(lodState) {}
 
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			lodState_->resetVisibility();
 			lodState_->traverseCPU();
 		}

@@ -26,7 +26,7 @@ namespace regen {
 		static ref_ptr<BoidsGPU> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ModelTransformation> &tf);
 
 		// override Animation
-		void glAnimate(RenderState *rs, double dt) override;
+		void gpuUpdate(RenderState *rs, double dt) override;
 
 		void initBoidSimulation() override;
 

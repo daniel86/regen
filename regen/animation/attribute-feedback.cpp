@@ -58,7 +58,7 @@ void AttributeFeedbackAnimation::initializeResources() {
 	feedbackMesh_->updateVAO(shaderConfigurer.cfg(), shaderState_->shader());
 }
 
-void AttributeFeedbackAnimation::glAnimate(regen::RenderState *rs, double dt) {
+void AttributeFeedbackAnimation::gpuUpdate(regen::RenderState *rs, double dt) {
 	animationNode_->traverse(rs);
 }
 

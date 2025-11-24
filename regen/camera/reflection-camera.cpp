@@ -8,7 +8,7 @@ namespace regen {
 		explicit ReflectionUpdater(ReflectionCamera *camera)
 				: Animation(false, true),
 				  camera_(camera) {}
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			if(camera_->updateReflection()) {
 				camera_->updateShaderData(static_cast<float>(dt));
 			}

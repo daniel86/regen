@@ -22,7 +22,6 @@ std::unordered_map<std::string, unsigned int> &EventObject::eventIds() {
 ///// none static
 
 EventObject::EventObject() {
-	fallbackEventData_ = ref_ptr<EventData>::alloc();
 }
 
 EventObject::~EventObject() {
@@ -107,12 +106,18 @@ void EventObject::disconnectAll() {
 
 void EventObject::emitEvent(unsigned int eventID, const ref_ptr<EventData> &data) {
 	// make sure event data specifies at least event ID
-	const ref_ptr<EventData> &d = data.get() ? data : fallbackEventData_;
+	EventData *d;
+	if (data.get()) {
+		d = data.get();
+	} else {
+		thread_local EventData threadLocalEventData;
+		d = &threadLocalEventData;
+	}
 	d->eventID = eventID;
 
 	if (auto handlers = eventHandlers_.find(eventID); handlers != eventHandlers_.end()) {
 		for (const auto &handler: handlers->second | std::views::keys) {
-			handler->call(this, d.get());
+			handler->call(this, d);
 		}
 	}
 }

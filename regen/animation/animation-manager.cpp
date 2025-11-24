@@ -8,9 +8,6 @@
 
 using namespace regen;
 
-// Microseconds to sleep per loop in idle mode.
-#define IDLE_SLEEP 100000
-
 AnimationManager &AnimationManager::get() {
 	static AnimationManager manager;
 	return manager;
@@ -24,24 +21,46 @@ static void setStagingCopyFlag() {
 	StagingSystem::instance().setIsCopyInProgress();
 }
 
+template <bool DesiredFlagState>
+static void waitOnFlag(const std::atomic_flag &flag) {
+	for (int i = 0; flag.test(std::memory_order_acquire) != DesiredFlagState; ++i) {
+		if (i < 16) { CPU_PAUSE(); }
+		else if (i < 256) { std::this_thread::yield(); }
+		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
+	}
+}
+
+template <typename CounterType, CounterType DesiredCount>
+static void waitOnCounter(const std::atomic<CounterType> &count) {
+	for (int i = 0; count.load(std::memory_order_acquire) != DesiredCount; ++i) {
+		if (i < 16) { CPU_PAUSE(); }
+		else if (i < 256) { std::this_thread::yield(); }
+		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
+	}
+}
+
+
 AnimationManager::AnimationManager()
-		: frameBarrier_(2, setStagingCopyFlag),
-		  animInProgress_(false),
-		  glInProgress_(false),
-		  removeInProgress_(false),
-		  addInProgress_(false),
-		  animChangedDuringLoop_(false),
-		  glChangedDuringLoop_(false),
-		  closeFlag_(false),
-		  pauseFlag_(true) {
+		: frameBarrier_(2, setStagingCopyFlag) {
 	resetTime();
-	thread_ = boost::thread(&AnimationManager::run, this);
+	cpu_isUpdateActive_.clear(std::memory_order_release);
+	gpu_isUpdateActive_.clear(std::memory_order_release);
+	cpuUpdateThread_ = boost::thread(&AnimationManager::cpuUpdate, this);
 }
 
 AnimationManager::~AnimationManager() {
-	closeFlag_ = true;
+	// toggle atomic close flag to true
+	closeFlag_.test_and_set(std::memory_order_release);
+	// indicate arrival at the barrier and drop this thread
 	frameBarrier_.arrive_and_drop();
-	thread_.join();
+	cpuUpdateThread_.join();
+	// Finally also join the dedicated threads
+	if (unsynced_numActiveUpdates_.load(std::memory_order_acquire) > 0) {
+		waitOnCounter<int,0>(unsynced_numActiveUpdates_);
+	}
+	for (auto &thread : unsyncedThreads_) {
+		thread.join();
+	}
 }
 
 void AnimationManager::resetTime() {
@@ -52,13 +71,13 @@ void AnimationManager::resetTime() {
 
 void AnimationManager::setRootState(const ref_ptr<State> &rootState) {
 	std::set<Animation *> allAnimations;
-	for (auto &anim : synchronizedAnimations_) {
-		allAnimations.insert(anim);
-	}
-	for (auto &anim : unsynchronizedAnimations_) {
+	for (auto &anim : cpuAnimations_) {
 		allAnimations.insert(anim);
 	}
 	for (auto &anim : gpuAnimations_) {
+		allAnimations.insert(anim);
+	}
+	for (auto &anim : unsyncedAnimations_) {
 		allAnimations.insert(anim);
 	}
 
@@ -76,253 +95,198 @@ void AnimationManager::setRootState(const ref_ptr<State> &rootState) {
 }
 
 void AnimationManager::addAnimation(Animation *animation) {
-	// Don't add while removing
-	while (removeInProgress_) usleepRegen(1000);
-
-	addThreadID_ = boost::this_thread::get_id();
-	addInProgress_ = true;
-
 	if (animation->isGPUAnimation()) {
-		if (glInProgress_ && addThreadID_ == glThreadID_) {
-			// Called from glAnimate().
-			glChangedDuringLoop_ = true;
-			gpuAnimations_.insert(animation);
-		} else {
-			// Wait for the current loop to finish.
-			if (glInProgress_) {
-				addInProgress_ = false;
-				while (glInProgress_) usleepRegen(1000);
-				addInProgress_ = true;
-			}
-			// save to remove from set
-			// FIXME: there is a race condition here if add/remove are called from different
-			//        non GL threads they could insert/remove simultaneously
-			gpuAnimations_.insert(animation);
-		}
+		gpu_commandQueue_.push({ ADD, animation });
 	}
 
-	if (animation->isCPUAnimation()) {
-		if (animation->isSynchronized()) {
-			if (animInProgress_ && addThreadID_ == animationThreadID_) {
-				// Called from animate().
-				animChangedDuringLoop_ = true;
-				synchronizedAnimations_.emplace_back(animation);
-			} else {
-				// Wait for the current loop to finish.
-				while (animInProgress_) usleepRegen(1000);
-				// save to remove from set
-				synchronizedAnimations_.emplace_back(animation);
-			}
-		} else {
-			// start a new dedicated thread
-			boost::unique_lock<boost::mutex> lock(unsynchronizedMut_);
-			unsynchronizedAnimations_.emplace_back(animation);
-			unsynchronizedThreads_.emplace_back([this, animation]()
-				{ runUnsynchronized(animation); });
-		}
+	if (animation->isCPUAnimation() && animation->isSynchronized()) {
+		cpu_commandQueue_.push({ ADD, animation });
+	} else if (animation->isCPUAnimation()) {
+		// start a new dedicated thread
+		boost::unique_lock lock(unsyncedListLock_);
+		unsyncedAnimations_.emplace_back(animation);
+		unsyncedThreads_.emplace_back([this, animation]() {
+			unsyncedUpdate(animation);
+		});
 	}
-
-	addInProgress_ = false;
 }
 
 void AnimationManager::removeAnimation(Animation *animation) {
-	// Don't remove while adding
-	while (addInProgress_) usleepRegen(1000);
-
-	removeThreadID_ = boost::this_thread::get_id();
-	removeInProgress_ = true;
+	// Make sure we won't run this animation anymore
+	animation->stopAnimation();
 
 	if (animation->isGPUAnimation()) {
-		if (glInProgress_ && removeThreadID_ == glThreadID_) {
-			// Called from glAnimate().
-			glChangedDuringLoop_ = true;
-			gpuAnimations_.erase(animation);
-		} else {
-			// Wait for the current loop to finish.
-			if (glInProgress_) {
-				removeInProgress_ = false;
-				while (glInProgress_) usleepRegen(1000);
-				removeInProgress_ = true;
-			}
-			// save to remove from set
-			gpuAnimations_.erase(animation);
-		}
+		gpu_commandQueue_.push({ REMOVE, animation });
 	}
 
-	if (animation->isCPUAnimation()) {
-		if (animation->isSynchronized()) {
-			if (animInProgress_ && removeThreadID_ == animationThreadID_) {
-				// Called from animate().
-				animChangedDuringLoop_ = true;
-			} else {
-				// Wait for the current loop to finish.
-				while (animInProgress_) usleepRegen(1000);
-				// save to remove from set
-			}
-			// remove from list
-			auto it = synchronizedAnimations_.begin();
-			while (it != synchronizedAnimations_.end()) {
-				if (*it == animation) {
-					synchronizedAnimations_.erase(it);
-					break;
-				}
-				++it;
-			}
-		}
-		else {
-			// remove from list
-			boost::unique_lock<boost::mutex> lock(unsynchronizedMut_);
-			animation->isRunning_ = false;
-			for (size_t i = 0; i < unsynchronizedAnimations_.size(); i++) {
-				if (unsynchronizedAnimations_[i] == animation) {
-					unsynchronizedThreads_[i].join();
-					unsynchronizedAnimations_.erase(unsynchronizedAnimations_.begin() + i);
-					unsynchronizedThreads_.erase(unsynchronizedThreads_.begin() + i);
-					break;
-				}
-			}
-		}
-	}
-
-	removeInProgress_ = false;
-}
-
-void AnimationManager::updateSynchronized_GPU(double dt) {
-	if (pauseFlag_) { return; }
-	glThreadID_ = boost::this_thread::get_id();
-
-	// wait for remove/remove to return
-	while (removeInProgress_) usleepRegen(1000);
-	while (addInProgress_) usleepRegen(1000);
-
-	// Set processing flags, so that other threads can wait
-	// for the completion of this loop
-	glInProgress_ = true;
-	std::set<Animation *> processed;
-	bool animationsRemaining = true;
-	while (animationsRemaining && !pauseFlag_) {
-		animationsRemaining = false;
-		for (auto it = gpuAnimations_.begin(); it != gpuAnimations_.end(); ++it) {
-			Animation *anim = *it;
-			processed.insert(anim);
-			if (anim->isRunning()) {
-				auto animState = anim->animationState();
-				animState->enable(RenderState::get());
-				anim->glAnimate(RenderState::get(), dt);
-				animState->disable(RenderState::get());
-				// Animation was removed in glAnimate call.
-				// We have to restart the loop because iterator is invalid.
-				if (glChangedDuringLoop_) {
-					glChangedDuringLoop_ = false;
-					animationsRemaining = true;
-					break;
-				}
-			}
-		}
-	}
-	glInProgress_ = false;
-}
-
-void AnimationManager::updateSynchronized_CPU(double dt) {
-	if (synchronizedAnimations_.empty()) return;
-
-	bool areAnimationsRemaining = true;
-	std::set<Animation *> processed;
-	while (areAnimationsRemaining) {
-		areAnimationsRemaining = false;
-		for (auto anim: synchronizedAnimations_) {
-			processed.insert(anim);
-			if (anim->isRunning()) {
-				anim->animate(dt);
-				// Animation was removed in animate call.
-				// We have to restart the loop because iterator is invalid.
-				if (animChangedDuringLoop_) {
-					animChangedDuringLoop_ = false;
-					areAnimationsRemaining = true;
-					break;
-				}
+	if (animation->isCPUAnimation() && animation->isSynchronized()) {
+		cpu_commandQueue_.push({ REMOVE, animation });
+	} else if (animation->isCPUAnimation()) {
+		// remove from list
+		boost::unique_lock lock(unsyncedListLock_);
+		for (size_t i = 0; i < unsyncedAnimations_.size(); i++) {
+			if (unsyncedAnimations_[i] == animation) {
+				unsyncedThreads_[i].join();
+				unsyncedAnimations_.erase(unsyncedAnimations_.begin() + i);
+				unsyncedThreads_.erase(unsyncedThreads_.begin() + i);
+				break;
 			}
 		}
 	}
 }
 
-void AnimationManager::run() {
-	animationThreadID_ = boost::this_thread::get_id();
-	resetTime();
-
-	while (!closeFlag_) {
-		time_ = boost::posix_time::ptime(
-				boost::posix_time::microsec_clock::local_time());
-
-		if (!pauseFlag_) {
-			double dt = ((double) (time_ - lastTime_).total_microseconds()) / 1000.0;
-			// wait for remove/add to return
-			while (removeInProgress_) usleepRegen(1000);
-			while (addInProgress_) usleepRegen(1000);
-			animInProgress_ = true;
-
-			// Advance each CPU animation.
-			// Main point is writing shader data that will be added to
-			// staging next frame.
-			updateSynchronized_CPU(dt);
-			// Update visibility using spatial indices.
-			// Note: this might be computationally heavy!
-			for (auto &index : spatialIndices_) {
-				index.second->update(static_cast<float>(dt));
-			}
-#ifdef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
-			// make client buffers we just wrote available for the next frame in the staging system.
-			swapClientData();
-#endif
-
-			animInProgress_ = false;
-		}
-		lastTime_ = time_;
-		frameBarrier_.arrive_and_wait();
+void AnimationManager::waitForAnimations() const {
+	// Block until all "isUpdateActive" flags are cleared in all *other* threads.
+	const auto thisThreadID = boost::this_thread::get_id();
+	if (thisThreadID != cpu_threadID_ && cpu_isUpdateActive_.test(std::memory_order_acquire)) {
+		waitOnFlag<false>(cpu_isUpdateActive_);
+	}
+	if (thisThreadID != gpu_threadID_ && gpu_isUpdateActive_.test(std::memory_order_acquire)) {
+		waitOnFlag<false>(gpu_isUpdateActive_);
+	}
+	if (unsynced_numActiveUpdates_.load(std::memory_order_acquire) > 0) {
+		waitOnCounter<int,0>(unsynced_numActiveUpdates_);
 	}
 }
 
-void AnimationManager::close(bool blocking) {
-	closeFlag_ = true;
-	if (blocking) {
-		boost::thread::id callingThread = boost::this_thread::get_id();
-		if (callingThread != animationThreadID_)
-			while (animInProgress_) usleepRegen(1000);
-		if (callingThread != glThreadID_)
-			while (glInProgress_) usleepRegen(1000);
-	}
+void AnimationManager::shutdown(bool blocking) {
+	// toggle atomic close flag to true
+	closeFlag_.test_and_set(std::memory_order_release);
+	if (blocking) waitForAnimations();
 }
 
 void AnimationManager::pause(bool blocking) {
-	pauseFlag_ = true;
-	if (blocking) {
-		boost::thread::id callingThread = boost::this_thread::get_id();
-		if (callingThread != animationThreadID_)
-			while (animInProgress_) usleepRegen(1000);
-		if (callingThread != glThreadID_)
-			while (glInProgress_) usleepRegen(1000);
-	}
+	// toggle atomic pause flag to true
+	pauseFlag_.test_and_set(std::memory_order_release);
+	if (blocking) waitForAnimations();
 }
 
 void AnimationManager::clear() {
-	synchronizedAnimations_.clear();
-	unsynchronizedAnimations_.clear();
+	// note: assuming, pause(true) was called before, no animation is running now
+	boost::unique_lock lock(unsyncedListLock_);
+	cpuAnimations_.clear();
 	gpuAnimations_.clear();
+	unsyncedAnimations_.clear();
 	spatialIndices_.clear();
 }
 
 void AnimationManager::resume(bool runOnce) {
 	if(runOnce) {
-		for (auto anim : synchronizedAnimations_) {
+		for (auto anim : cpuAnimations_) {
 			if (anim->isRunning()) {
-				anim->animate(0.0);
+				anim->cpuUpdate(0.0);
 			}
 		}
 	}
-	pauseFlag_ = false;
+	// toggle atomic pause flag to false
+	pauseFlag_.clear(std::memory_order_release);
 }
 
-void AnimationManager::runUnsynchronized(Animation *animation) const {
+void AnimationManager::gpuUpdateStep(double dt) {
+	RenderState *rs = RenderState::get();
+	// Remember the GPU thread ID
+	gpu_threadID_ = boost::this_thread::get_id();
+
+	// Set processing flags, so that other threads can wait for the completion of this loop
+	gpu_isUpdateActive_.test_and_set(std::memory_order_acquire);
+
+	// Avoid race condition with close waiting for gpu_isUpdateActive_ to clear
+	if (closeFlag_.test(std::memory_order_acquire) || pauseFlag_.test(std::memory_order_acquire)) {
+		gpu_isUpdateActive_.clear(std::memory_order_release);
+		return;
+	}
+
+	// Advance each active GPU animation.
+	for (const auto &anim : gpuAnimations_) {
+		if (!anim->isRunning()) { continue; }
+		auto animState = anim->animationState();
+		animState->enable(rs);
+		anim->gpuUpdate(rs, dt);
+		animState->disable(rs);
+	}
+
+	// Clear processing flags
+	gpu_isUpdateActive_.clear(std::memory_order_release);
+
+	// Perform pending add/remove operations
+	while (!gpu_commandQueue_.empty()) {
+		Command &cmd = gpu_commandQueue_.front();
+		switch (cmd.type) {
+			case ADD:
+				gpuAnimations_.push_back(cmd.animation);
+				break;
+			case REMOVE:
+				gpuAnimations_.erase(std::ranges::remove(
+					gpuAnimations_, cmd.animation).begin(), gpuAnimations_.end());
+				break;
+		}
+		gpu_commandQueue_.pop();
+	}
+}
+
+void AnimationManager::cpuUpdateStep() {
+	// Compute dt in milliseconds
+	double dt = static_cast<double>(
+		(time_ - lastTime_).total_microseconds()) / 1000.0;
+
+	// Set processing flags, so that other threads can wait for the completion of this loop
+	cpu_isUpdateActive_.test_and_set(std::memory_order_acquire);
+
+	// Avoid race conditions with close/pause waiting for cpu_isUpdateActive_ to clear
+	if (closeFlag_.test(std::memory_order_acquire) || pauseFlag_.test(std::memory_order_acquire)) {
+		cpu_isUpdateActive_.clear(std::memory_order_release);
+		return;
+	}
+
+	// Advance each active CPU animation.
+	for (const auto &anim : cpuAnimations_) {
+		if (!anim->isRunning()) { continue; }
+		anim->cpuUpdate(dt);
+	}
+
+	// Update visibility using spatial indices.
+	// Note: this might be computationally heavy!
+	for (auto &index : spatialIndices_) {
+		index->update(static_cast<float>(dt));
+	}
+
+#ifdef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
+	// make client buffers we just wrote available for the next frame in the staging system.
+	swapClientData();
+#endif
+
+	// Clear processing flags
+	cpu_isUpdateActive_.clear(std::memory_order_release);
+
+	// Perform pending add/remove operations
+	while (!cpu_commandQueue_.empty()) {
+		Command &cmd = cpu_commandQueue_.front();
+		switch (cmd.type) {
+			case ADD:
+				cpuAnimations_.push_back(cmd.animation);
+				break;
+			case REMOVE:
+				cpuAnimations_.erase(std::ranges::remove(
+					cpuAnimations_, cmd.animation).begin(), cpuAnimations_.end());
+				break;
+		}
+		cpu_commandQueue_.pop();
+	}
+}
+
+void AnimationManager::cpuUpdate() {
+	cpu_threadID_ = boost::this_thread::get_id();
+	resetTime();
+
+	while (closeFlag_.test(std::memory_order_acquire) == false) {
+		time_ = boost::posix_time::ptime(boost::posix_time::microsec_clock::local_time());
+		cpuUpdateStep();
+		lastTime_ = time_;
+		frameBarrier_.arrive_and_wait();
+	}
+}
+
+void AnimationManager::unsyncedUpdate(Animation *animation) {
 	using Clock = std::chrono::steady_clock;
 	using ms = std::chrono::duration<double, std::milli>;
 
@@ -331,10 +295,20 @@ void AnimationManager::runUnsynchronized(Animation *animation) const {
 	const auto frameDuration = std::chrono::duration_cast<Clock::duration>(d_frameDuration);
 	auto nextFrame = Clock::now();
 
-	while (!closeFlag_ && animation->isRunning()) {
-		if (pauseFlag_) {
-			usleepRegen(IDLE_SLEEP);  // or sleep_for()
-			nextFrame += std::chrono::microseconds(IDLE_SLEEP);
+	while (closeFlag_.test(std::memory_order_acquire) == false && animation->isRunning()) {
+		// Increase update counter atomic
+		unsynced_numActiveUpdates_.fetch_add(1, std::memory_order_acquire);
+
+		// Avoid race condition on close
+		if (closeFlag_.test(std::memory_order_acquire)) {
+			unsynced_numActiveUpdates_.fetch_sub(1, std::memory_order_release);
+			break;
+		}
+
+		// Spin until we can continue
+		if (pauseFlag_.test(std::memory_order_acquire)) {
+			unsynced_numActiveUpdates_.fetch_sub(1, std::memory_order_release);
+			waitOnFlag<false>(pauseFlag_);
 			continue;
 		}
 
@@ -342,7 +316,10 @@ void AnimationManager::runUnsynchronized(Animation *animation) const {
 		double dt = std::chrono::duration<double, std::milli>(frameStart - nextFrame + frameDuration).count();
 
 		// Run the animation logic
-		animation->animate(dt);
+		animation->cpuUpdate(dt);
+
+		// decrease update counter atomic
+		unsynced_numActiveUpdates_.fetch_sub(1, std::memory_order_release);
 
 		// Schedule next frame
 		nextFrame += frameDuration;
@@ -357,17 +334,13 @@ void AnimationManager::runUnsynchronized(Animation *animation) const {
 	}
 }
 
-void AnimationManager::flushGraphics() {
-	frameBarrier_.arrive_and_wait();
-}
-
 void AnimationManager::swapClientData() {
-	if (closeFlag_) return;
+	if (closeFlag_.test(std::memory_order_acquire)) return;
 	auto &staging = StagingSystem::instance();
 	// Wait for the staging system to finish copying client data for this frame.
-	while (staging.isCopyInProgress()) {
+	while (staging.isCopyInProgress() &&
+		!closeFlag_.test(std::memory_order_acquire)) {
 		CPU_PAUSE();
-		if (closeFlag_) return;
 	}
 	staging.swapClientData();
 }

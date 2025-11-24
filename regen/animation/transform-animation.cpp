@@ -60,7 +60,7 @@ void TransformAnimation::updatePose(const TransformKeyFrame &currentFrame, doubl
 }
 
 // Override
-void TransformAnimation::animate(double dt) {
+void TransformAnimation::cpuUpdate(double dt) {
 	if (it_ == frames_.end()) {
 		if (loopTransformAnimation_) {
 			it_ = frames_.begin();
@@ -80,7 +80,7 @@ void TransformAnimation::animate(double dt) {
 		lastFrame_.rotation = currentDir_;
 		double dt__ = dt_ - currentFrame.dt;
 		dt_ = 0.0;
-		animate(dt__);
+		cpuUpdate(dt__);
 	} else {
 		double t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
 		{

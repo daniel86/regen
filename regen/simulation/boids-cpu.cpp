@@ -228,7 +228,7 @@ Vec3i BoidsCPU::getGridIndex3D(const Vec3f &x) const {
 					  priv_->gridSize_ - Vec3i::one());
 }
 
-void BoidsCPU::animate(double dt) {
+void BoidsCPU::cpuUpdate(double dt) {
 	auto dt_f = static_cast<float>(dt) * 0.001f;
 	priv_->simBounds_.min = simulationBoundsMin_->getVertex(0).r;
 	priv_->simBounds_.max = simulationBoundsMax_->getVertex(0).r;

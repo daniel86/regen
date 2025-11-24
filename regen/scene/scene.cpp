@@ -395,7 +395,7 @@ void Scene::updateBOs() {
 	std::set<const ShaderInput*> visited;
 	nodeQueue.push(renderTree_.get());
 
-	for (auto &anim : AnimationManager::get().graphicsAnimations()) {
+	for (auto &anim : AnimationManager::get().gpuAnimations()) {
 		if(anim->animationState().get() != nullptr)
 			stateQueue.push(anim->animationState().get());
 	}
@@ -477,7 +477,7 @@ namespace regen {
 				Animation(true, false),
 				f_(f) {}
 
-		void glAnimate(RenderState *rs, double dt) override {
+		void gpuUpdate(RenderState *rs, double dt) override {
 			f_();
 			stopAnimation();
 		}

@@ -76,9 +76,9 @@ namespace regen {
 		void createShader();
 
 		// override
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
-		void glAnimate(RenderState *rs, double dt) override;
+		void gpuUpdate(RenderState *rs, double dt) override;
 
 		void startAnimation() override;
 

@@ -66,7 +66,7 @@ namespace regen {
 		void finalize();
 
 		// Override Animation::glAnimate
-		void glAnimate(RenderState *rs, double dt) override;
+		void gpuUpdate(RenderState *rs, double dt) override;
 
 	protected:
 		ref_ptr<VideoEncoder> encoder_;

@@ -19,7 +19,7 @@ public:
 		setAnimationName("fps-widget");
 	}
 
-	void glAnimate(RenderState *rs, double dt) {
+	void gpuUpdate(RenderState *rs, double dt) {
 		frameCounter_ += 1;
 		sumDtMiliseconds_ += dt;
 

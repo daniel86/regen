@@ -60,7 +60,7 @@ void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object) {
 	objects_.push_back(object);
 }
 
-void BulletPhysics::animate(double dt) {
+void BulletPhysics::cpuUpdate(double dt) {
 	auto timeStep = btScalar(dt / 1000.0);
 	auto fixedTimeStep = btScalar(1.0 / 60.0);
 	int maxSubSteps = 5;

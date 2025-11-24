@@ -1,12 +1,8 @@
-#ifndef GL_ANIMATION_H_
-#define GL_ANIMATION_H_
-
-#include <GL/glew.h>
-#include <boost/thread/mutex.hpp>
+#ifndef REGEN_ANIMATION_H_
+#define REGEN_ANIMATION_H_
 
 #include <regen/utility/event-object.h>
 #include <regen/gl-types/render-state.h>
-#include "regen/shader/shader.h"
 #include <regen/states/state.h>
 
 namespace regen {
@@ -16,22 +12,15 @@ namespace regen {
 	class Animation : public EventObject {
 	public:
 		/**
-		 * The animation state switched to active.
-		 */
-		static uint32_t ANIMATION_STARTED;
-		/**
 		 * The animation state switched to inactive.
 		 */
 		static uint32_t ANIMATION_STOPPED;
 
 		/**
 		 * Create an animation.
-		 * Note that the animation removes itself from the AnimationManager
-		 * in the destructor.
-		 * @param a user readable name, must not be unique.
-		 * @param useGLAnimation execute with render context.
-		 * @param useAnimation execute without render context in separate thread.
-		 * @param autoStart is true the animation adds itself to the AnimationManager.
+		 * Note that the animation removes itself from the AnimationManager in the destructor.
+		 * @param isGPUAnimation execute with render context.
+		 * @param isCPUAnimation execute without render context in separate thread.
 		 */
 		Animation(bool isGPUAnimation, bool isCPUAnimation);
 
@@ -40,9 +29,40 @@ namespace regen {
 		Animation(const Animation &) = delete;
 
 		/**
+		 * @return true if the animation implements glAnimate().
+		 */
+		bool isGPUAnimation() const { return isGPUAnimation_; }
+
+		/**
+		 * @return true if the animation implements animate().
+		 */
+		bool isCPUAnimation() const { return isCPUAnimation_; }
+
+		/**
+		 * @return true if this animation is synchronized.
+		 */
+		bool isSynchronized() const { return isSynchronized_; }
+
+		/**
+		 * Set the synchronized flag.
+		 * @param v the synchronized flag.
+		 */
+		void setSynchronized(bool v) { isSynchronized_ = v; }
+
+		/**
+		 * @return the desired frame rate.
+		 */
+		float desiredFrameRate() const { return desiredFrameRate_; }
+
+		/**
+		 * @return true if this animation is active.
+		 */
+		bool isRunning() const { return isRunning_.test(std::memory_order_acquire); }
+
+		/**
 		 * @return the name of the animation.
 		 */
-		auto &animationName() const { return animationName_; }
+		const std::string &animationName() const { return animationName_; }
 
 		/**
 		 * Set the name of the animation.
@@ -56,25 +76,21 @@ namespace regen {
 		bool hasAnimationName() const { return !animationName_.empty(); }
 
 		/**
-		 * @return true if this animation is active.
+		 * @return the root state.
 		 */
-		auto isRunning() const { return isRunning_; }
+		const ref_ptr<State>& animationState() const { return animationState_; }
 
 		/**
-		 * @return true if this animation is synchronized.
+		 * Set the root state.
+		 * @param state the root state.
 		 */
-		auto isSynchronized() const { return isSynchronized_; }
+		void joinAnimationState(const ref_ptr<State> &state);
 
 		/**
-		 * @return the desired frame rate.
+		 * Remove the root state.
+		 * @param state the root state.
 		 */
-		auto desiredFrameRate() const { return desiredFrameRate_; }
-
-		/**
-		 * Set the synchronized flag.
-		 * @param synchronized the synchronized flag.
-		 */
-		void setSynchronized(bool v) { isSynchronized_ = v; }
+		void disjoinAnimationState(const ref_ptr<State> &state);
 
 		/**
 		 * Activate this animation.
@@ -87,63 +103,11 @@ namespace regen {
 		virtual void stopAnimation() { doStopAnimation(); }
 
 		/**
-		 * Mutex lock for data access.
-		 * @return false if not successful.
-		 */
-		bool try_lock();
-
-		/**
-		 * Mutex lock for data access.
-		 * @return false if not successful.
-		 */
-		bool try_lock_gl();
-
-		/**
-		 * Mutex lock for data access.
-		 * Blocks until lock can be acquired.
-		 */
-		void lock();
-
-		/**
-		 * Mutex lock for data access.
-		 * Blocks until lock can be acquired.
-		 */
-		void lock_gl();
-
-		/**
-		 * Mutex lock for data access.
-		 * Unlocks a previously acquired lock.
-		 */
-		void unlock();
-
-		/**
-		 * Mutex lock for data access.
-		 * Unlocks a previously acquired lock.
-		 */
-		void unlock_gl();
-
-		/**
-		 * Waits for a while.
-		 * @param milliseconds number of ms to wait
-		 */
-		void wait(uint32_t milliseconds);
-
-		/**
-		 * @return true if the animation implements glAnimate().
-		 */
-		auto isGPUAnimation() const { return isGPUAnimation_; }
-
-		/**
-		 * @return true if the animation implements animate().
-		 */
-		auto isCPUAnimation() const { return isCPUAnimation_; }
-
-		/**
 		 * Make the next animation step.
 		 * This should be called each frame.
 		 * @param dt time difference to last call in milliseconds.
 		 */
-		virtual void animate(double dt) {}
+		virtual void cpuUpdate(double dt) {}
 
 		/**
 		 * Upload animation data to GL.
@@ -152,37 +116,18 @@ namespace regen {
 		 * @param rs the render state.
 		 * @param dt time difference to last call in milliseconds.
 		 */
-		virtual void glAnimate(RenderState *rs, double dt) {}
-
-		/**
-		 * @return the root state.
-		 */
-		auto& animationState() const { return animationState_; }
-
-		/**
-		 * Set the root state.
-		 * @param rootState the root state.
-		 */
-		void joinAnimationState(const ref_ptr<State> &state);
-
-		/**
-		 * Remove the root state.
-		 * @param rootState the root state.
-		 */
-		void disjoinAnimationState(const ref_ptr<State> &state);
+		virtual void gpuUpdate(RenderState *rs, double dt) {}
 
 	protected:
-		boost::mutex mutex_;
-		boost::mutex mutex_gl_;
+		const bool isGPUAnimation_;
+		const bool isCPUAnimation_;
 		std::string animationName_;
-		bool isGPUAnimation_;
-		bool isCPUAnimation_;
-		bool isRunning_;
+
 		bool isSynchronized_ = true;
 		float desiredFrameRate_ = 60.0f;
-		ref_ptr<State> animationState_;
 
-		void operator=(const Animation &) = delete;
+		std::atomic_flag isRunning_ = ATOMIC_FLAG_INIT;
+		ref_ptr<State> animationState_;
 
 		void doStopAnimation();
 
@@ -190,4 +135,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* GL_ANIMATION_H_ */
+#endif /* REGEN_ANIMATION_H_ */

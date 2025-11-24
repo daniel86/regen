@@ -64,7 +64,7 @@ namespace regen {
 		}
 
 		// override Animation
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 	protected:
 		ref_ptr<BoneAnimationItem> boneAnimation_;

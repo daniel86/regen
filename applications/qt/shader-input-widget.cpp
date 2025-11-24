@@ -81,13 +81,13 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 	animWidget->setExpanded(true);
 	int index = 0;
 	std::set<Animation *> allAnimations;
-	for (auto &anim: AnimationManager::get().synchronizedAnimations()) {
+	for (auto &anim: AnimationManager::get().cpuAnimations()) {
 		allAnimations.insert(anim);
 	}
-	for (auto &anim: AnimationManager::get().unsynchronizedAnimations()) {
+	for (auto &anim: AnimationManager::get().gpuAnimations()) {
 		allAnimations.insert(anim);
 	}
-	for (auto &anim: AnimationManager::get().graphicsAnimations()) {
+	for (auto &anim: AnimationManager::get().unsyncedAnimations()) {
 		allAnimations.insert(anim);
 	}
 	for (auto &anim: allAnimations) {

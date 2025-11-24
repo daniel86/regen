@@ -202,7 +202,7 @@ void MeshAnimation::loadFrame(uint32_t frameIndex, bool isPongFrame) {
 	}
 }
 
-void MeshAnimation::glAnimate(RenderState *rs, double dt) {
+void MeshAnimation::gpuUpdate(RenderState *rs, double dt) {
 	if (dt <= 0.00001) return;
 	if (rs->isTransformFeedbackAcive()) {
 		REGEN_WARN("Transform Feedback was active when the MeshAnimation was updated.");

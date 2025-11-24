@@ -51,7 +51,7 @@ namespace regen {
 		void setMesh(const ref_ptr<Mesh> &mesh) { mesh_ = mesh; }
 
 		// Override Animation
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 		/**
 		 * Update the pose.

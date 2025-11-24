@@ -104,11 +104,13 @@ protected:
 	double anchorPauseTime_;
 	double anchorTimeScale_;
 
+	std::map<std::string, ref_ptr<SpatialIndex>> spatialIndices_;
+	std::vector<ref_ptr<SpatialIndex>> spatialIndexList_;
+
 	QDialog *inputDialog_;
 	ShaderInputWidget *inputWidget_;
 	QtApplication *app_;
 	ref_ptr<BulletPhysics> physics_;
-	std::map<std::string, ref_ptr<SpatialIndex>> spatialIndices_;
 	Ui_sceneViewer ui_;
 	std::string activeFile_;
 	ViewNodeList viewNodes_;

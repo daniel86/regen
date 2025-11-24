@@ -113,7 +113,7 @@ Vec3f KeyFrameController::interpolateDirection(const Vec3f &v0, const Vec3f &v1,
 }
 **/
 
-void KeyFrameController::animate(double dt) {
+void KeyFrameController::cpuUpdate(double dt) {
 	double dtSeconds = dt / 1000.0;
 
 	if (it_ == frames_.end()) {
@@ -162,7 +162,7 @@ void KeyFrameController::animate(double dt) {
 				}
 			} else if (currentFrame.anchor->following()) {
 				dt_ = 0.0;
-				animate(dtNewFrame);
+				cpuUpdate(dtNewFrame);
 				return;
 			} else {
 				stopAnimation();
@@ -177,7 +177,7 @@ void KeyFrameController::animate(double dt) {
 			return;
 		} else {
 			dt_ = 0.0;
-			animate(dtNewFrame);
+			cpuUpdate(dtNewFrame);
 			return;
 		}
 	}

@@ -260,7 +260,7 @@ namespace regen {
 		void navCollisionFrameAdd(const CollisionEvent &evt);
 
 		// Override Animation
-		void animate(double dt) override;
+		void cpuUpdate(double dt) override;
 
 	protected:
 		ref_ptr<ModelTransformation> tf_;

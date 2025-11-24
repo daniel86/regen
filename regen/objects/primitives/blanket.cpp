@@ -30,7 +30,7 @@ namespace regen {
 			  blanket_(blanket) {
 		}
 
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			blanket_->updateLifetime(dt * 0.001f);
 		}
 

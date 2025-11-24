@@ -45,7 +45,7 @@ public:
 
 	~RotateAnimation() override = default;
 
-	void animate(double dt) override { widget_->transformMesh(dt); }
+	void cpuUpdate(double dt) override { widget_->transformMesh(dt); }
 	MeshViewerWidget *widget_;
 };
 
@@ -345,7 +345,7 @@ void MeshViewerWidget::loadAnimation(const ref_ptr<Mesh> &mesh, uint32_t index) 
 		mesh->joinStates(bonesState);
 	}
 
-	ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater2>::alloc(nodeAnim);
+	ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater>::alloc(nodeAnim);
 	nodeAnim->connect(Animation::ANIMATION_STOPPED, animStopped);
 	{
 		EventData evData;

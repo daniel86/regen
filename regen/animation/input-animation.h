@@ -44,7 +44,7 @@ namespace regen {
 		}
 
 		// Override
-		void animate(double dt) override {
+		void cpuUpdate(double dt) override {
 			if (it_ == frames_.end()) {
 				it_ = frames_.begin();
 				dt_ = 0.0;
@@ -57,7 +57,7 @@ namespace regen {
 				lastFrame_ = currentFrame;
 				double dt__ = dt_ - currentFrame.dt;
 				dt_ = 0.0;
-				animate(dt__);
+				cpuUpdate(dt__);
 			} else {
 				double t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
 				val_ = math::mix(lastFrame_.val, currentFrame.val, t);

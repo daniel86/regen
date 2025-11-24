@@ -47,7 +47,7 @@ public:
 		  widget_(widget), sceneFile_(sceneFile) {
 	}
 
-	void glAnimate(RenderState *rs, double dt) override {
+	void gpuUpdate(RenderState *rs, double dt) override {
 		widget_->loadSceneGraphicsThread(sceneFile_);
 	}
 
@@ -65,7 +65,7 @@ public:
 		: Animation(false, true), widget_(widget) {
 	}
 
-	void animate(double dt) override { widget_->updateGameTimeWidget(); }
+	void cpuUpdate(double dt) override { widget_->updateGameTimeWidget(); }
 
 protected:
 	SceneDisplayWidget *widget_;
@@ -107,7 +107,7 @@ public:
 		}
 	}
 
-	void glAnimate(RenderState *rs, double dt) override {
+	void gpuUpdate(RenderState *rs, double dt) override {
 		while (!interactionQueue_.empty()) {
 			boost::lock_guard<boost::mutex> lock(animationLock_);
 			auto interaction = interactionQueue_.front();
@@ -259,7 +259,7 @@ void SceneDisplayWidget::toggleOnCameraTransform() {
 		// update the camera position
 		userController_->setTransform(userCamera_->position(0), userCamera_->direction(0));
 		userController_->startAnimation();
-		userController_->animate(0.0);
+		userController_->cpuUpdate(0.0);
 	}
 }
 
@@ -331,7 +331,7 @@ void SceneDisplayWidget::playAnchor() {
 		anchorAnim_->push_back(anchor, dt * anchorTimeScale_);
 		lastPos = anchor->position();
 	}
-	anchorAnim_->animate(0.0);
+	anchorAnim_->cpuUpdate(0.0);
 	anchorAnim_->startAnimation();
 }
 
@@ -859,31 +859,6 @@ static ref_ptr<WorldModel> loadWorldModel(
 	return worldModel;
 }
 
-/**
-if (animationNode->getValue("mode") == string("random")) {
-		if (animItem->animation.get()) {
-			ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater>::alloc(animItem);
-			animItem->animation->connect(Animation::ANIMATION_STOPPED, animStopped);
-			eventHandler.push_back(animStopped);
-
-			EventData evData;
-			evData.eventID = Animation::ANIMATION_STOPPED;
-			animStopped->call(animItem->animation.get(), &evData);
-		}
-	} else if (animationNode->getValue("mode") == "fixed") {
-		if (animItem->animation.get()) {
-			auto &fixedRange = animItem->ranges[0];
-			ref_ptr<EventHandler> animStopped = ref_ptr<FixedAnimationRangeUpdater>::alloc(animItem->animation, fixedRange);
-			animItem->animation->connect(Animation::ANIMATION_STOPPED, animStopped);
-			eventHandler.push_back(animStopped);
-
-			EventData evData;
-			evData.eventID = Animation::ANIMATION_STOPPED;
-			animStopped->call(animItem->animation.get(), &evData);
-		}
-	}
- */
-
 static void handleMouseConfiguration(
 	QtApplication *app_,
 	scene::SceneLoader &sceneParser,
@@ -990,6 +965,9 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	                     sceneParser.getEventHandler().begin(),
 	                     sceneParser.getEventHandler().end());
 	spatialIndices_ = sceneParser.getResources()->getIndices();
+	for (auto &x: spatialIndices_) {
+		spatialIndexList_.push_back(x.second);
+	}
 
 	// Process the configuration node
 	for (const auto &x: configurationNode->getChildren()) {
@@ -1084,7 +1062,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	animations_.emplace_back(timeWidgetAnimation_);
 	loadAnim_ = ref_ptr<Animation>();
 	lightStates_ = sceneParser.getResources()->getLights();
-	AnimationManager::get().setSpatialIndices(spatialIndices_);
+	AnimationManager::get().setSpatialIndices(spatialIndexList_);
 	AnimationManager::get().resetTime();
 
 	AnimationManager::get().resume();

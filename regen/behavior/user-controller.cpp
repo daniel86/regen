@@ -44,8 +44,8 @@ bool UserController::isMotionActive(MotionType type) const {
 	return motionState_[motionIndex].load();
 }
 
-void UserController::animate(double dt) {
-	CameraController::animate(dt);
+void UserController::cpuUpdate(double dt) {
+	CameraController::cpuUpdate(dt);
 	if (boneController_.get()) {
 		float dt_s = dt / 1000.0f;
 		// Update the list of active motions from the motion state array.
