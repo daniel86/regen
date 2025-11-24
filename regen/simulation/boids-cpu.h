@@ -45,7 +45,7 @@ namespace regen {
 			std::vector<int32_t> neighbors; // size = maxNumNeighbors
 			uint32_t numNeighbors = 0;
 			Vec3f force;
-			Vec3f sumPos, sumVel, sumSep;
+			//Vec3f sumPos, sumVel, sumSep;
 		};
 		std::vector<BoidData> boidData_;   // size = numBoids_
 
@@ -87,18 +87,11 @@ namespace regen {
 				Vec3f &boidForce,
 				float dt);
 
-		bool avoidDanger(
-				const Vec3f &boidPos, Vec3f &boidForce);
+		bool avoidDanger(const Vec3f &boidPos, Vec3f &boidForce);
 
-		void attract(
-				const Vec3f &boidPos, Vec3f &boidForce);
+		void attract(const Vec3f &boidPos, Vec3f &boidForce);
 
-		void updateNeighbours(
-				BoidData &boid,
-				const Vec3f &boidPos,
-				int32_t boidIndex,
-				const int32_t *neighborIndices,
-				uint32_t neighborCount);
+		void updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices, uint32_t neighborCount);
 
 		void clearGrid();
 

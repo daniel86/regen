@@ -7,43 +7,46 @@
 using namespace regen;
 
 namespace regen {
-	static constexpr bool BOID_USE_SORTED_GRID = false;
 	static constexpr bool BOID_USE_SIMD = true;
 }
 
 // private data struct
 struct BoidsCPU::Private {
-	// Note: SoA data layout for SIMD-friendly processing
-	// Note: vectorSIMD is used to ensure 32-bit alignment which is good for SIMD operations.
-	AlignedArray<int32_t> sortedGridIndices_; // size = numBoids_
-	AlignedArray<int32_t> cellCounts_;  // size = numCells
-	AlignedArray<int32_t> cellOffsets_; // size = numCells
 	// Boid spatial grid. A cell in a 3D grid with edge length equal to boid visual range.
 	struct Cell {
 		vectorSIMD<int32_t> elements; // size = maxNumNeighbors
-		uint32_t numElements = 0;     // (capped) number of boids in this cell
 	};
 	std::vector<Cell> grid_;
+	// (capped) number of boids per cell
+	AlignedArray<int32_t> cellCounts_; // size = numCells
 	// Per-boid data
-	AlignedArray<int32_t> boidGridIndex_;   // size = numBoids_
-	AlignedArray<float> boidPositionsX_;  // size = numBoids_
-	AlignedArray<float> boidPositionsY_;  // size = numBoids_
-	AlignedArray<float> boidPositionsZ_;  // size = numBoids_
-	AlignedArray<float> boidVelocityX_;   // size = numBoids_
-	AlignedArray<float> boidVelocityY_;   // size = numBoids_
-	AlignedArray<float> boidVelocityZ_;   // size = numBoids_
-	AlignedArray<float> boidOrientW_;   // size = numBoids_
-	AlignedArray<float> boidOrientX_;   // size = numBoids_
-	AlignedArray<float> boidOrientY_;   // size = numBoids_
-	AlignedArray<float> boidOrientZ_;   // size = numBoids_
+	AlignedArray<int32_t> boidGridIndex_; // size = numBoids
+	AlignedArray<float> boidPositionsX_;  // size = numBoids
+	AlignedArray<float> boidPositionsY_;  // size = numBoids
+	AlignedArray<float> boidPositionsZ_;  // size = numBoids
+	AlignedArray<float> boidVelocityX_;   // size = numBoids
+	AlignedArray<float> boidVelocityY_;   // size = numBoids
+	AlignedArray<float> boidVelocityZ_;   // size = numBoids
+	AlignedArray<float> boidOrientW_;   // size = numBoids
+	AlignedArray<float> boidOrientX_;   // size = numBoids
+	AlignedArray<float> boidOrientY_;   // size = numBoids
+	AlignedArray<float> boidOrientZ_;   // size = numBoids
 	// Temporary queue for boid indices
 	AlignedArray<uint32_t> boidQueue_;
+	// Temporary position queue for SIMD processing, used for neighbor testing
+	AlignedArray<float> queuePosX_; // size = maxNumNeighbors
+	AlignedArray<float> queuePosY_; // size = maxNumNeighbors
+	AlignedArray<float> queuePosZ_; // size = maxNumNeighbors
+	AlignedArray<float> queueVelX_; // size = maxNumNeighbors
+	AlignedArray<float> queueVelY_; // size = maxNumNeighbors
+	AlignedArray<float> queueVelZ_; // size = maxNumNeighbors
 
 	// Configuration parameters
 	float visualRange_ = 1.6f;
 	float attractionRange_ = 160.0f;
 	float visualRangeSq_ = 0.0f;
 	float avoidanceDistance_ = 0.0f;
+	float avoidanceDistanceSq_ = 0.0f;
 	float avoidanceDistanceHalf_ = 0.0f;
 	float repulsionTimesSeparation_ = 0.0f;
 	float separationWeight_ = 0.0f;
@@ -52,6 +55,7 @@ struct BoidsCPU::Private {
 	float lookAheadDistance_ = 0.0f;
 	float maxBoidSpeed_ = 0.0f;
 	float maxAngularSpeed_ = 0.0f;
+	float cos_maxAngularSpeed_ = 1.0f;
 	float baseOrientation_ = 0.0f;
 	float cellSize_ = 3.2f;
 	Vec3i gridSize_ = Vec3i::zero();
@@ -79,10 +83,13 @@ struct BoidsCPU::Private {
 			  boidOrientX_(numBoids),
 			  boidOrientY_(numBoids),
 			  boidOrientZ_(numBoids),
-			  boidQueue_(100) {
-		if constexpr (BOID_USE_SORTED_GRID) {
-			sortedGridIndices_.resize(numBoids);
-		}
+			  boidQueue_(100),
+			  queuePosX_(100),
+			  queuePosY_(100),
+			  queuePosZ_(100),
+			  queueVelX_(100),
+			  queueVelY_(100),
+			  queueVelZ_(100) {
 	}
 };
 
@@ -95,9 +102,6 @@ BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 	priv_->boidVelocityY_.setToZero();
 	priv_->boidVelocityZ_.setToZero();
 	priv_->boidGridIndex_.setToZero();
-	if constexpr (BOID_USE_SORTED_GRID) {
-		priv_->sortedGridIndices_.setToZero();
-	}
 	for (uint32_t i = 0; i < numBoids_; ++i) {
 		setBoidPosition(i, tf_->position(i).r);
 	}
@@ -112,9 +116,6 @@ BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset)
 	priv_->boidVelocityY_.setToZero();
 	priv_->boidVelocityZ_.setToZero();
 	priv_->boidGridIndex_.setToZero();
-	if constexpr (BOID_USE_SORTED_GRID) {
-		priv_->sortedGridIndices_.setToZero();
-	}
 	for (uint32_t i = 0; i < numBoids_; ++i) {
 		setBoidPosition(i, modelOffset->getVertex(i).r.xyz());
 	}
@@ -122,6 +123,17 @@ BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset)
 
 BoidsCPU::~BoidsCPU() {
 	delete priv_;
+}
+
+// Use AVX2 to set 8 ints (32 bytes) at a time
+static void zeroAligned(int32_t* __restrict data, size_t size) {
+	size_t i = 0;
+	BatchOf_int32 zero{_mm256_setzero_si256()};
+	for (; i + simd::RegisterWidth <= size; i += simd::RegisterWidth) {
+		zero.storeAligned(data + i);
+	}
+	// Tail loop (in case size is not divisible by 8)
+	for (; i < size; ++i) { data[i] = 0; }
 }
 
 void BoidsCPU::initBoidSimulation() {
@@ -135,19 +147,20 @@ void BoidsCPU::initBoidSimulation() {
 
 	const auto maxNumNeighbors = maxNumNeighbors_->getVertex(0).r;
 	priv_->boidQueue_.resize(maxNumNeighbors + 1);
+	priv_->queuePosX_.resize(maxNumNeighbors + 1);
+	priv_->queuePosY_.resize(maxNumNeighbors + 1);
+	priv_->queuePosZ_.resize(maxNumNeighbors + 1);
+	priv_->queueVelX_.resize(maxNumNeighbors + 1);
+	priv_->queueVelY_.resize(maxNumNeighbors + 1);
+	priv_->queueVelZ_.resize(maxNumNeighbors + 1);
+
+	auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
 
 	// Initialize grid memory.
-	if constexpr (BOID_USE_SORTED_GRID) {
-		auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
-		numCells = std::max(numCells, 0);
-		priv_->cellCounts_.resize(numCells);
-		priv_->cellOffsets_.resize(numCells);
-	} else {
-		for (auto &cell : priv_->grid_) {
-			cell.elements.resize(maxNumNeighbors + 1); // +1 to avoid branching
-			cell.numElements = 0;
-		}
+	for (auto &cell : priv_->grid_) {
+		cell.elements.resize(maxNumNeighbors + 1); // +1 to avoid branching
 	}
+	priv_->cellCounts_.resize(numCells);
 
 	// Initialize per-boid memory.
 	for (uint32_t i = 0; i < numBoids_; ++i) {
@@ -233,6 +246,7 @@ void BoidsCPU::cpuUpdate(double dt) {
 	priv_->simBounds_.min = simulationBoundsMin_->getVertex(0).r;
 	priv_->simBounds_.max = simulationBoundsMax_->getVertex(0).r;
 	priv_->avoidanceDistance_ = avoidanceDistance_->getVertex(0).r;
+	priv_->avoidanceDistanceSq_ = priv_->avoidanceDistance_ * priv_->avoidanceDistance_;
 	priv_->avoidanceDistanceHalf_ = priv_->avoidanceDistance_ * 0.5f;
 	priv_->repulsionTimesSeparation_ = repulsionFactor_->getVertex(0).r * separationWeight_->getVertex(0).r;
 	priv_->visualRange_ = visualRange_->getVertex(0).r;
@@ -244,6 +258,7 @@ void BoidsCPU::cpuUpdate(double dt) {
 	priv_->lookAheadDistance_ = lookAheadDistance_->getVertex(0).r;
 	priv_->maxBoidSpeed_ = maxBoidSpeed_->getVertex(0).r;
 	priv_->maxAngularSpeed_ = maxAngularSpeed_->getVertex(0).r;
+	priv_->cos_maxAngularSpeed_ = cosf(priv_->maxAngularSpeed_);
 	priv_->maxNumNeighbors_ = maxNumNeighbors_->getVertex(0).r;
 	priv_->cellSize_ = cellSize_->getVertex(0).r;
 #ifdef REGEN_BOID_DEBUG_TIME
@@ -262,9 +277,7 @@ void BoidsCPU::cpuUpdate(double dt) {
 
 	// resize the grid, and clear all cells
 	clearGrid();
-	if constexpr (!BOID_USE_SORTED_GRID) {
-		if (priv_->grid_.empty()) { return; }
-	}
+	if (priv_->grid_.empty()) { return; }
 
 	// add boids to the grid and compute their neighborhood relations.
 	updateGrid();
@@ -361,43 +374,23 @@ void BoidsCPU::clearGrid() {
 		priv_->gridSize_.z = static_cast<int>(gridSize.z);
 		auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
 		numCells = std::max(numCells, 0);
-		if constexpr (BOID_USE_SORTED_GRID) {
-			priv_->cellCounts_.resize(numCells);
-			priv_->cellOffsets_.resize(numCells);
-			priv_->cellOffsets_[0] = 0;
-		} else {
-			auto firstAdded = priv_->grid_.size();
-			priv_->grid_.resize(numCells);
-			// reserve space for the neighbor indices in each cell.
-			// NOTE: we limit to maxNumNeighbors_ to avoid excessive memory usage.
-			auto maxNumNeighbors = maxNumNeighbors_->getVertex(0).r;
-			for (uint32_t i = firstAdded; i < priv_->grid_.size(); ++i) {
-				priv_->grid_[i].elements.resize(maxNumNeighbors + 1);
-			}
+
+		auto firstAdded = priv_->grid_.size();
+		priv_->grid_.resize(numCells);
+		// reserve space for the neighbor indices in each cell.
+		// NOTE: we limit to maxNumNeighbors_ to avoid excessive memory usage.
+		const auto maxNumNeighbors = priv_->maxNumNeighbors_;
+		for (uint32_t i = firstAdded; i < priv_->grid_.size(); ++i) {
+			priv_->grid_[i].elements.resize(maxNumNeighbors + 1);
 		}
 	}
 
-	if constexpr (!BOID_USE_SORTED_GRID) {
-		if (priv_->grid_.empty()) { return; }
-
-		// clear all cells, removing the old boids.
-		for (auto &cell: priv_->grid_) {
-			cell.numElements = 0;
-		}
+	if (!priv_->grid_.empty()) {
+		const uint32_t numCells = priv_->grid_.size();
+		priv_->cellCounts_.resize(numCells);
+		// Reset the cell counts to zero
+		zeroAligned(priv_->cellCounts_.data(), numCells);
 	}
-}
-
-static void zeroAligned(AlignedArray<int32_t> &vec) {
-    size_t size = vec.size();
-    int* data = vec.data();
-    size_t i = 0;
-    // Use AVX2 to set 8 ints (32 bytes) at a time
-    __m256i zero = _mm256_setzero_si256();
-    for (; i + 8 <= size; i += 8) {
-        _mm256_store_si256(reinterpret_cast<__m256i*>(data + i), zero);
-    }
-    // Tail loop (in case size is not divisible by 8)
-    for (; i < size; ++i) { data[i] = 0; }
 }
 
 void BoidsCPU::updateGrid() {
@@ -405,22 +398,26 @@ void BoidsCPU::updateGrid() {
 
 	// iterate over all boids and add them to the grid, compute the index
 	// based on the boid position and the grid bounds.
+	// Note: There is quite a bottleneck in updateNeighbours. Probably can only be improved
+	//       by coming up with a more efficient approach.
 	int32_t boidIdx = 0u;
 
-	const float* __restrict boidPosX = priv_->boidPositionsX_.data();
-	const float* __restrict boidPosY = priv_->boidPositionsY_.data();
-	const float* __restrict boidPosZ = priv_->boidPositionsZ_.data();
-	int32_t* __restrict boidGridIndex = priv_->boidGridIndex_.data();
+	auto* __restrict boidPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
+	auto* __restrict boidPosY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
+	auto* __restrict boidPosZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
+	auto* __restrict cellCounts = static_cast<int32_t*>(__builtin_assume_aligned(priv_->cellCounts_.data(), 32));
+	auto* __restrict boidGridIndex = static_cast<int32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
 
 	if constexpr (BOID_USE_SIMD) {
 		const BatchOf_Vec3f gridMin = BatchOf_Vec3f::fromScalar(gridBounds_.min);
 		const BatchOf_Vec3i gridSize = BatchOf_Vec3i::fromScalar(priv_->gridSize_);
 		const BatchOf_int32 allOne = BatchOf_int32::fromScalar(1);
+		const BatchOf_float allZero{ _mm256_setzero_ps() };
 		const BatchOf_float simd_cellSize = BatchOf_float::fromScalar(priv_->cellSize_);
 
 		BatchOf_Vec3f boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 		// we compute the grid index in batches
-		for (; boidIdx +  simd::RegisterWidth <= numBoids; boidIdx += simd::RegisterWidth) {
+		for (; boidIdx + simd::RegisterWidth <= numBoids; boidIdx += simd::RegisterWidth) {
 			// load the boid positions into a SIMD register
 			boidBatch.setAligned(
 					boidPosX + boidIdx,
@@ -429,9 +426,9 @@ void BoidsCPU::updateGrid() {
 			// x = (x - gridBounds_.min) / cellSize
 			boidBatch = (boidBatch - gridMin) / simd_cellSize;
 			// clamp to 0+
-			boidBatch.x.c = simd::max_ps(boidBatch.x.c, _mm256_setzero_ps());
-			boidBatch.y.c = simd::max_ps(boidBatch.y.c, _mm256_setzero_ps());
-			boidBatch.z.c = simd::max_ps(boidBatch.z.c, _mm256_setzero_ps());
+			boidBatch.x = BatchOf_float::max(boidBatch.x, allZero);
+			boidBatch.y = BatchOf_float::max(boidBatch.y, allZero);
+			boidBatch.z = BatchOf_float::max(boidBatch.z, allZero);
 
 			// floor to integer grid indices using cvttps_epi32 + clamp to max grid bounds
 			BatchOf_Vec3i gridIndices = boidBatch.floor().min(gridSize - allOne);
@@ -442,7 +439,7 @@ void BoidsCPU::updateGrid() {
 				(gridIndices.y * gridSize.x) +
 				(gridIndices.z * gridSize.x * gridSize.y));
 			// store results in local array
-			simd::storeu_epi32(boidGridIndex + boidIdx, i_f.c);
+			i_f.storeAligned(boidGridIndex + boidIdx);
 		}
 	}
 
@@ -453,149 +450,98 @@ void BoidsCPU::updateGrid() {
 		boidGridIndex[boidIdx] = getGridIndex(idx3D, priv_->gridSize_);
 	}
 
-	if constexpr (BOID_USE_SORTED_GRID) {
-		const int32_t numCells = priv_->cellOffsets_.size();
-		// Reset the cell counts to zero
-		priv_->cellOffsets_[0] = 0;
-		zeroAligned(priv_->cellCounts_);
-		// Count how many boids are in each cell
-		for (uint32_t i = 0; i < numBoids_; ++i) {
-			priv_->cellCounts_[boidGridIndex[i]] += 1;
-		}
-		// Compute prefix sum to get starting offsets
-		for (int32_t i = 1; i < numCells; ++i) {
-			priv_->cellOffsets_[i] = priv_->cellOffsets_[i - 1] + priv_->cellCounts_[i - 1];
-		}
+	for (boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
+		const uint32_t cellIndex = boidGridIndex[boidIdx];
+		const uint32_t numElements = cellCounts[cellIndex];
+		auto* __restrict cell = priv_->grid_[cellIndex].elements.data();
 
-		// Write sorted indices to buffer
-		for (boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
-			// cell of i'th boid
-			int32_t cell_idx = boidGridIndex[boidIdx];
-			// the start of the cell in the sorted grid indices
-			int32_t cell_offset = priv_->cellOffsets_[cell_idx];
-			priv_->cellOffsets_[cell_idx] += 1;
-			priv_->sortedGridIndices_[cell_offset] = boidIdx;
-		}
-		// Finally iterate over the grid cells and update neighbors
-		int32_t* cellElements = priv_->sortedGridIndices_.data();
+		updateNeighbours(boidIdx, cell, numElements);
 
-		for (int32_t cellIdx = 0; cellIdx < numCells; ++cellIdx) {
-			int32_t count = priv_->cellCounts_[cellIdx];
-			if (count == 0) continue; // skip empty cells
-
-			for (int32_t i= 0; i + 1 < count; ++i) {
-				boidIdx = cellElements[i];
-				auto &boid = boidData_[boidIdx];
-				auto boidPos = getBoidPosition(boidIdx);
-				updateNeighbours(boid, boidPos, boidIdx,
-					cellElements + i + 1,
-					count - i - 1);
-			}
-
-			cellElements += count;
-		}
-	} else {
-		// First pass: bin the boids into the grid cells
-		for (boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
-			const uint32_t cellIndex = boidGridIndex[boidIdx];
-			auto &cell = priv_->grid_[cellIndex];
-
-#if 1
-			auto &boid = boidData_[boidIdx];
-			auto boidPos = getBoidPosition(boidIdx);
-			updateNeighbours(boid, boidPos, boidIdx,
-				cell.elements.data(), cell.numElements);
-#endif
-
-			// add the boid to the grid cell
-			// Note: we can safely write one more element than the maxNumNeighbors_ because
-			//       we reserve one additional element in the cell.elements vector.
-			// Note: this is not entirely accurate. Better would be to also check the
-			//       adjacent cells, but this would cost more performance and results are ok in my opinion.
-			cell.elements[cell.numElements] = boidIdx;
-			cell.numElements += static_cast<uint32_t>(cell.numElements < priv_->maxNumNeighbors_);
-		}
-
-#if 0
-		// Second pass: go over the grid cells and update the neighbor relations
-		for (auto &cell : priv_->grid_) {
-			if (cell.numElements == 0) continue; // skip empty cells
-
-			// TODO: collect pairs across cells, then flush once buffer is full.
-			//   - significant performance boost for large number of boids.
-			//   - probably do in above loop?
-			for (uint32_t i = 0; i + 1 < cell.numElements; ++i) {
-				boidIdx = cell.elements[i];
-				auto &boid = boidData_[boidIdx];
-				auto boidPos = getBoidPosition(boidIdx);
-				updateNeighbours(boid, boidPos, boidIdx,
-					cell.elements.data() + i + 1,
-					cell.numElements - i - 1);
-			}
-		}
-#endif
+		// add the boid to the grid cell
+		// Note: we can safely write one more element than the maxNumNeighbors_ because
+		//       we reserve one additional element in the cell.elements vector.
+		// Note: this is not entirely accurate. Better would be to also check the
+		//       adjacent cells, but this would cost more performance and results are ok in my opinion.
+		cell[numElements] = boidIdx;
+		cellCounts[cellIndex] += static_cast<int32_t>(numElements < priv_->maxNumNeighbors_);
 	}
 }
 
-void BoidsCPU::updateNeighbours(
-		BoidData &boid, const Vec3f &boidPos, int32_t boidIndex,
-		const int32_t *neighborIndices, uint32_t neighborCount) {
-	auto* __restrict boidX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
-	auto* __restrict boidY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
-	auto* __restrict boidZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
+void BoidsCPU::updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices, uint32_t neighborCount) {
+	auto* __restrict globalX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
+	auto* __restrict globalY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
+	auto* __restrict globalZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
+	auto* __restrict queueX = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosX_.data(), 32));
+	auto* __restrict queueY = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosY_.data(), 32));
+	auto* __restrict queueZ = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosZ_.data(), 32));
 	auto* __restrict boidQueue = static_cast<uint32_t*>(__builtin_assume_aligned(priv_->boidQueue_.data(), 32));
+
+	auto &boidStruct = boidData_[boidIdx];
+	const float boidPosX = globalX[boidIdx];
+	const float boidPosY = globalY[boidIdx];
+	const float boidPosZ = globalZ[boidIdx];
+	const uint32_t maxNumNeighbors = priv_->maxNumNeighbors_;
+
 	uint32_t numHits = 0;
-	uint32_t neighborIdx = 0;
+	uint32_t queueIdx = 0;
+
+	// Load the neighbor positions into local SOA arrays
+	for (uint32_t i = 0; i < neighborCount; ++i) {
+		const int32_t neighborIdx = neighborIndices[i];
+		queueX[i] = globalX[neighborIdx];
+		queueY[i] = globalY[neighborIdx];
+		queueZ[i] = globalZ[neighborIdx];
+	}
 
 	if constexpr (BOID_USE_SIMD) {
-		BatchOf_Vec3f neighborBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-		BatchOf_Vec3f b_boidPos       = BatchOf_Vec3f::fromScalar(boidPos);
-		BatchOf_float b_visualRangeSq = BatchOf_float::fromScalar(priv_->visualRangeSq_);
+		const BatchOf_Vec3f b_boidPos{
+			BatchOf_float::fromScalar(boidPosX),
+			BatchOf_float::fromScalar(boidPosY),
+			BatchOf_float::fromScalar(boidPosZ) };
+		const BatchOf_float b_visualRangeSq = BatchOf_float::fromScalar(priv_->visualRangeSq_);
 
-		for (; neighborIdx + simd::RegisterWidth <= neighborCount; neighborIdx += simd::RegisterWidth) {
-			// load the indices of the neighbors into a SIMD register
-			simd::Register_i idx = simd::loadu_si256(neighborIndices + neighborIdx);
+		for (; queueIdx + simd::RegisterWidth <= neighborCount; queueIdx += simd::RegisterWidth) {
 			// load the positions of the neighbors into a SIMD register
-			// TODO: Avoid gather, load aligned load instead.
-			neighborBatch.setGathered(boidX, boidY, boidZ, idx);
+			const BatchOf_Vec3f candidatePos = BatchOf_Vec3f::loadAligned(
+				queueX + queueIdx,
+				queueY + queueIdx,
+				queueZ + queueIdx);
 
 			// finally compute the distance to the boid position for a batch of neighbors
-			const BatchOf_float lengthSq = (neighborBatch - b_boidPos).lengthSquared();
+			const BatchOf_float lengthSq = (candidatePos - b_boidPos).lengthSquared();
 			const BatchOf_float mask     = (lengthSq < b_visualRangeSq);
 
 			// Convert lanes (1/0) to bitmask value
 			uint8_t maskBits = mask.toBitmask8();
 			while (maskBits) {
 				int bitIndex = simd::nextBitIndex<uint8_t>(maskBits);
-				boidQueue[numHits++] = neighborIdx + bitIndex;
+				boidQueue[numHits++] = queueIdx + bitIndex;
 			}
 		}
 	}
 
 	// Fallback to scalar loop for remaining elements
-	for (; neighborIdx < neighborCount &&
-		   boid.numNeighbors < priv_->maxNumNeighbors_;
-		   ++neighborIdx) {
-		auto neighborIndex = neighborIndices[neighborIdx];
-		const Vec3f dx = boidPos - getBoidPosition(neighborIndex);
+	for (; queueIdx < neighborCount; queueIdx++) {
+		const Vec3f dx = {
+			queueX[queueIdx] - boidPosX,
+			queueY[queueIdx] - boidPosY,
+			queueZ[queueIdx] - boidPosZ };
 		if (dx.lengthSquared() <= priv_->visualRangeSq_) {
-			boidQueue[numHits++] = neighborIdx;
+			boidQueue[numHits++] = queueIdx;
 		}
 	}
 
 	// Process the found neighbors
 	for (uint32_t hitIdx = 0; hitIdx < numHits; ++hitIdx) {
-		const int32_t neighborIndex = neighborIndices[boidQueue[hitIdx]];
-		auto &neighbor = boidData_[neighborIndex];
+		const int32_t neighborIdx = neighborIndices[boidQueue[hitIdx]];
+		auto &neighbor = boidData_[neighborIdx];
 
 		// define reflexive neighbor relation
-		boid.neighbors[boid.numNeighbors] = neighborIndex;
-		boid.numNeighbors +=
-			static_cast<uint32_t>(boid.numNeighbors < priv_->maxNumNeighbors_);
+		boidStruct.neighbors[boidStruct.numNeighbors] = neighborIdx;
+		boidStruct.numNeighbors += static_cast<uint32_t>(boidStruct.numNeighbors < maxNumNeighbors);
 
-		neighbor.neighbors[neighbor.numNeighbors] = boidIndex;
-		neighbor.numNeighbors +=
-			static_cast<uint32_t>(neighbor.numNeighbors < priv_->maxNumNeighbors_);
+		neighbor.neighbors[neighbor.numNeighbors] = boidIdx;
+		neighbor.numNeighbors += static_cast<uint32_t>(neighbor.numNeighbors < maxNumNeighbors);
 	}
 }
 
@@ -617,102 +563,115 @@ void BoidsCPU::simulateBoids(float dt) {
 }
 
 Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3f &boidVel) {
+	auto* __restrict globalPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
+	auto* __restrict globalPosY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
+	auto* __restrict globalPosZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
+	auto* __restrict globalVelX = static_cast<float*>(__builtin_assume_aligned(priv_->boidVelocityX_.data(), 32));
+	auto* __restrict globalVelY = static_cast<float*>(__builtin_assume_aligned(priv_->boidVelocityY_.data(), 32));
+	auto* __restrict globalVelZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidVelocityZ_.data(), 32));
+	auto* __restrict queuePosX = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosX_.data(), 32));
+	auto* __restrict queuePosY = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosY_.data(), 32));
+	auto* __restrict queuePosZ = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosZ_.data(), 32));
+	auto* __restrict queueVelX = static_cast<float*>(__builtin_assume_aligned(priv_->queueVelX_.data(), 32));
+	auto* __restrict queueVelY = static_cast<float*>(__builtin_assume_aligned(priv_->queueVelY_.data(), 32));
+	auto* __restrict queueVelZ = static_cast<float*>(__builtin_assume_aligned(priv_->queueVelZ_.data(), 32));
+	auto* __restrict neighborIndices = boid.neighbors.data();
+
+	const uint32_t numNeighbors = boid.numNeighbors;
+
+	// Load the neighbor positions into local SOA arrays
+	for (uint32_t i = 0; i < numNeighbors; ++i) {
+		const int32_t neighborIdx = neighborIndices[i];
+		queuePosX[i] = globalPosX[neighborIdx];
+		queuePosY[i] = globalPosY[neighborIdx];
+		queuePosZ[i] = globalPosZ[neighborIdx];
+		queueVelX[i] = globalVelX[neighborIdx];
+		queueVelY[i] = globalVelY[neighborIdx];
+		queueVelZ[i] = globalVelZ[neighborIdx];
+	}
+
+	Vec3f sumPos = Vec3f::zero();
+	Vec3f sumVel = Vec3f::zero();
+	Vec3f sumSep = Vec3f::zero();
 	size_t startIdx = 0;
-	boid.sumPos = Vec3f::zero();
-	boid.sumVel = Vec3f::zero();
-	boid.sumSep = Vec3f::zero();
 
 	if constexpr (BOID_USE_SIMD) {
-		// NOTE: unfortunately, this does not buy us much as num neighbors is usually capped
-		//       to rather small values, e.g. 100.
 		{ // pass 1: compute average position and velocity
-			BatchOf_Vec3f avgPosition_SIMD = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			BatchOf_Vec3f avgVelocity_SIMD = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			BatchOf_Vec3f neighborVel_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			BatchOf_Vec3f neighborPos_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			for (; startIdx + simd::RegisterWidth <= boid.numNeighbors; startIdx += simd::RegisterWidth) {
-				// load the neighbor indices into a SIMD register
-				simd::Register_i idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
-				// load the positions of the neighbors into a SIMD register
-				neighborPos_SIMD.setGathered(
-						priv_->boidPositionsX_.data(),
-						priv_->boidPositionsY_.data(),
-						priv_->boidPositionsZ_.data(),
-						idx);
-				neighborVel_SIMD.setGathered(
-						priv_->boidVelocityX_.data(),
-						priv_->boidVelocityY_.data(),
-						priv_->boidVelocityZ_.data(),
-						idx);
-				avgPosition_SIMD += neighborPos_SIMD;
-				avgVelocity_SIMD += neighborVel_SIMD;
+			BatchOf_Vec3f sumPosVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+			BatchOf_Vec3f sumVelVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+			for (; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
+				sumPosVec += BatchOf_Vec3f::loadAligned(
+					queuePosX + startIdx,
+					queuePosY + startIdx,
+					queuePosZ + startIdx);
+				sumVelVec += BatchOf_Vec3f::loadAligned(
+					queueVelX + startIdx,
+					queueVelY + startIdx,
+					queueVelZ + startIdx);
 			}
-			boid.sumPos += avgPosition_SIMD.hsum();
-			boid.sumVel += avgVelocity_SIMD.hsum();
+			sumPos += sumPosVec.hsum();
+			sumVel += sumVelVec.hsum();
 		}
 
 		{ // pass 2: compute separation term
-			startIdx = 0;
-			const BatchOf_Vec3f boidPos_SIMD =
-				BatchOf_Vec3f::fromScalar(boidPos);
-			BatchOf_Vec3f separation_SIMD =
-				BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			const BatchOf_float avoidanceDistanceSq_SIMD =
-				BatchOf_float::fromScalar(priv_->avoidanceDistance_ * priv_->avoidanceDistance_);
-			const BatchOf_float one_SIMD =
-				BatchOf_float::fromScalar(1.0f);
-			BatchOf_Vec3f dir; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			const BatchOf_Vec3f boidPos_SIMD = BatchOf_Vec3f::fromScalar(boidPos);
+			const BatchOf_float avoidance = BatchOf_float::fromScalar(priv_->avoidanceDistanceSq_);
+			const BatchOf_float allOnes = BatchOf_float::fromScalar(1.0f);
+			const BatchOf_float allZeros{ _mm256_setzero_ps() };
 
-			for (; startIdx + simd::RegisterWidth <= boid.numNeighbors; startIdx += simd::RegisterWidth) {
-				// load the neighbor indices into a SIMD register
-				simd::Register_i idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
+			BatchOf_Vec3f separation = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+
+			for (startIdx = 0; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
 				// load the positions of the neighbors into a SIMD register
-				dir.setGathered(
-						priv_->boidPositionsX_.data(),
-						priv_->boidPositionsY_.data(),
-						priv_->boidPositionsZ_.data(),
-						idx);
+				BatchOf_Vec3f dir = BatchOf_Vec3f::loadAligned(
+						queuePosX + startIdx,
+						queuePosY + startIdx,
+						queuePosZ + startIdx);
 				dir = boidPos_SIMD - dir;
 
 				const BatchOf_float distSq = dir.lengthSquared();
-				BatchOf_float invDistSq = one_SIMD / distSq;
+				BatchOf_float invDistSq = allOnes / distSq;
 				invDistSq.c = _mm256_blendv_ps(
-					_mm256_setzero_ps(),
+					allZeros.c,
 					invDistSq.c,
-					(distSq < avoidanceDistanceSq_SIMD).c);
+					(distSq < avoidance).c);
 				// TODO: push into random direction if distance below threshold?
-				separation_SIMD += dir * invDistSq;
+				separation += dir * invDistSq;
 			}
-			boid.sumSep += separation_SIMD.hsum();
+			sumSep += separation.hsum();
 		}
 	}
 
 	// Fallback to scalar loop for remaining elements
-	for (; startIdx<boid.numNeighbors; startIdx++) {
-		auto neighborIdx = boid.neighbors[startIdx];
-		auto neighborPos = getBoidPosition(neighborIdx);
+	for (; startIdx < numNeighbors; startIdx++) {
+		sumPos.x += queuePosX[startIdx];
+		sumPos.y += queuePosY[startIdx];
+		sumPos.z += queuePosZ[startIdx];
+		sumVel.x += queueVelX[startIdx];
+		sumVel.y += queueVelY[startIdx];
+		sumVel.z += queueVelZ[startIdx];
 
-		boid.sumPos += neighborPos;
-		boid.sumVel += getBoidVelocity(neighborIdx);
-
-		auto boidDirection = boidPos - neighborPos;
-		float distance = boidDirection.length();
-		if (distance < priv_->avoidanceDistance_) {
-			if (distance < 0.001f) {
+		Vec3f boidDirection {
+			boidPos.x - queuePosX[startIdx],
+			boidPos.y - queuePosY[startIdx],
+			boidPos.z - queuePosZ[startIdx] };
+		const float dSq = boidDirection.lengthSquared();
+		if (dSq < priv_->avoidanceDistanceSq_) {
+			if (dSq < 0.001f) {
 				boidDirection = Vec3f::random();
 				boidDirection.normalize();
 			} else {
-				boidDirection /= distance * distance;
+				boidDirection /= dSq;
 			}
-			boid.sumSep += boidDirection;
+			sumSep += boidDirection;
 		}
 	}
 
-	float alpha = 1.0f / static_cast<float>(std::max(boid.numNeighbors,1u));
+	float alpha = 1.0f / static_cast<float>(std::max(numNeighbors,1u));
 	return
-		(boid.sumSep * priv_->separationWeight_) +
-		(boid.sumVel*alpha - boidVel) * priv_->alignmentWeight_ +
-		(boid.sumPos*alpha - boidPos) * priv_->coherenceWeight_;
+		(sumSep * priv_->separationWeight_) +
+		(sumVel*alpha - boidVel) * priv_->alignmentWeight_ +
+		(sumPos*alpha - boidPos) * priv_->coherenceWeight_;
 }
 
 void BoidsCPU::simulateBoid(int32_t boidIdx, float dt) {
@@ -767,8 +726,7 @@ Vec3f BoidsCPU::limitVelocity(const Vec3f &lastVelNorm, const Vec3f &nextVel, fl
 	Vec3f limitedVel = nextVelNorm * boidSpeed;
 
 	// limit angular speed
-	// TODO: avoid acos here, use dot product thresholding instead
-	if (acos(nextVelNorm.dot(lastVelNorm)) > priv_->maxAngularSpeed_) {
+	if (nextVelNorm.dot(lastVelNorm) < priv_->cos_maxAngularSpeed_) {
 		auto axis = nextVelNorm.cross(lastVelNorm);
 		axis.normalize();
 		priv_->boidRotation_.setAxisAngle(axis, priv_->maxAngularSpeed_);
