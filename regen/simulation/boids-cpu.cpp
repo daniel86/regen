@@ -279,6 +279,8 @@ void BoidsCPU::cpuUpdate(double dt) {
 	clearGrid();
 	if (priv_->grid_.empty()) { return; }
 
+	// Update boidGridIndex_: per boid grid cell index
+	updateCellIndex();
 	// add boids to the grid and compute their neighborhood relations.
 	updateGrid();
 
@@ -393,20 +395,15 @@ void BoidsCPU::clearGrid() {
 	}
 }
 
-void BoidsCPU::updateGrid() {
+void BoidsCPU::updateCellIndex() {
 	const auto numBoids = static_cast<int32_t>(numBoids_);
 
-	// iterate over all boids and add them to the grid, compute the index
-	// based on the boid position and the grid bounds.
-	// Note: There is quite a bottleneck in updateNeighbours. Probably can only be improved
-	//       by coming up with a more efficient approach.
-	int32_t boidIdx = 0u;
-
-	auto* __restrict boidPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
-	auto* __restrict boidPosY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
-	auto* __restrict boidPosZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
-	auto* __restrict cellCounts = static_cast<int32_t*>(__builtin_assume_aligned(priv_->cellCounts_.data(), 32));
+	const auto* __restrict boidPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
+	const auto* __restrict boidPosY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
+	const auto* __restrict boidPosZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
 	auto* __restrict boidGridIndex = static_cast<int32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
+
+	int32_t boidIdx = 0u;
 
 	if constexpr (BOID_USE_SIMD) {
 		const BatchOf_Vec3f gridMin = BatchOf_Vec3f::fromScalar(gridBounds_.min);
@@ -449,6 +446,19 @@ void BoidsCPU::updateGrid() {
 		const Vec3i idx3D = getGridIndex3D(boidPos);
 		boidGridIndex[boidIdx] = getGridIndex(idx3D, priv_->gridSize_);
 	}
+}
+
+void BoidsCPU::updateGrid() {
+	const auto numBoids = static_cast<int32_t>(numBoids_);
+
+	// iterate over all boids and add them to the grid, compute the index
+	// based on the boid position and the grid bounds.
+	// Note: There is quite a bottleneck in updateNeighbours. Probably can only be improved
+	//       by coming up with a more efficient approach.
+	int32_t boidIdx = 0u;
+
+	auto* __restrict cellCounts = static_cast<int32_t*>(__builtin_assume_aligned(priv_->cellCounts_.data(), 32));
+	const auto* __restrict boidGridIndex = static_cast<int32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
 
 	for (boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
 		const uint32_t cellIndex = boidGridIndex[boidIdx];
@@ -468,9 +478,9 @@ void BoidsCPU::updateGrid() {
 }
 
 void BoidsCPU::updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices, uint32_t neighborCount) {
-	auto* __restrict globalX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
-	auto* __restrict globalY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
-	auto* __restrict globalZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
+	const auto* __restrict globalX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
+	const auto* __restrict globalY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
+	const auto* __restrict globalZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
 	auto* __restrict queueX = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosX_.data(), 32));
 	auto* __restrict queueY = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosY_.data(), 32));
 	auto* __restrict queueZ = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosZ_.data(), 32));
@@ -522,7 +532,7 @@ void BoidsCPU::updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices,
 
 	// Fallback to scalar loop for remaining elements
 	for (; queueIdx < neighborCount; queueIdx++) {
-		const Vec3f dx = {
+		const Vec3f dx {
 			queueX[queueIdx] - boidPosX,
 			queueY[queueIdx] - boidPosY,
 			queueZ[queueIdx] - boidPosZ };
@@ -578,6 +588,7 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 	auto* __restrict neighborIndices = boid.neighbors.data();
 
 	const uint32_t numNeighbors = boid.numNeighbors;
+	const float alpha = 1.0f / static_cast<float>(std::max(numNeighbors,1u));
 
 	// Load the neighbor positions into local SOA arrays
 	for (uint32_t i = 0; i < numNeighbors; ++i) {
@@ -596,49 +607,54 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 	size_t startIdx = 0;
 
 	if constexpr (BOID_USE_SIMD) {
-		{ // pass 1: compute average position and velocity
+		{ // pass 1:
+			const BatchOf_Vec3f fixedPos = BatchOf_Vec3f::fromScalar(boidPos);
+			const BatchOf_float avoidance = BatchOf_float::fromScalar(priv_->avoidanceDistanceSq_);
+			const BatchOf_float allOnes = BatchOf_float::fromScalar(1.0f);
+
 			BatchOf_Vec3f sumPosVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			BatchOf_Vec3f sumVelVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+			BatchOf_Vec3f separation = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+
 			for (; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
-				sumPosVec += BatchOf_Vec3f::loadAligned(
-					queuePosX + startIdx,
-					queuePosY + startIdx,
-					queuePosZ + startIdx);
+				// load the positions of the neighbors into a SIMD register
+				BatchOf_Vec3f x = BatchOf_Vec3f::loadAligned(
+						queuePosX + startIdx,
+						queuePosY + startIdx,
+						queuePosZ + startIdx);
+				// Accumulate position for the cohesion term.
+				sumPosVec += x;
+				// Compute vector from neighbor (x) to boid (fixedPos) for the separation term.
+				x = fixedPos - x;
+				// Compute distance squared which is used for weighting the separation force
+				// (closer neighbors contribute more).
+				BatchOf_float distSq = x.lengthSquared();
+				// Compute weight: if distance squared is below avoidance threshold,
+				// weight = 1 / distSq, else weight = 0
+				// note: (allOnes - allOnes) = allZeroes, we do this to reduce register pressure
+				// TODO: handle case when distSq == 0, not sure why it works like this. when eg doing
+				//          distSq = (distSq < avoidance) / distSq;
+				//       it crashes.
+				distSq = (allOnes - allOnes).blend(allOnes / distSq, distSq < avoidance);
+				// Finally, accumulate the separation force.
+				// TODO: push into random direction if distance below threshold?
+				separation += x * distSq;
+			}
+			// Horizontal sum of SIMD registers to get final results
+			sumSep += separation.hsum();
+			sumPos += sumPosVec.hsum();
+		}
+
+		{ // pass 2: Compute average velocity of neighbors (alignment term)
+			// note: we do this separately because the number of available registers is limited,
+			//       and we might not have the 6 additional registers needed to do this in one pass.
+			BatchOf_Vec3f sumVelVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+			for (startIdx=0; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
 				sumVelVec += BatchOf_Vec3f::loadAligned(
 					queueVelX + startIdx,
 					queueVelY + startIdx,
 					queueVelZ + startIdx);
 			}
-			sumPos += sumPosVec.hsum();
 			sumVel += sumVelVec.hsum();
-		}
-
-		{ // pass 2: compute separation term
-			const BatchOf_Vec3f boidPos_SIMD = BatchOf_Vec3f::fromScalar(boidPos);
-			const BatchOf_float avoidance = BatchOf_float::fromScalar(priv_->avoidanceDistanceSq_);
-			const BatchOf_float allOnes = BatchOf_float::fromScalar(1.0f);
-			const BatchOf_float allZeros{ _mm256_setzero_ps() };
-
-			BatchOf_Vec3f separation = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-
-			for (startIdx = 0; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
-				// load the positions of the neighbors into a SIMD register
-				BatchOf_Vec3f dir = BatchOf_Vec3f::loadAligned(
-						queuePosX + startIdx,
-						queuePosY + startIdx,
-						queuePosZ + startIdx);
-				dir = boidPos_SIMD - dir;
-
-				const BatchOf_float distSq = dir.lengthSquared();
-				BatchOf_float invDistSq = allOnes / distSq;
-				invDistSq.c = _mm256_blendv_ps(
-					allZeros.c,
-					invDistSq.c,
-					(distSq < avoidance).c);
-				// TODO: push into random direction if distance below threshold?
-				separation += dir * invDistSq;
-			}
-			sumSep += separation.hsum();
 		}
 	}
 
@@ -647,27 +663,19 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 		sumPos.x += queuePosX[startIdx];
 		sumPos.y += queuePosY[startIdx];
 		sumPos.z += queuePosZ[startIdx];
-		sumVel.x += queueVelX[startIdx];
-		sumVel.y += queueVelY[startIdx];
-		sumVel.z += queueVelZ[startIdx];
 
-		Vec3f boidDirection {
+		const Vec3f boidDirection {
 			boidPos.x - queuePosX[startIdx],
 			boidPos.y - queuePosY[startIdx],
 			boidPos.z - queuePosZ[startIdx] };
 		const float dSq = boidDirection.lengthSquared();
-		if (dSq < priv_->avoidanceDistanceSq_) {
-			if (dSq < 0.001f) {
-				boidDirection = Vec3f::random();
-				boidDirection.normalize();
-			} else {
-				boidDirection /= dSq;
-			}
-			sumSep += boidDirection;
-		}
+		sumSep += boidDirection / (dSq + 0.001f); // avoid division by zero
+
+		sumVel.x += queueVelX[startIdx];
+		sumVel.y += queueVelY[startIdx];
+		sumVel.z += queueVelZ[startIdx];
 	}
 
-	float alpha = 1.0f / static_cast<float>(std::max(numNeighbors,1u));
 	return
 		(sumSep * priv_->separationWeight_) +
 		(sumVel*alpha - boidVel) * priv_->alignmentWeight_ +

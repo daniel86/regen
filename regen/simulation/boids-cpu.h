@@ -91,6 +91,8 @@ namespace regen {
 
 		void attract(const Vec3f &boidPos, Vec3f &boidForce);
 
+		void updateCellIndex();
+
 		void updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices, uint32_t neighborCount);
 
 		void clearGrid();

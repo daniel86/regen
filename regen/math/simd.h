@@ -454,6 +454,19 @@ namespace regen {
 		}
 
 		/**
+		 * Blend two batches based on a mask.
+		 * For each element, if the corresponding element in the mask has its sign bit set,
+		 * the element from 'other' is selected; otherwise, the element from this batch is retained.
+		 * @param other The other batch to blend with.
+		 * @param mask The mask batch determining which elements to select from 'other'.
+		 * @return A blended BatchOf_float.
+		 */
+		BatchOf_float blend(const BatchOf_float &other, const BatchOf_float &mask) const {
+			// select elements from 'other' where the sign bit of 'mask' is set
+			return BatchOf_float{ _mm256_blendv_ps(c, other.c, mask.c)};
+		}
+
+		/**
 		 * Convert the comparison mask to an 8-bit bitmask.
 		 * Each bit in the returned byte corresponds to an element in the batch.
 		 * @return An 8-bit bitmask representing the comparison results.
