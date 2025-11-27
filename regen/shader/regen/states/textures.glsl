@@ -126,9 +126,6 @@ in vec${_DIM} in_${_TEXCO};
 #define2 _MAPPING_ ${TEX_MAPPING_NAME${_ID}}
 
 #if _MAPPING_==texco_triplanar
-    #ifdef IS_ANIMATED
-        // TODO: for animated objects probably better to use object-space projection!
-    #endif
     // compute 2D coords for each projection
     #ifdef USE_JITTER
     float _seed${_ID} = fract(sin(INSTANCE_ID * 12.9898) * 43758.5453);

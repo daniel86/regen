@@ -139,11 +139,6 @@ in vec4 in_posEye;
 
 // G-buffer input
 uniform sampler2D in_gDepthTexture;
-#ifdef USE_TBUFFER
-// T-buffer input
-uniform sampler2D in_tDepthTexture;
-uniform sampler2D in_tColorTexture;
-#endif
 // light input
 #include regen.shading.light.input.deferred
 #ifdef USE_SHADOW_MAP
@@ -368,39 +363,7 @@ void main()
 #endif
     exposure *= volumeShadow(start,stop,in_shadowSampleStep);
 #endif
-
-#ifdef USE_TBUFFER
-    // TODO: test
-    vec3 alphaPos = transformTexcoToWorld(texco_2D, texture(in_tDepthTexture, texco).x, in_layer);
-    float dLightAlpha = distance(alphaPos, in_lightPosition.xyz);
-    float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
-    vec4 tcolor = texture(in_tColorTexture, texco);
-#if 0
-    float dz = sqrt(pow(in_radius,2) - pow(dnl,2));
-    float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition.xyz,alphaPos));
-#else
-    // x=1 -> transparent object in front else x=0
-    // when transparent object is in front then at least 50% of the volume
-    // is blended with the transparent color
-    float x = float(dCamNearest>distance(in_cameraPosition.xyz,alphaPos));
-    // occlusion=1 -> the other 50% are also occluded.
-    float occlusion = x - (2.0*x - 1.0)*a1/a0;
-    // linear blend between unoccluded volume and transparency occluded
-    // volume.
-    float blendFactor = x*0.5 + occlusion*0.5;
-    // apply unoccluded fog
-    out_color  = (1.0-blendFactor) * in_lightDiffuse;
-    // apply transparency occluded fog using alpha blending between fog
-    // and transparency color. Also scale result by alpha inverse.
-    out_color += (blendFactor*(1.0-tcolor.a)) *
-        (in_lightColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a);
-    // scale by attenuation and exposure factor
-    out_color *= exposure * a0;
-#endif
-
-#else
     out_color = (exposure * a0) * in_lightDiffuse;
-#endif // USE_TBUFFER
 }
 
 --------------------------------------

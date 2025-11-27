@@ -40,9 +40,7 @@ void drawEdges(vec2 uv) {
 -- computeTexco
 #ifndef sampling_computeTexco_Included
 #define2 sampling_computeTexco_Included
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
+#include regen.layered.defines
 #if RENDER_TARGET == CUBE
 #define vecTexco vec3
     #include regen.math.computeCubeDirection

@@ -395,14 +395,7 @@ void clipAlpha(inout vec4 color) {
 -- fs
 #include regen.models.mesh.defines
 #include regen.models.mesh.fs-outputs
-
-#ifndef HAS_layer
-    #if RENDER_LAYER > 1
-flat in int in_layer;
-    #else
-#define in_layer 0
-    #endif
-#endif
+#include regen.layered.defines
 #ifdef HAS_INSTANCES
 flat in int in_instanceID;
 #endif
@@ -665,7 +658,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #ifdef HAS_ATTACHMENT_normal
-    // TODO: only normalize when not using FLOAT textures!
     // map to [0,1] for rgba buffer
         #ifdef USE_EYESPACE_NORMAL
     // TODO: rather transform in VS/GS
@@ -714,7 +706,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #ifdef HAS_ATTACHMENT_specular
     out_specular.rgb = mat.specular;
     // normalize shininess to [0,1]
-    // TODO: only normalize when not using FLOAT textures!
     out_specular.a = clamp(mat.shininess/256.0, 0.0, 1.0);
 #endif
 #ifdef HAS_ATTACHMENT_emission

@@ -114,10 +114,8 @@ void main() {
 #include regen.models.mesh.defines
 #include regen.states.textures.defines
 #include regen.models.mesh.fs-outputs
+#include regen.layered.defines
 
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
 in vec3 in_posWorld;
 in vec3 in_posEye;
 in vec2 in_texco0;

@@ -64,14 +64,8 @@ void main() {
 #endif
 #include regen.models.mesh.defines
 #include regen.models.mesh.fs-outputs
+#include regen.layered.defines
 
-#ifndef HAS_layer
-    #if RENDER_LAYER > 1
-flat in int in_layer;
-    #else
-    #define in_layer 0
-    #endif
-#endif
 #if OUTPUT_TYPE == DEPTH
     #define FS_NO_OUTPUT
 #endif

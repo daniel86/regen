@@ -347,14 +347,7 @@ void main() {
 #include regen.terrain.ground.vs
 -- blanket1.fs
 #include regen.models.mesh.defines
-// FIXME redundant
-#ifndef HAS_layer
-    #if RENDER_LAYER > 1
-flat in int in_layer;
-    #else
-#define in_layer 0
-    #endif
-#endif
+#include regen.layered.defines
 #ifdef HAS_INSTANCES
 flat in int in_instanceID;
 #endif

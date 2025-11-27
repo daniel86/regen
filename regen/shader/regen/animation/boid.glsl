@@ -424,10 +424,6 @@ vec3 simulateBoid(BoidData boid, uint boidID, float dt) {
 	// a boid that cannot avoid collisions is considered lost.
 	float isCollisionFree = avoidCollisions(boid, dt, force);
 
-	// TODO: handle dangers etc.
-	//bool isInDanger = !dangers_.empty() && !avoidDanger(boidID, boid.pos);
-	//attract(boidID, boid.pos, isInDanger);
-
 	// drift towards home if lost or in collision
 	homesickness(seed, force, boid.pos,
 	    step(1, (1.0 - isBoidInSwarm) + (1.0 - isCollisionFree)));
