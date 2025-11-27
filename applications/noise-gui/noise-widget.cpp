@@ -134,9 +134,7 @@ void NoiseWidget::gpuUpdate(RenderState *rs, double dt) {
 		return;
 	}
 
-	lock();
 	texture_->setNoiseGenerator(generator);
-	unlock();
 	updateTexture_ = false;
 }
 
