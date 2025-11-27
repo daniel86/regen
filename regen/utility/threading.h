@@ -68,8 +68,9 @@ namespace regen {
 	/**
 	 * \brief A lock-free job queue using a circular buffer.
 	 */
+	template <class JobType>
 	class JobQueue {
-		std::vector<Job> buffer;
+		std::vector<JobType> buffer;
 		// Producer position, padded to avoid false sharing
 		/** alignas(64) **/ std::atomic<uint32_t> head{0};
 		// Consumer position, padded to avoid false sharing
@@ -95,7 +96,7 @@ namespace regen {
 			const uint32_t h = head.load(std::memory_order_acquire);
 			const uint32_t count = (h - t) & (oldSize - 1);
 
-			std::vector<Job> newBuffer(newSize);
+			std::vector<JobType> newBuffer(newSize);
 			for (uint32_t i = 0; i < count; ++i) {
 				newBuffer[i] = buffer[(t + i) & (oldSize - 1)];
 			}
@@ -109,7 +110,7 @@ namespace regen {
 		 * @param j The job to push.
 		 * @return True if the job was pushed, false if the queue is full.
 		 */
-		bool push(const Job &j) {
+		bool push(const JobType &j) {
 			const uint32_t mask = this->mask();
 			while (true) {
 				// Load current head and tail
@@ -132,7 +133,7 @@ namespace regen {
 		 * @param out The job to pop.
 		 * @return True if a job was popped, false if the queue is empty.
 		 */
-		bool try_pop(Job &out) {
+		bool try_pop(JobType &out) {
 			const uint32_t mask = this->mask();
 			while (true) {
 				// Load current tail and head
@@ -159,6 +160,23 @@ namespace regen {
 			const uint32_t h = head.load(std::memory_order_acquire);
 			return t != h;
 		}
+	};
+
+	/**
+	 * \brief A structure representing a frame of jobs.
+	 */
+	struct JobFrame {
+		// number of jobs remaining in the current frame
+		std::atomic<uint32_t> numJobsRemaining{0u};
+		// number of jobs pushed in the current frame
+		uint32_t numPushed = 0u;
+	};
+
+	/**
+	 * \brief A job associated with a job frame.
+	 */
+	struct FramedJob : Job {
+		JobFrame *frame = nullptr;
 	};
 
 	/**
@@ -208,26 +226,28 @@ namespace regen {
 		/**
 		 * Adds a job to the job queue before beginFrame() was called
 		 * to fill the job queue for each frame.
+		 * @param jobFrame The job frame to add the job to.
 		 * @param job The job to add.
 		 */
-		void addJobPreFrame(const Job &job) {
-			if (jobQueue_.push(job)) {
-				numPushed_++;
+		void addJobPreFrame(JobFrame &jobFrame, const Job &job) {
+			if (jobQueue_.push({{job.fn, job.arg}, &jobFrame})) {
+				jobFrame.numPushed++;
 			} else {
 				// job queue full, grow and push
 				jobQueue_.grow();
-				jobQueue_.push(job);
-				numPushed_++;
+				jobQueue_.push({{job.fn, job.arg}, &jobFrame});
+				jobFrame.numPushed++;
 			}
 		}
 
 		/**
 		 * Adds a job to the job queue within a frame.
+		 * @param jobFrame The job frame to add the job to.
 		 * @param job The job to add.
 		 */
-		void addJobWithinFrame(const Job &job) {
-			if (jobQueue_.push(job)) {
-				numJobsRemaining_.fetch_add(1u, std::memory_order_acq_rel);
+		void addJobWithinFrame(JobFrame &jobFrame, const Job &job) {
+			if (jobQueue_.push({{job.fn, job.arg}, &jobFrame})) {
+				jobFrame.numJobsRemaining.fetch_add(1u, std::memory_order_acq_rel);
 				workSem_.release(1);
 			} else {
 				// job queue full, execute directly
@@ -239,10 +259,12 @@ namespace regen {
 		 * Begins a new frame for job processing.
 		 * This should be called by the owner thread after all jobs for the frame have been added.
 		 * This is a non-blocking call, endFrame() must be called to ensure all jobs are completed.
+		 * @param jobFrame The job frame to begin.
+		 * @param numLocalJobs The number of local jobs to be executed by the owner thread.
 		 */
-		void beginFrame(uint32_t numLocalJobs) {
-			numJobsRemaining_.store(numPushed_+numLocalJobs, std::memory_order_relaxed);
-			workSem_.release(numPushed_);
+		void beginFrame(JobFrame &jobFrame, uint32_t numLocalJobs) {
+			jobFrame.numJobsRemaining.store(jobFrame.numPushed+numLocalJobs, std::memory_order_relaxed);
+			workSem_.release(jobFrame.numPushed);
 		}
 
 		/**
@@ -250,9 +272,9 @@ namespace regen {
 		 * This can be called by worker threads to execute a job.
 		 * @param job The job to perform.
 		 */
-		void performJob(const Job &job) {
+		static void performJob(FramedJob &job) {
 			job.fn(job.arg);
-			numJobsRemaining_.fetch_sub(1u, std::memory_order_acq_rel);
+			job.frame->numJobsRemaining.fetch_sub(1u, std::memory_order_acq_rel);
 		}
 
 		/**
@@ -269,7 +291,7 @@ namespace regen {
 		 * @param out The job to steal.
 		 * @return True if a job was stolen, false otherwise.
 		 */
-		bool stealJob(Job &out) {
+		bool stealJob(FramedJob &out) {
 			return jobQueue_.try_pop(out);
 		}
 
@@ -278,7 +300,7 @@ namespace regen {
 		 * This should be called by the owner thread to wait for all jobs to complete.
 		 * This is a blocking call.
 		 */
-		void endFrame() {
+		static void endFrame(JobFrame &jobFrame) {
 #if 0
 			int spins = 0;
 			while (numJobsRemaining_.load(std::memory_order_acquire) > 0u) {
@@ -286,11 +308,11 @@ namespace regen {
 				else std::this_thread::yield();
 			}
 #else
-			while (numJobsRemaining_.load(std::memory_order_acquire) > 0u) {
+			while (jobFrame.numJobsRemaining.load(std::memory_order_acquire) > 0u) {
 				CPU_PAUSE();
 			}
 #endif
-			numPushed_ = 0u;
+			jobFrame.numPushed = 0u;
 		}
 
 		/**
@@ -298,7 +320,7 @@ namespace regen {
 		 * This should be run by each worker thread in the pool.
 		 */
 		void workerLoop() {
-			Job job;
+			FramedJob job;
 			while (running_.load()) {
 				workSem_.acquire();
 				if (jobQueue_.try_pop(job)) {
@@ -314,15 +336,11 @@ namespace regen {
 		std::vector<std::thread> threads_;
 
 		// job queue
-		JobQueue jobQueue_;
+		JobQueue<FramedJob> jobQueue_;
 		// semaphore to signal available work
 		std::counting_semaphore<> workSem_{0};
-		// number of jobs remaining in the current frame
-		std::atomic<uint32_t> numJobsRemaining_{0u};
 		// running flag
 		std::atomic<bool> running_{true};
-		// number of jobs pushed in the current frame
-		uint32_t numPushed_ = 0u;
 	};
 
 	/**
@@ -515,6 +533,13 @@ namespace regen {
 			poolLock_.unlock();
 		}
 	};
+
+	namespace threading {
+		/**
+		 * @return the job pool.
+		 */
+		JobPool& getJobPool();
+	}
 
 	// i have a strange problem with boost::this_thread here.
 	// it just adds 100ms to the interval provided :/

@@ -301,6 +301,7 @@ namespace regen {
 		std::vector<ref_ptr<BoneNode>> nodes_;
 		ref_ptr<BoneNode> rootNode_;
 		std::unordered_map<std::string, uint32_t> nameToNode_;
+		JobFrame jobFrame_;
 
 		uint32_t numInstances_ = 1;
 		double timeFactor_ = 0.001;

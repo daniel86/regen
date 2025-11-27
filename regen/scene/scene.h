@@ -336,14 +336,6 @@ namespace regen {
 		void setWorldTime(float t);
 
 		/**
-		 * @return the job pool.
-		 */
-		static JobPool& getJobPool() {
-			static JobPool jobPool(getMaxNumJobs());
-			return jobPool;
-		}
-
-		/**
 		 * Run some function within a thread with GL context.
 		 * NOTE: Returns without waiting for the function to finish.
 		 * @param f the function to run.
@@ -408,21 +400,6 @@ namespace regen {
 		bool isGLInitialized_;
 		bool isTimeInitialized_;
 		bool isVSyncEnabled_;
-
-		static uint32_t getMaxNumJobs() {
-			// Note: -2 is for graphics and animation thread.
-			// Note: But we may run other dedicated threads.
-			const uint32_t numRemainingCores =
-					std::max(1u, std::thread::hardware_concurrency() - 2);
-			// if we have a lot of cores, be a bit more conservative
-			if (numRemainingCores > 8u) {
-				return numRemainingCores - 2u;
-			} else if (numRemainingCores > 4u) {
-				return numRemainingCores - 1u;
-			} else {
-				return numRemainingCores;
-			}
-		}
 
 		void setupShaderLoading();
 

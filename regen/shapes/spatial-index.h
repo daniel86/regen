@@ -284,6 +284,7 @@ namespace regen {
 		std::vector<ref_ptr<BoundingShape>> itemBoundingShapes_;
 		// additional shapes for debugging only
 		std::vector<ref_ptr<BoundingShape>> debugShapes_;
+		JobFrame jobFrame_;
 
 		void updateVisibility(uint32_t traversalMask);
 

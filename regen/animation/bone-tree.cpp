@@ -51,7 +51,7 @@ BoneTree::BoneTree(const std::vector<ref_ptr<BoneNode>> &nodes, uint32_t numInst
 		return;
 	}
 	if constexpr (BONE_USE_MULTITHREADING) {
-		JobPool& pool = Scene::getJobPool();
+		JobPool& pool = threading::getJobPool();
 		const uint32_t numWorkerThreads = pool.numThreads();
 		// Compute the number of instances in each slice.
 		const uint32_t numSlices = std::min(numInstances_, numWorkerThreads + 1);
@@ -407,8 +407,10 @@ void BoneTree::cpuUpdate(double dt_ms) {
 	elapsedTime.beginFrame();
 #endif
 
+	jobFrame_.numPushed = 0;
+
 	if constexpr (BONE_USE_MULTITHREADING) {
-		JobPool& pool = Scene::getJobPool();
+		JobPool& pool = threading::getJobPool();
 		const uint32_t numSlices = instanceSlices_.size();
 
 		auto &firstSlice = instanceSlices_[0];
@@ -423,19 +425,19 @@ void BoneTree::cpuUpdate(double dt_ms) {
 			slice.startInstance = i * sliceSize_;
 			slice.endInstance = std::min(slice.startInstance + sliceSize_, numInstances_);
 			slice.dt_ms = dt_ms;
-			pool.addJobPreFrame(Job{
+			pool.addJobPreFrame(jobFrame_, Job{
 				.fn = boneSliceJob,
 				.arg = &slice
 			});
 		}
 
 		// Execute jobs
-		pool.beginFrame(1u); // one local job
-		Job localJob = { boneSliceJob, &firstSlice };
+		pool.beginFrame(jobFrame_, 1u); // one local job
+		FramedJob localJob = { { boneSliceJob, &firstSlice }, &jobFrame_ };
 		do {
 			pool.performJob(localJob);
 		} while (pool.stealJob(localJob));
-		pool.endFrame();
+		pool.endFrame(jobFrame_);
 	}
 	else {
 		// Single-threaded update
