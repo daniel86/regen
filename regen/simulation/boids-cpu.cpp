@@ -664,12 +664,21 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 		sumPos.y += queuePosY[startIdx];
 		sumPos.z += queuePosZ[startIdx];
 
-		const Vec3f boidDirection {
+		Vec3f boidDirection {
 			boidPos.x - queuePosX[startIdx],
 			boidPos.y - queuePosY[startIdx],
 			boidPos.z - queuePosZ[startIdx] };
 		const float dSq = boidDirection.lengthSquared();
-		sumSep += boidDirection / (dSq + 0.001f); // avoid division by zero
+		if (dSq < priv_->avoidanceDistanceSq_) {
+			if (dSq < 0.001f) {
+				boidDirection = Vec3f::random();
+				boidDirection.normalize();
+			} else {
+				boidDirection /= dSq;
+			}
+			sumSep += boidDirection;
+		}
+		//sumSep += boidDirection / (dSq + 0.001f); // avoid division by zero
 
 		sumVel.x += queueVelX[startIdx];
 		sumVel.y += queueVelY[startIdx];
