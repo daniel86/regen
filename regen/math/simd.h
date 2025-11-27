@@ -385,6 +385,15 @@ namespace regen {
 		template <typename T>
 		BatchOf_float operator>=(const T &other) const { return other.cmp_lt(*this); }
 
+		/**
+		 * Convert the comparison mask to a float batch.
+		 * Each element in the returned batch will be 1.0f if the corresponding element in this batch is non-zero, else 0.0f.
+		 * @return A BatchOf_float representing the mask as floats.
+		 */
+		BatchOf_float maskToFloat() const {
+			return { _mm256_and_ps(c, _mm256_set1_ps(1.0f)) };
+		}
+
 		template <typename T>
 		BatchOf_float operator&&(const T &other) const { return cmp_and(other); }
 		template <typename T>

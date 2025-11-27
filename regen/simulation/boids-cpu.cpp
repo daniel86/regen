@@ -604,23 +604,24 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 	Vec3f sumPos = Vec3f::zero();
 	Vec3f sumVel = Vec3f::zero();
 	Vec3f sumSep = Vec3f::zero();
-	size_t startIdx = 0;
+	size_t queueIdx = 0;
 
 	if constexpr (BOID_USE_SIMD) {
 		{ // pass 1:
 			const BatchOf_Vec3f fixedPos = BatchOf_Vec3f::fromScalar(boidPos);
 			const BatchOf_float avoidance = BatchOf_float::fromScalar(priv_->avoidanceDistanceSq_);
-			const BatchOf_float allOnes = BatchOf_float::fromScalar(1.0f);
+			//const BatchOf_float allOnes = BatchOf_float::fromScalar(1.0f);
+			const BatchOf_float epsilon = BatchOf_float::fromScalar(0.0001f);
 
 			BatchOf_Vec3f sumPosVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
 			BatchOf_Vec3f separation = BatchOf_Vec3f::fromScalar(Vec3f::zero());
 
-			for (; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
+			for (; queueIdx + simd::RegisterWidth <= numNeighbors; queueIdx += simd::RegisterWidth) {
 				// load the positions of the neighbors into a SIMD register
 				BatchOf_Vec3f x = BatchOf_Vec3f::loadAligned(
-						queuePosX + startIdx,
-						queuePosY + startIdx,
-						queuePosZ + startIdx);
+						queuePosX + queueIdx,
+						queuePosY + queueIdx,
+						queuePosZ + queueIdx);
 				// Accumulate position for the cohesion term.
 				sumPosVec += x;
 				// Compute vector from neighbor (x) to boid (fixedPos) for the separation term.
@@ -628,15 +629,11 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 				// Compute distance squared which is used for weighting the separation force
 				// (closer neighbors contribute more).
 				BatchOf_float distSq = x.lengthSquared();
-				// Compute weight: if distance squared is below avoidance threshold,
-				// weight = 1 / distSq, else weight = 0
-				// note: (allOnes - allOnes) = allZeroes, we do this to reduce register pressure
-				// TODO: handle case when distSq == 0, not sure why it works like this. when eg doing
-				//          distSq = (distSq < avoidance) / distSq;
-				//       it crashes.
-				distSq = (allOnes - allOnes).blend(allOnes / distSq, distSq < avoidance);
+				// Use masking to only consider neighbors within the avoidance distance.
+				distSq = (distSq < avoidance).maskToFloat() / (distSq + epsilon);
+				//distSq = (allOnes - allOnes).blend(
+				//	allOnes / (distSq + epsilon), distSq < avoidance);
 				// Finally, accumulate the separation force.
-				// TODO: push into random direction if distance below threshold?
 				separation += x * distSq;
 			}
 			// Horizontal sum of SIMD registers to get final results
@@ -646,43 +643,35 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 
 		{ // pass 2: Compute average velocity of neighbors (alignment term)
 			// note: we do this separately because the number of available registers is limited,
-			//       and we might not have the 6 additional registers needed to do this in one pass.
+			//       and we might create too much register pressure otherwise.
 			BatchOf_Vec3f sumVelVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			for (startIdx=0; startIdx + simd::RegisterWidth <= numNeighbors; startIdx += simd::RegisterWidth) {
+			for (queueIdx=0; queueIdx + simd::RegisterWidth <= numNeighbors; queueIdx += simd::RegisterWidth) {
 				sumVelVec += BatchOf_Vec3f::loadAligned(
-					queueVelX + startIdx,
-					queueVelY + startIdx,
-					queueVelZ + startIdx);
+					queueVelX + queueIdx,
+					queueVelY + queueIdx,
+					queueVelZ + queueIdx);
 			}
 			sumVel += sumVelVec.hsum();
 		}
 	}
 
 	// Fallback to scalar loop for remaining elements
-	for (; startIdx < numNeighbors; startIdx++) {
-		sumPos.x += queuePosX[startIdx];
-		sumPos.y += queuePosY[startIdx];
-		sumPos.z += queuePosZ[startIdx];
+	for (; queueIdx < numNeighbors; queueIdx++) {
+		sumPos.x += queuePosX[queueIdx];
+		sumPos.y += queuePosY[queueIdx];
+		sumPos.z += queuePosZ[queueIdx];
 
-		Vec3f boidDirection {
-			boidPos.x - queuePosX[startIdx],
-			boidPos.y - queuePosY[startIdx],
-			boidPos.z - queuePosZ[startIdx] };
+		const Vec3f boidDirection {
+			boidPos.x - queuePosX[queueIdx],
+			boidPos.y - queuePosY[queueIdx],
+			boidPos.z - queuePosZ[queueIdx] };
 		const float dSq = boidDirection.lengthSquared();
-		if (dSq < priv_->avoidanceDistanceSq_) {
-			if (dSq < 0.001f) {
-				boidDirection = Vec3f::random();
-				boidDirection.normalize();
-			} else {
-				boidDirection /= dSq;
-			}
-			sumSep += boidDirection;
-		}
-		//sumSep += boidDirection / (dSq + 0.001f); // avoid division by zero
+		const auto mask = static_cast<float>(dSq < priv_->avoidanceDistanceSq_);
+		sumSep += boidDirection * mask / (dSq + 0.0001f); // avoid division by zero
 
-		sumVel.x += queueVelX[startIdx];
-		sumVel.y += queueVelY[startIdx];
-		sumVel.z += queueVelZ[startIdx];
+		sumVel.x += queueVelX[queueIdx];
+		sumVel.y += queueVelY[queueIdx];
+		sumVel.z += queueVelZ[queueIdx];
 	}
 
 	return

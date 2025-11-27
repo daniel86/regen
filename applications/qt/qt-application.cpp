@@ -68,6 +68,9 @@ void QtApplication::exitMainLoop(int errorCode) {
 }
 
 int QtApplication::mainLoop() {
+	// Make sure the window is exposed before starting rendering
+	app_->processEvents();
+
 	AnimationManager::get().resume();
 	isMainloopRunning_ = true;
 

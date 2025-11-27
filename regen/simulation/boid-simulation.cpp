@@ -141,8 +141,6 @@ void BoidSimulation::updateGridSize() {
 	gridBounds_.min = simMin.r;
 	gridBounds_.max = simMax.r;
 #else
-	// TODO: improve this, e.g. never shrink, but allow to translate in case
-	//        whole swarm moves in a direction
 	gridBounds_.min = Vec3f::min(gridBounds_.min, Vec3f::max(boidBounds_.min, simMin.r));
 	gridBounds_.max = Vec3f::max(gridBounds_.max, Vec3f::min(boidBounds_.max, simMax.r));
 #endif
@@ -306,7 +304,6 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 			auto transformID = objectNode->getValue("tf");
 			auto transform = ctx.scene()->getResource<ModelTransformation>(transformID);
 			if (transform.get() != nullptr) {
-				// TODO: Use ModelTransformation instead of ShaderInputMat4 below.
 				entityTF = transform->modelMat();
 			}
 		} else if (objectNode->hasAttribute("point")) {
