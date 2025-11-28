@@ -8,19 +8,72 @@ using namespace regen;
 
 namespace regen {
 	static constexpr bool BOID_USE_SIMD = true;
+	static constexpr bool BOID_USE_MULTITHREADING = true;
+
+	/**
+	 * Data for a single simulation frame.
+	 */
+	struct BoidSimulationFrame {
+		// delta time for this frame
+		float dt = 0.0f;
+		// start and end indices for this frame
+		uint32_t startIdx = 0;
+		uint32_t endIdx = 0;
+		// thread-local bounds for this frame
+		Bounds<Vec3f> localBounds = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::zero());
+
+		// thread-local temporary storage for boid data
+		AlignedArray<float> queuePosX_; // size = maxNumNeighbors
+		AlignedArray<float> queuePosY_; // size = maxNumNeighbors
+		AlignedArray<float> queuePosZ_; // size = maxNumNeighbors
+		AlignedArray<float> queueVelX_; // size = maxNumNeighbors
+		AlignedArray<float> queueVelY_; // size = maxNumNeighbors
+		AlignedArray<float> queueVelZ_; // size = maxNumNeighbors
+		AlignedArray<uint32_t> boidQueue_; // size = maxNumNeighbors
+
+		BoidSimulationFrame& operator=(const BoidSimulationFrame &other) {
+			dt = other.dt;
+			startIdx = other.startIdx;
+			endIdx = other.endIdx;
+			localBounds = other.localBounds;
+			return *this;
+		}
+
+		void resize(unsigned int capacity) {
+			queuePosX_.resize(capacity);
+			queuePosY_.resize(capacity);
+			queuePosZ_.resize(capacity);
+			queueVelX_.resize(capacity);
+			queueVelY_.resize(capacity);
+			queueVelZ_.resize(capacity);
+			boidQueue_.resize(capacity);
+		}
+	};
+
+	/**
+	 * Data for a single boid slice (for multithreading).
+	 */
+	struct BoidSliceData {
+		// pointer back to the simulation
+		BoidsCPU *sim = nullptr;
+		// pointer to private data
+		BoidsCPU::Private *priv = nullptr;
+		// frame data
+		BoidSimulationFrame frame;
+		BoidSliceData() = default;
+		BoidSliceData(const BoidSliceData &other) {
+			sim = other.sim;
+			priv = other.priv;
+			frame = other.frame;
+		}
+		BoidSliceData& operator=(const BoidSliceData &other) = default;
+	};
 }
 
 // private data struct
 struct BoidsCPU::Private {
-	// Boid spatial grid. A cell in a 3D grid with edge length equal to boid visual range.
-	struct Cell {
-		vectorSIMD<int32_t> elements; // size = maxNumNeighbors
-	};
-	std::vector<Cell> grid_;
-	// (capped) number of boids per cell
-	AlignedArray<int32_t> cellCounts_; // size = numCells
 	// Per-boid data
-	AlignedArray<int32_t> boidGridIndex_; // size = numBoids
+	AlignedArray<uint32_t> boidGridIndex_; // size = numBoids
 	AlignedArray<float> boidPositionsX_;  // size = numBoids
 	AlignedArray<float> boidPositionsY_;  // size = numBoids
 	AlignedArray<float> boidPositionsZ_;  // size = numBoids
@@ -31,15 +84,20 @@ struct BoidsCPU::Private {
 	AlignedArray<float> boidOrientX_;   // size = numBoids
 	AlignedArray<float> boidOrientY_;   // size = numBoids
 	AlignedArray<float> boidOrientZ_;   // size = numBoids
-	// Temporary queue for boid indices
-	AlignedArray<uint32_t> boidQueue_;
-	// Temporary position queue for SIMD processing, used for neighbor testing
-	AlignedArray<float> queuePosX_; // size = maxNumNeighbors
-	AlignedArray<float> queuePosY_; // size = maxNumNeighbors
-	AlignedArray<float> queuePosZ_; // size = maxNumNeighbors
-	AlignedArray<float> queueVelX_; // size = maxNumNeighbors
-	AlignedArray<float> queueVelY_; // size = maxNumNeighbors
-	AlignedArray<float> queueVelZ_; // size = maxNumNeighbors
+	AlignedArray<uint32_t> boidNumNeighbors_; // size = numBoids
+	std::vector<Vec3f> boidForce_; 	 // size = numBoids
+	std::vector<std::vector<uint32_t>> boidNeighbors_; // size = numBoids_ * maxNumNeighbors
+
+	// Spatial grid data
+	struct Cell { vectorSIMD<uint32_t> elements; }; // size = maxNumNeighbors
+	std::vector<Cell> grid_;
+	// (capped) number of boids per cell
+	AlignedArray<uint32_t> cellCounts_; // size = numCells
+
+	// Multithreading data
+	std::vector<BoidSliceData> boidSlices_;
+	uint32_t sliceSize_{};
+	JobFrame jobFrame_;
 
 	// Configuration parameters
 	float visualRange_ = 1.6f;
@@ -61,15 +119,36 @@ struct BoidsCPU::Private {
 	Vec3i gridSize_ = Vec3i::zero();
 	uint32_t gridStamp_ = 0u;
 	Vec3f boidsScale_ = Vec3f::zero();
-	Mat4f tmpMat_ = Mat4f::identity();
-	Quaternion yawAdjust_;
+	Quaternion yawAdjust_{};
 	unsigned int maxNumNeighbors_ = 0;
 	Bounds<Vec3f> simBounds_ = Bounds<Vec3f>::create(Vec3f::create(-10.0f), Vec3f::create(10.0f));
 
-	// some per-boid parameters used in simulation.
-	// note: this is only ok in case of single-threaded simulation.
-	Vec3f boidDirection_ = Vec3f::front();
-	Quaternion boidRotation_;
+	template <void(*Fn)(void*)> void performSlicedJob();
+
+	static void updateNeighborsJob(void *arg) {
+		auto &x = *static_cast<BoidSliceData *>(arg);
+		x.priv->updateNeighbours(x);
+	}
+
+	static void updateForceJob(void *arg) {
+		auto &x = *static_cast<BoidSliceData *>(arg);
+		x.priv->updateForces(x);
+	}
+
+	static void advanceBoidJob(void *arg) {
+		auto &x = *static_cast<BoidSliceData *>(arg);
+		x.priv->advanceBoid(x);
+	}
+
+	void updateNeighbours(BoidSliceData &slice);
+
+	void updateForces(const BoidSliceData &slice);
+
+	void advanceBoid(BoidSliceData &slice);
+
+	void updateForces(const BoidSimulationFrame &frame, uint32_t boidIdx);
+
+	void updateNeighbours(BoidSimulationFrame &frame, uint32_t boidIdx, uint32_t cellIdx);
 
 	explicit Private(uint32_t numBoids) :
 			  boidGridIndex_(numBoids),
@@ -83,21 +162,16 @@ struct BoidsCPU::Private {
 			  boidOrientX_(numBoids),
 			  boidOrientY_(numBoids),
 			  boidOrientZ_(numBoids),
-			  boidQueue_(100),
-			  queuePosX_(100),
-			  queuePosY_(100),
-			  queuePosZ_(100),
-			  queueVelX_(100),
-			  queueVelY_(100),
-			  queueVelZ_(100) {
-	}
+			  boidNumNeighbors_(numBoids),
+			  boidForce_(numBoids, Vec3f::zero()),
+			  boidNeighbors_(numBoids)
+	{}
 };
 
 BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 		: BoidSimulation(tf),
 		  Animation(false, true),
 		  priv_(new Private(numBoids_)) {
-	boidData_.resize(numBoids_);
 	priv_->boidVelocityX_.setToZero();
 	priv_->boidVelocityY_.setToZero();
 	priv_->boidVelocityZ_.setToZero();
@@ -111,7 +185,6 @@ BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset)
 		: BoidSimulation(modelOffset),
 		  Animation(false, true),
 		  priv_(new Private(numBoids_)) {
-	boidData_.resize(numBoids_);
 	priv_->boidVelocityX_.setToZero();
 	priv_->boidVelocityY_.setToZero();
 	priv_->boidVelocityZ_.setToZero();
@@ -125,18 +198,9 @@ BoidsCPU::~BoidsCPU() {
 	delete priv_;
 }
 
-// Use AVX2 to set 8 ints (32 bytes) at a time
-static void zeroAligned(int32_t* __restrict data, size_t size) {
-	size_t i = 0;
-	BatchOf_int32 zero{_mm256_setzero_si256()};
-	for (; i + simd::RegisterWidth <= size; i += simd::RegisterWidth) {
-		zero.storeAligned(data + i);
-	}
-	// Tail loop (in case size is not divisible by 8)
-	for (; i < size; ++i) { data[i] = 0; }
-}
-
 void BoidsCPU::initBoidSimulation() {
+	const auto maxNumNeighbors = maxNumNeighbors_->getVertex(0).r;
+
 	setAnimationName("boids");
 	// use a dedicated thread for the boids simulation which is not synchronized with the graphics thread,
 	// i.e. it can be slower or faster than the graphics thread.
@@ -145,16 +209,46 @@ void BoidsCPU::initBoidSimulation() {
 	priv_->yawAdjust_.setAxisAngle(Vec3f(0, 1, 0), priv_->baseOrientation_);
 	priv_->boidsScale_ = boidsScale_->getVertex(0).r;
 
-	const auto maxNumNeighbors = maxNumNeighbors_->getVertex(0).r;
-	priv_->boidQueue_.resize(maxNumNeighbors + 1);
-	priv_->queuePosX_.resize(maxNumNeighbors + 1);
-	priv_->queuePosY_.resize(maxNumNeighbors + 1);
-	priv_->queuePosZ_.resize(maxNumNeighbors + 1);
-	priv_->queueVelX_.resize(maxNumNeighbors + 1);
-	priv_->queueVelY_.resize(maxNumNeighbors + 1);
-	priv_->queueVelZ_.resize(maxNumNeighbors + 1);
+	if constexpr (BOID_USE_MULTITHREADING) {
+		JobPool& pool = threading::getJobPool();
+		const uint32_t numWorkerThreads = pool.numThreads();
+		// Compute the number of instances in each slice.
+		const uint32_t numSlices = std::min(numBoids_, numWorkerThreads + 1);
+		priv_->boidSlices_.resize(numSlices);
+		priv_->sliceSize_ = (numBoids_ + numSlices - 1) / numSlices;
+		// Make sure each slice starts aligned with simd RegisterWidth
+		priv_->sliceSize_ = (priv_->sliceSize_ + simd::RegisterWidth - 1) & ~(simd::RegisterWidth - 1);
 
-	auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
+		auto &firstSlice = priv_->boidSlices_[0];
+		firstSlice.sim = this;
+		firstSlice.priv = priv_;
+		firstSlice.frame.startIdx = 0;
+		firstSlice.frame.endIdx = std::min(priv_->sliceSize_, numBoids_);
+
+		for (uint32_t i = 1; i < numSlices; ++i) {
+			auto &slice = priv_->boidSlices_[i];
+			slice.sim = this;
+			slice.priv = priv_;
+			slice.frame.startIdx = i * priv_->sliceSize_;
+			slice.frame.endIdx = std::min(slice.frame.startIdx + priv_->sliceSize_, numBoids_);
+		}
+
+		// resize slice buffers
+		for (auto &slice : priv_->boidSlices_) {
+			slice.frame.resize(maxNumNeighbors + 1);
+		}
+	} else {
+		// Only allocate one slice for single-threaded execution.
+		auto &firstSlice = priv_->boidSlices_.emplace_back();
+		firstSlice.sim = this;
+		firstSlice.priv = priv_;
+		firstSlice.frame.startIdx = 0;
+		firstSlice.frame.endIdx = numBoids_;
+		firstSlice.frame.resize(maxNumNeighbors + 1);
+		priv_->sliceSize_ = numBoids_;
+	}
+
+	const auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
 
 	// Initialize grid memory.
 	for (auto &cell : priv_->grid_) {
@@ -164,11 +258,10 @@ void BoidsCPU::initBoidSimulation() {
 
 	// Initialize per-boid memory.
 	for (uint32_t i = 0; i < numBoids_; ++i) {
-		auto &d = boidData_[i];
 		// note: an additional element is added to the end of the vector which is used
 		//       to avoid branching.
-		d.neighbors.resize(maxNumNeighbors + 1);
-		d.numNeighbors = 0;
+		priv_->boidNeighbors_[i].resize(maxNumNeighbors + 1);
+		priv_->boidNumNeighbors_[i] = 0;
 	}
 
 	animationState()->setInput(coherenceWeight_);
@@ -211,38 +304,21 @@ Vec3f BoidsCPU::getBoidVelocity(uint32_t boidIndex) const {
 			priv_->boidVelocityZ_[boidIndex]};
 }
 
-void BoidsCPU::setBoidOrientation(
-		uint32_t boidIndex, const Quaternion &orientation) {
+void BoidsCPU::setBoidOrientation(uint32_t boidIndex, const Quaternion &orientation) {
 	priv_->boidOrientW_[boidIndex] = orientation.w;
 	priv_->boidOrientX_[boidIndex] = orientation.x;
 	priv_->boidOrientY_[boidIndex] = orientation.y;
 	priv_->boidOrientZ_[boidIndex] = orientation.z;
 }
 
-Quaternion BoidsCPU::getBoidOrientation(uint32_t boidIndex) const {
-	return {
-			priv_->boidOrientW_[boidIndex],
-			priv_->boidOrientX_[boidIndex],
-			priv_->boidOrientY_[boidIndex],
-			priv_->boidOrientZ_[boidIndex]};
-}
-
-Vec3i BoidsCPU::getGridIndex3D(const Vec3f &x) const {
-	auto boidPos = Vec3f::max(
-			(x - gridBounds_.min) / priv_->cellSize_,
-			// ensure the boid position is within the grid bounds
-			Vec3f::zero());
-	Vec3i gridIndex(
-			static_cast<int>(std::trunc(boidPos.x)),
-			static_cast<int>(std::trunc(boidPos.y)),
-			static_cast<int>(std::trunc(boidPos.z)));
-	// ensure the boid position is within the grid bounds
-	return Vec3i::min(gridIndex,
-					  priv_->gridSize_ - Vec3i::one());
-}
-
 void BoidsCPU::cpuUpdate(double dt) {
-	auto dt_f = static_cast<float>(dt) * 0.001f;
+	#ifdef REGEN_BOID_DEBUG_TIME
+	thread_local ElapsedTimeDebugger elapsedTime("BoidsCPU Update",
+		1000, ElapsedTimeDebugger::CPU_ONLY);
+	elapsedTime.beginFrame();
+	elapsedTime.push("starting");
+	#endif
+	const auto dt_f = static_cast<float>(dt) * 0.001f;
 	priv_->simBounds_.min = simulationBoundsMin_->getVertex(0).r;
 	priv_->simBounds_.max = simulationBoundsMax_->getVertex(0).r;
 	priv_->avoidanceDistance_ = avoidanceDistance_->getVertex(0).r;
@@ -261,19 +337,47 @@ void BoidsCPU::cpuUpdate(double dt) {
 	priv_->cos_maxAngularSpeed_ = cosf(priv_->maxAngularSpeed_);
 	priv_->maxNumNeighbors_ = maxNumNeighbors_->getVertex(0).r;
 	priv_->cellSize_ = cellSize_->getVertex(0).r;
-#ifdef REGEN_BOID_DEBUG_TIME
-	auto start = std::chrono::high_resolution_clock::now();
-	simulateBoids(dt_f);
-	auto afterSim = std::chrono::high_resolution_clock::now();
-#else
-	simulateBoids(dt_f);
-#endif
+	// update dt in all slices
+	for (auto &slice : priv_->boidSlices_) {
+		slice.frame.dt = dt_f;
+	}
+
+	Bounds<Vec3f> bounds = Bounds<Vec3f>::create(Vec3f::posMax(), Vec3f::negMax());
+	if constexpr (BOID_USE_MULTITHREADING) {
+		priv_->performSlicedJob<Private::updateForceJob>();
+		priv_->performSlicedJob<Private::advanceBoidJob>();
+		// Accumulate the new bounds from all slices
+		for (const auto &slice : priv_->boidSlices_) {
+			bounds.extend(slice.frame.localBounds);
+		}
+	}
+	else {
+		// Single-threaded update
+		const auto numBoids = numBoids_;
+		auto &slice = priv_->boidSlices_.front();
+		priv_->updateForces(slice);
+
+		for (uint32_t boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
+			advanceBoid(boidIdx, dt_f);
+			// update the grid bounds
+			bounds.min.x = std::min(bounds.min.x, priv_->boidPositionsX_[boidIdx]);
+			bounds.min.y = std::min(bounds.min.y, priv_->boidPositionsY_[boidIdx]);
+			bounds.min.z = std::min(bounds.min.z, priv_->boidPositionsZ_[boidIdx]);
+			bounds.max.x = std::max(bounds.max.x, priv_->boidPositionsX_[boidIdx]);
+			bounds.max.y = std::max(bounds.max.y, priv_->boidPositionsY_[boidIdx]);
+			bounds.max.z = std::max(bounds.max.z, priv_->boidPositionsZ_[boidIdx]);
+		}
+	}
+	boidBounds_ = bounds;
+	#ifdef QUAD_TREE_DEBUG_TIME
+	elapsedTime.push("simulation");
+	#endif
 
 	// update boids model transformation using the boids data
 	updateTransforms();
-#ifdef REGEN_BOID_DEBUG_TIME
-	auto afterTF = std::chrono::high_resolution_clock::now();
-#endif
+	#ifdef QUAD_TREE_DEBUG_TIME
+	elapsedTime.push("transforms");
+	#endif
 
 	// resize the grid, and clear all cells
 	clearGrid();
@@ -282,46 +386,21 @@ void BoidsCPU::cpuUpdate(double dt) {
 	// Update boidGridIndex_: per boid grid cell index
 	updateCellIndex();
 	// add boids to the grid and compute their neighborhood relations.
-	updateGrid();
+	insertIntoCells();
+	#ifdef QUAD_TREE_DEBUG_TIME
+	elapsedTime.push("binning");
+	#endif
 
-#ifdef REGEN_BOID_DEBUG_TIME
-	static std::vector<long> simTimes;
-	static std::vector<long> copyTimes;
-	static std::vector<long> gridTimes;
-	auto afterGrid = std::chrono::high_resolution_clock::now();
-	auto simTime = std::chrono::duration_cast<std::chrono::microseconds>(afterSim - start).count();
-	auto copyTime = std::chrono::duration_cast<std::chrono::microseconds>(afterTF - afterSim).count();
-	auto gridTime = std::chrono::duration_cast<std::chrono::microseconds>(afterGrid - afterTF).count();
-	simTimes.push_back(simTime);
-	copyTimes.push_back(copyTime);
-	gridTimes.push_back(gridTime);
-	if (simTimes.size() > 100) {
-		// print the average time for the last 100 frames
-		long simAvg = 0;
-		long copyAvg = 0;
-		long gridAvg = 0;
-		for (size_t i = 0; i < simTimes.size(); ++i) {
-			simAvg += simTimes[i];
-			copyAvg += copyTimes[i];
-			gridAvg += gridTimes[i];
-		}
-		simAvg /= static_cast<long>(simTimes.size());
-		copyAvg /= static_cast<long>(copyTimes.size());
-		gridAvg /= static_cast<long>(gridTimes.size());
-		REGEN_INFO("BoidsSimulation_CPU: " <<
-										   "sim=" << std::fixed << std::setprecision(2)
-										   << static_cast<float>(simAvg) / 1000.0f << "ms " <<
-										   "copy=" << std::fixed << std::setprecision(2)
-										   << static_cast<float>(copyAvg) / 1000.0f << "ms " <<
-										   "grid=" << std::fixed << std::setprecision(2)
-										   << static_cast<float>(gridAvg) / 1000.0f << "ms " <<
-										   "total=" << std::fixed << std::setprecision(2)
-										   << static_cast<float>(simAvg + copyAvg + gridAvg) / 1000.0f << "ms");
-		simTimes.clear();
-		copyTimes.clear();
-		gridTimes.clear();
+	// Update neighbors of each boid (this is expensive)
+	if constexpr (BOID_USE_MULTITHREADING) {
+		priv_->performSlicedJob<Private::updateNeighborsJob>();
+	} else {
+		priv_->updateNeighbours(priv_->boidSlices_.front());
 	}
-#endif
+	#ifdef QUAD_TREE_DEBUG_TIME
+	elapsedTime.push("neighbours");
+	elapsedTime.endFrame();
+	#endif
 }
 
 void BoidsCPU::updateTransforms() {
@@ -391,25 +470,50 @@ void BoidsCPU::clearGrid() {
 		const uint32_t numCells = priv_->grid_.size();
 		priv_->cellCounts_.resize(numCells);
 		// Reset the cell counts to zero
-		zeroAligned(priv_->cellCounts_.data(), numCells);
+		BatchOf_int32::zeroAligned(priv_->cellCounts_.data(), numCells);
 	}
 }
 
+template <void(*Fn)(void*)>
+void BoidsCPU::Private::performSlicedJob() {
+	JobPool& pool = threading::getJobPool();
+	const uint32_t numSlices = boidSlices_.size();
+	auto &jobFrame = jobFrame_;
+
+	jobFrame.numPushed = 0;
+
+	for (uint32_t i = 1; i < numSlices; ++i) {
+		auto &slice = boidSlices_[i];
+		pool.addJobPreFrame(jobFrame, Job{ .fn = Fn, .arg = &slice });
+	}
+
+	// Execute jobs
+	pool.beginFrame(jobFrame, 1u); // one local job
+	FramedJob localJob = { { Fn, &boidSlices_[0] }, &jobFrame };
+	do {
+		JobPool::performJob(localJob);
+	} while (pool.stealJob(localJob));
+	JobPool::endFrame(jobFrame);
+}
+
 void BoidsCPU::updateCellIndex() {
-	const auto numBoids = static_cast<int32_t>(numBoids_);
+	// NOTE: This could easily be done in parallel if needed.
+	//       But it seems superfast already, but in case it becomes a bottleneck,
+	//       we can parallelize it.
+	const auto numBoids = numBoids_;
 
 	const auto* __restrict boidPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
 	const auto* __restrict boidPosY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
 	const auto* __restrict boidPosZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
-	auto* __restrict boidGridIndex = static_cast<int32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
+	auto* __restrict boidGridIndex = static_cast<uint32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
 
-	int32_t boidIdx = 0u;
+	uint32_t boidIdx = 0u;
 
 	if constexpr (BOID_USE_SIMD) {
 		const BatchOf_Vec3f gridMin = BatchOf_Vec3f::fromScalar(gridBounds_.min);
 		const BatchOf_Vec3i gridSize = BatchOf_Vec3i::fromScalar(priv_->gridSize_);
 		const BatchOf_int32 allOne = BatchOf_int32::fromScalar(1);
-		const BatchOf_float allZero{ _mm256_setzero_ps() };
+		const BatchOf_float allZero = BatchOf_float::allZeros();
 		const BatchOf_float simd_cellSize = BatchOf_float::fromScalar(priv_->cellSize_);
 
 		BatchOf_Vec3f boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
@@ -442,62 +546,85 @@ void BoidsCPU::updateCellIndex() {
 
 	// Fallback to scalar loop for grid index computation
 	for (; boidIdx < numBoids;  ++boidIdx) {
-		const Vec3f boidPos = getBoidPosition(boidIdx);
-		const Vec3i idx3D = getGridIndex3D(boidPos);
+		const Vec3f boidPos = Vec3f::max(
+				(getBoidPosition(boidIdx) - gridBounds_.min) / priv_->cellSize_,
+				// ensure the boid position is within the grid bounds
+				Vec3f::zero());
+		Vec3i gridIndex(
+				static_cast<int>(std::trunc(boidPos.x)),
+				static_cast<int>(std::trunc(boidPos.y)),
+				static_cast<int>(std::trunc(boidPos.z)));
+		// ensure the boid position is within the grid bounds
+		const Vec3i idx3D = Vec3i::min(gridIndex,
+						  priv_->gridSize_ - Vec3i::one());
+
 		boidGridIndex[boidIdx] = getGridIndex(idx3D, priv_->gridSize_);
 	}
 }
 
-void BoidsCPU::updateGrid() {
-	const auto numBoids = static_cast<int32_t>(numBoids_);
+void BoidsCPU::insertIntoCells() {
+	// Note: This function would be a bit more difficult to parallelize since multiple threads
+	//       could write to the same cell simultaneously.
+	//       E.g. if each thread has a private copy of the grid, we would need to merge them at the end.
+	//       However, since this function is relatively fast already, we can leave it as is for now.
+	//       Prefix sum could also be used to parallelize this function over cells instead of boids.
+	const auto numBoids = numBoids_;
+	uint32_t boidIdx = 0u;
 
-	// iterate over all boids and add them to the grid, compute the index
-	// based on the boid position and the grid bounds.
-	// Note: There is quite a bottleneck in updateNeighbours. Probably can only be improved
-	//       by coming up with a more efficient approach.
-	int32_t boidIdx = 0u;
-
-	auto* __restrict cellCounts = static_cast<int32_t*>(__builtin_assume_aligned(priv_->cellCounts_.data(), 32));
-	const auto* __restrict boidGridIndex = static_cast<int32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
+	auto* __restrict cellCounts =
+		static_cast<uint32_t*>(__builtin_assume_aligned(priv_->cellCounts_.data(), 32));
+	auto* __restrict grid = priv_->grid_.data();
+	const auto* __restrict boidGridIndex =
+		static_cast<const uint32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
 
 	for (boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
 		const uint32_t cellIndex = boidGridIndex[boidIdx];
 		const uint32_t numElements = cellCounts[cellIndex];
-		auto* __restrict cell = priv_->grid_[cellIndex].elements.data();
-
-		updateNeighbours(boidIdx, cell, numElements);
-
-		// add the boid to the grid cell
-		// Note: we can safely write one more element than the maxNumNeighbors_ because
-		//       we reserve one additional element in the cell.elements vector.
-		// Note: this is not entirely accurate. Better would be to also check the
-		//       adjacent cells, but this would cost more performance and results are ok in my opinion.
+		auto* cell = grid[cellIndex].elements.data();
 		cell[numElements] = boidIdx;
-		cellCounts[cellIndex] += static_cast<int32_t>(numElements < priv_->maxNumNeighbors_);
+		cellCounts[cellIndex] += static_cast<uint32_t>(numElements < priv_->maxNumNeighbors_);
 	}
 }
 
-void BoidsCPU::updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices, uint32_t neighborCount) {
-	const auto* __restrict globalX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
-	const auto* __restrict globalY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
-	const auto* __restrict globalZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
-	auto* __restrict queueX = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosX_.data(), 32));
-	auto* __restrict queueY = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosY_.data(), 32));
-	auto* __restrict queueZ = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosZ_.data(), 32));
-	auto* __restrict boidQueue = static_cast<uint32_t*>(__builtin_assume_aligned(priv_->boidQueue_.data(), 32));
+void BoidsCPU::Private::updateNeighbours(BoidSliceData &slice) {
+	// Update neighbors for all boids in the given slice.
+	const uint32_t startIdx = slice.frame.startIdx;
+	const uint32_t endIdx = slice.frame.endIdx;
 
-	auto &boidStruct = boidData_[boidIdx];
+	const auto* __restrict boidGridIndex =
+		static_cast<const uint32_t*>(__builtin_assume_aligned(boidGridIndex_.data(), 32));
+
+	for (uint32_t boidIdx = startIdx; boidIdx < endIdx; ++boidIdx) {
+		const uint32_t cellIndex = boidGridIndex[boidIdx];
+		updateNeighbours(slice.frame, boidIdx, cellIndex);
+	}
+}
+
+void BoidsCPU::Private::updateNeighbours(BoidSimulationFrame &frame, uint32_t boidIdx, uint32_t cellIdx) {
+	const auto* __restrict globalX = static_cast<float*>(__builtin_assume_aligned(boidPositionsX_.data(), 32));
+	const auto* __restrict globalY = static_cast<float*>(__builtin_assume_aligned(boidPositionsY_.data(), 32));
+	const auto* __restrict globalZ = static_cast<float*>(__builtin_assume_aligned(boidPositionsZ_.data(), 32));
+	const auto* __restrict cellCounts = static_cast<const uint32_t*>(__builtin_assume_aligned(cellCounts_.data(), 32));
+	auto* __restrict queueX = static_cast<float*>(__builtin_assume_aligned(frame.queuePosX_.data(), 32));
+	auto* __restrict queueY = static_cast<float*>(__builtin_assume_aligned(frame.queuePosY_.data(), 32));
+	auto* __restrict queueZ = static_cast<float*>(__builtin_assume_aligned(frame.queuePosZ_.data(), 32));
+	auto* __restrict boidQueue = static_cast<uint32_t*>(__builtin_assume_aligned(frame.boidQueue_.data(), 32));
+	auto* __restrict neighbors = boidNeighbors_[boidIdx].data();
+
+	const uint32_t neighborCount = cellCounts[cellIdx];
+	const auto* __restrict neighborIndices = grid_[cellIdx].elements.data();
+
 	const float boidPosX = globalX[boidIdx];
 	const float boidPosY = globalY[boidIdx];
 	const float boidPosZ = globalZ[boidIdx];
-	const uint32_t maxNumNeighbors = priv_->maxNumNeighbors_;
+	const uint32_t maxNumNeighbors = maxNumNeighbors_;
 
 	uint32_t numHits = 0;
 	uint32_t queueIdx = 0;
 
 	// Load the neighbor positions into local SOA arrays
 	for (uint32_t i = 0; i < neighborCount; ++i) {
-		const int32_t neighborIdx = neighborIndices[i];
+		const uint32_t neighborIdx = neighborIndices[i];
 		queueX[i] = globalX[neighborIdx];
 		queueY[i] = globalY[neighborIdx];
 		queueZ[i] = globalZ[neighborIdx];
@@ -508,7 +635,7 @@ void BoidsCPU::updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices,
 			BatchOf_float::fromScalar(boidPosX),
 			BatchOf_float::fromScalar(boidPosY),
 			BatchOf_float::fromScalar(boidPosZ) };
-		const BatchOf_float b_visualRangeSq = BatchOf_float::fromScalar(priv_->visualRangeSq_);
+		const BatchOf_float b_visualRangeSq = BatchOf_float::fromScalar(visualRangeSq_);
 
 		for (; queueIdx + simd::RegisterWidth <= neighborCount; queueIdx += simd::RegisterWidth) {
 			// load the positions of the neighbors into a SIMD register
@@ -536,63 +663,56 @@ void BoidsCPU::updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices,
 			queueX[queueIdx] - boidPosX,
 			queueY[queueIdx] - boidPosY,
 			queueZ[queueIdx] - boidPosZ };
-		if (dx.lengthSquared() <= priv_->visualRangeSq_) {
+		if (dx.lengthSquared() <= visualRangeSq_) {
 			boidQueue[numHits++] = queueIdx;
 		}
 	}
 
 	// Process the found neighbors
-	for (uint32_t hitIdx = 0; hitIdx < numHits; ++hitIdx) {
-		const int32_t neighborIdx = neighborIndices[boidQueue[hitIdx]];
-		auto &neighbor = boidData_[neighborIdx];
+	uint32_t numNeighbors = 0u;
+	for (uint32_t hitIdx = 0;
+			hitIdx < numHits &&
+			numNeighbors < maxNumNeighbors; ++hitIdx) {
+		const uint32_t neighborIdx = neighborIndices[boidQueue[hitIdx]];
+		if (neighborIdx == boidIdx) continue; // skip self
+		neighbors[numNeighbors++] = neighborIdx;
+	}
+	boidNumNeighbors_[boidIdx] = numNeighbors;
+}
 
-		// define reflexive neighbor relation
-		boidStruct.neighbors[boidStruct.numNeighbors] = neighborIdx;
-		boidStruct.numNeighbors += static_cast<uint32_t>(boidStruct.numNeighbors < maxNumNeighbors);
-
-		neighbor.neighbors[neighbor.numNeighbors] = boidIdx;
-		neighbor.numNeighbors += static_cast<uint32_t>(neighbor.numNeighbors < maxNumNeighbors);
+void BoidsCPU::Private::updateForces(const BoidSliceData &slice) {
+	// Update forces for all boids in the given slice.
+	const uint32_t startIdx = slice.frame.startIdx;
+	const uint32_t endIdx = slice.frame.endIdx;
+	for (uint32_t boidIdx = startIdx; boidIdx < endIdx; ++boidIdx) {
+		updateForces(slice.frame, boidIdx);
 	}
 }
 
-void BoidsCPU::simulateBoids(float dt) {
-	// reset bounds of the grid
-	newBounds_.min = Vec3f::posMax();
-	newBounds_.max = Vec3f::negMax();
-	for (int32_t boidIdx = 0; boidIdx < static_cast<int32_t>(numBoids_); ++boidIdx) {
-		simulateBoid(boidIdx, dt);
-		// update the grid bounds
-		newBounds_.min.x = std::min(newBounds_.min.x, priv_->boidPositionsX_[boidIdx]);
-		newBounds_.min.y = std::min(newBounds_.min.y, priv_->boidPositionsY_[boidIdx]);
-		newBounds_.min.z = std::min(newBounds_.min.z, priv_->boidPositionsZ_[boidIdx]);
-		newBounds_.max.x = std::max(newBounds_.max.x, priv_->boidPositionsX_[boidIdx]);
-		newBounds_.max.y = std::max(newBounds_.max.y, priv_->boidPositionsY_[boidIdx]);
-		newBounds_.max.z = std::max(newBounds_.max.z, priv_->boidPositionsZ_[boidIdx]);
-	}
-	boidBounds_ = newBounds_;
-}
-
-Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3f &boidVel) {
-	auto* __restrict globalPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
-	auto* __restrict globalPosY = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsY_.data(), 32));
-	auto* __restrict globalPosZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsZ_.data(), 32));
-	auto* __restrict globalVelX = static_cast<float*>(__builtin_assume_aligned(priv_->boidVelocityX_.data(), 32));
-	auto* __restrict globalVelY = static_cast<float*>(__builtin_assume_aligned(priv_->boidVelocityY_.data(), 32));
-	auto* __restrict globalVelZ = static_cast<float*>(__builtin_assume_aligned(priv_->boidVelocityZ_.data(), 32));
-	auto* __restrict queuePosX = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosX_.data(), 32));
-	auto* __restrict queuePosY = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosY_.data(), 32));
-	auto* __restrict queuePosZ = static_cast<float*>(__builtin_assume_aligned(priv_->queuePosZ_.data(), 32));
-	auto* __restrict queueVelX = static_cast<float*>(__builtin_assume_aligned(priv_->queueVelX_.data(), 32));
-	auto* __restrict queueVelY = static_cast<float*>(__builtin_assume_aligned(priv_->queueVelY_.data(), 32));
-	auto* __restrict queueVelZ = static_cast<float*>(__builtin_assume_aligned(priv_->queueVelZ_.data(), 32));
-	auto* __restrict neighborIndices = boid.neighbors.data();
-
-	const uint32_t numNeighbors = boid.numNeighbors;
+void BoidsCPU::Private::updateForces(const BoidSimulationFrame &frame, uint32_t boidIdx) {
+	const uint32_t numNeighbors = boidNumNeighbors_[boidIdx];
 	const float alpha = 1.0f / static_cast<float>(std::max(numNeighbors,1u));
+	const float boidPosX = boidPositionsX_[boidIdx];
+	const float boidPosY = boidPositionsY_[boidIdx];
+	const float boidPosZ = boidPositionsZ_[boidIdx];
+
+	auto* __restrict queuePosX = static_cast<float*>(__builtin_assume_aligned(frame.queuePosX_.data(), 32));
+	auto* __restrict queuePosY = static_cast<float*>(__builtin_assume_aligned(frame.queuePosY_.data(), 32));
+	auto* __restrict queuePosZ = static_cast<float*>(__builtin_assume_aligned(frame.queuePosZ_.data(), 32));
+	auto* __restrict queueVelX = static_cast<float*>(__builtin_assume_aligned(frame.queueVelX_.data(), 32));
+	auto* __restrict queueVelY = static_cast<float*>(__builtin_assume_aligned(frame.queueVelY_.data(), 32));
+	auto* __restrict queueVelZ = static_cast<float*>(__builtin_assume_aligned(frame.queueVelZ_.data(), 32));
+	const auto* __restrict globalPosX = static_cast<const float*>(__builtin_assume_aligned(boidPositionsX_.data(), 32));
+	const auto* __restrict globalPosY = static_cast<const float*>(__builtin_assume_aligned(boidPositionsY_.data(), 32));
+	const auto* __restrict globalPosZ = static_cast<const float*>(__builtin_assume_aligned(boidPositionsZ_.data(), 32));
+	const auto* __restrict globalVelX = static_cast<const float*>(__builtin_assume_aligned(boidVelocityX_.data(), 32));
+	const auto* __restrict globalVelY = static_cast<const float*>(__builtin_assume_aligned(boidVelocityY_.data(), 32));
+	const auto* __restrict globalVelZ = static_cast<const float*>(__builtin_assume_aligned(boidVelocityZ_.data(), 32));
+	const auto* __restrict neighborIndices = boidNeighbors_[boidIdx].data();
 
 	// Load the neighbor positions into local SOA arrays
 	for (uint32_t i = 0; i < numNeighbors; ++i) {
-		const int32_t neighborIdx = neighborIndices[i];
+		const uint32_t neighborIdx = neighborIndices[i];
 		queuePosX[i] = globalPosX[neighborIdx];
 		queuePosY[i] = globalPosY[neighborIdx];
 		queuePosZ[i] = globalPosZ[neighborIdx];
@@ -604,13 +724,15 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 	Vec3f sumPos = Vec3f::zero();
 	Vec3f sumVel = Vec3f::zero();
 	Vec3f sumSep = Vec3f::zero();
-	size_t queueIdx = 0;
+	uint32_t queueIdx = 0;
 
 	if constexpr (BOID_USE_SIMD) {
 		{ // pass 1:
-			const BatchOf_Vec3f fixedPos = BatchOf_Vec3f::fromScalar(boidPos);
-			const BatchOf_float avoidance = BatchOf_float::fromScalar(priv_->avoidanceDistanceSq_);
-			//const BatchOf_float allOnes = BatchOf_float::fromScalar(1.0f);
+			const BatchOf_Vec3f fixedPos = BatchOf_Vec3f{
+				BatchOf_float::fromScalar(boidPosX),
+				BatchOf_float::fromScalar(boidPosY),
+				BatchOf_float::fromScalar(boidPosZ) };
+			const BatchOf_float avoidance = BatchOf_float::fromScalar(avoidanceDistanceSq_);
 			const BatchOf_float epsilon = BatchOf_float::fromScalar(0.0001f);
 
 			BatchOf_Vec3f sumPosVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
@@ -631,8 +753,6 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 				BatchOf_float distSq = x.lengthSquared();
 				// Use masking to only consider neighbors within the avoidance distance.
 				distSq = (distSq < avoidance).maskToFloat() / (distSq + epsilon);
-				//distSq = (allOnes - allOnes).blend(
-				//	allOnes / (distSq + epsilon), distSq < avoidance);
 				// Finally, accumulate the separation force.
 				separation += x * distSq;
 			}
@@ -662,11 +782,11 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 		sumPos.z += queuePosZ[queueIdx];
 
 		const Vec3f boidDirection {
-			boidPos.x - queuePosX[queueIdx],
-			boidPos.y - queuePosY[queueIdx],
-			boidPos.z - queuePosZ[queueIdx] };
+			boidPosX - queuePosX[queueIdx],
+			boidPosY - queuePosY[queueIdx],
+			boidPosZ - queuePosZ[queueIdx] };
 		const float dSq = boidDirection.lengthSquared();
-		const auto mask = static_cast<float>(dSq < priv_->avoidanceDistanceSq_);
+		const auto mask = static_cast<float>(dSq < avoidanceDistanceSq_);
 		sumSep += boidDirection * mask / (dSq + 0.0001f); // avoid division by zero
 
 		sumVel.x += queueVelX[queueIdx];
@@ -674,34 +794,65 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 		sumVel.z += queueVelZ[queueIdx];
 	}
 
-	return
-		(sumSep * priv_->separationWeight_) +
-		(sumVel*alpha - boidVel) * priv_->alignmentWeight_ +
-		(sumPos*alpha - boidPos) * priv_->coherenceWeight_;
+	sumVel *= alpha;
+	sumVel.x -= boidVelocityX_[boidIdx];
+	sumVel.y -= boidVelocityY_[boidIdx];
+	sumVel.z -= boidVelocityZ_[boidIdx];
+
+	sumPos *= alpha;
+	sumPos.x -= boidPosX;
+	sumPos.y -= boidPosY;
+	sumPos.z -= boidPosZ;
+
+	boidForce_[boidIdx] = sumSep*separationWeight_ + sumVel*alignmentWeight_ + sumPos*coherenceWeight_;
 }
 
-void BoidsCPU::simulateBoid(int32_t boidIdx, float dt) {
-	auto &boid = boidData_[boidIdx];
-	Vec3f boidPos = getBoidPosition(boidIdx);
+void BoidsCPU::Private::advanceBoid(BoidSliceData &slice) {
+	const auto startIdx = slice.frame.startIdx;
+	const auto endIdx = slice.frame.endIdx;
+	const auto dt = slice.frame.dt;
+	auto &sim = *slice.sim;
+
+	// Each frame, we compute new bounds. In a threaded setting
+	// each thread must compute local bounds, these are later consolidated
+	// into the global bounds.
+	Bounds<Vec3f> &localBounds = slice.frame.localBounds;
+	localBounds.min = Vec3f::posMax();
+	localBounds.max = Vec3f::negMax();
+
+	for (uint32_t boidIdx = startIdx; boidIdx < endIdx; ++boidIdx) {
+		sim.advanceBoid(boidIdx, dt);
+		// update the local bounds
+		localBounds.min.x = std::min(localBounds.min.x, boidPositionsX_[boidIdx]);
+		localBounds.min.y = std::min(localBounds.min.y, boidPositionsY_[boidIdx]);
+		localBounds.min.z = std::min(localBounds.min.z, boidPositionsZ_[boidIdx]);
+		localBounds.max.x = std::max(localBounds.max.x, boidPositionsX_[boidIdx]);
+		localBounds.max.y = std::max(localBounds.max.y, boidPositionsY_[boidIdx]);
+		localBounds.max.z = std::max(localBounds.max.z, boidPositionsZ_[boidIdx]);
+	}
+}
+
+void BoidsCPU::advanceBoid(uint32_t boidIdx, float dt) {
+	const uint32_t numNeighbors = priv_->boidNumNeighbors_[boidIdx];
+	const Vec3f boidPos = getBoidPosition(boidIdx);
 	Vec3f boidVel = getBoidVelocity(boidIdx);
-	// simulate the boid using the three rules of boids
-	boid.force = accumulateForce(boid, boidPos, boidVel);
+	Vec3f boidForce = priv_->boidForce_[boidIdx];
 
 	// a boid is lost if it is outside the bounds
-	bool isBoidLost    = (boid.numNeighbors == 0 || !priv_->simBounds_.contains(boidPos));
-	bool isInCollision = avoidCollisions(boidPos, boidVel, boid.force, dt);
-	bool isInDanger    = !dangers_.empty() && avoidDanger(boidPos, boid.force);
+	const bool isBoidLost    = (numNeighbors == 0 || !priv_->simBounds_.contains(boidPos));
+	const bool isInCollision = avoidCollisions(boidPos, boidVel, boidForce, dt);
+	const bool isInDanger    = !dangers_.empty() && avoidDanger(boidPos, boidForce);
 
 	if (!isInDanger) {
 		// note: ignore attractors if in danger
-		attract(boidPos, boid.force);
+		attract(boidPos, boidForce);
 	}
 	if (isBoidLost || isInCollision) {
 		// drift towards home if lost or in collision
-		homesickness(boidPos, boid.force);
+		homesickness(boidPos, boidForce);
 	}
 
-	auto dx = boidVel * dt;
+	const auto dx = boidVel * dt;
 	priv_->boidPositionsX_[boidIdx] += dx.x;
 	priv_->boidPositionsY_[boidIdx] += dx.y;
 	priv_->boidPositionsZ_[boidIdx] += dx.z;
@@ -711,19 +862,17 @@ void BoidsCPU::simulateBoid(int32_t boidIdx, float dt) {
 	float boidSpeed = 0.0f;
 	boidVel = limitVelocity(
 			lastVelNorm,
-			boidVel + boid.force * dt,
+			boidVel + boidForce * dt,
 			boidSpeed);
 	setBoidVelocity(boidIdx, boidVel);
 	if (boidSpeed > 0.001f) {
-		priv_->boidRotation_.setLookRotation(boidVel / boidSpeed);
-		setBoidOrientation(boidIdx, priv_->boidRotation_);
+		Quaternion boidRotation;
+		boidRotation.setLookRotation(boidVel / boidSpeed);
+		setBoidOrientation(boidIdx, boidRotation);
 	}
-
-	// clear the neighbors for the next frame
-	boid.numNeighbors = 0;
 }
 
-Vec3f BoidsCPU::limitVelocity(const Vec3f &lastVelNorm, const Vec3f &nextVel, float &boidSpeed) {
+Vec3f BoidsCPU::limitVelocity(const Vec3f &lastVelNorm, const Vec3f &nextVel, float &boidSpeed) const {
 	boidSpeed = nextVel.length();
 	const Vec3f nextVelNorm = nextVel / boidSpeed;
 
@@ -735,15 +884,16 @@ Vec3f BoidsCPU::limitVelocity(const Vec3f &lastVelNorm, const Vec3f &nextVel, fl
 	if (nextVelNorm.dot(lastVelNorm) < priv_->cos_maxAngularSpeed_) {
 		auto axis = nextVelNorm.cross(lastVelNorm);
 		axis.normalize();
-		priv_->boidRotation_.setAxisAngle(axis, priv_->maxAngularSpeed_);
-		auto newDirection = priv_->boidRotation_.rotate(lastVelNorm);
+		Quaternion boidRotation;
+		boidRotation.setAxisAngle(axis, priv_->maxAngularSpeed_);
+		const auto newDirection = boidRotation.rotate(lastVelNorm);
 		limitedVel = newDirection * boidSpeed;
 	}
 
 	return limitedVel;
 }
 
-void BoidsCPU::homesickness(const Vec3f &boidPos, Vec3f &boidForce) {
+void BoidsCPU::homesickness(const Vec3f &boidPos, Vec3f &boidForce) const {
 	static constexpr float MaxFloat = std::numeric_limits<float>::max();
 	if (homePoints_.empty()) { return; }
 
@@ -758,11 +908,11 @@ void BoidsCPU::homesickness(const Vec3f &boidPos, Vec3f &boidForce) {
 			closestHomePoint = &home;
 		}
 	}
-	priv_->boidDirection_ = (*closestHomePoint - boidPos) / sqrt(minDistance);
-	boidForce += priv_->boidDirection_ * priv_->repulsionTimesSeparation_ * 0.1;
+	const Vec3f boidDirection = (*closestHomePoint - boidPos) / sqrt(minDistance);
+	boidForce += boidDirection * priv_->repulsionTimesSeparation_ * 0.1;
 }
 
-bool BoidsCPU::avoidDanger(const Vec3f &boidPos, Vec3f &boidForce) {
+bool BoidsCPU::avoidDanger(const Vec3f &boidPos, Vec3f &boidForce) const {
 	bool isInDanger = false;
 	Vec3f dir;
 
@@ -790,7 +940,7 @@ bool BoidsCPU::avoidDanger(const Vec3f &boidPos, Vec3f &boidForce) {
 	return isInDanger;
 }
 
-void BoidsCPU::attract(const Vec3f &boidPos, Vec3f &boidForce) {
+void BoidsCPU::attract(const Vec3f &boidPos, Vec3f &boidForce) const {
 	auto maxDistance = priv_->attractionRange_;
 	Vec3f dir;
 	for (auto &attractor: attractors_) {
@@ -814,7 +964,7 @@ bool BoidsCPU::avoidCollisions(
 		const Vec3f &boidPos,
 		const Vec3f &boidVel,
 		Vec3f &boidForce,
-		float dt) {
+		float dt) const {
 	auto nextVelocity = boidVel + boidForce * dt;
 	nextVelocity.normalize();
 	auto lookAhead = boidPos + nextVelocity * priv_->lookAheadDistance_;
@@ -917,13 +1067,12 @@ bool BoidsCPU::avoidCollisions(
 		// boid position in height map space [0, 1]
 		auto boidCoord = computeUV(boidPos, mapCenter_, mapSize_);
 		auto currentY = heightMap_->sampleLinear<float,1>(boidCoord, heightMap_->textureData());
-		currentY *= heightMapFactor_;
-		currentY += mapCenter_.y + priv_->avoidanceDistanceHalf_;
+		currentY = currentY*heightMapFactor_ + mapCenter_.y + priv_->avoidanceDistanceHalf_;
+
 		// sample the height map at the projected boid position
 		boidCoord = computeUV(lookAhead, mapCenter_, mapSize_);
 		auto nextY = heightMap_->sampleLinear<float,1>(boidCoord, heightMap_->textureData());
-		nextY *= heightMapFactor_;
-		nextY += mapCenter_.y + priv_->avoidanceDistanceHalf_;
+		nextY = nextY*heightMapFactor_ + mapCenter_.y + priv_->avoidanceDistanceHalf_;
 
 		if (boidPos.y < currentY) {
 			// The boid is below the minimum height of the height map -> push boid up.

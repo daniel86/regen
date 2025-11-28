@@ -173,7 +173,6 @@ namespace regen {
 		ref_ptr<ShaderInput4f> modelOffset_;
 		// The bounding box of the boids.
 		Bounds<Vec3f> boidBounds_ = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::one());
-		Bounds<Vec3f> newBounds_ = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::zero());
 
 		// height map
 		ref_ptr<Texture2D> heightMap_;

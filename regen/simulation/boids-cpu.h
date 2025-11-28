@@ -41,14 +41,6 @@ namespace regen {
 		struct Private;
 		Private *priv_;
 
-		struct BoidData {
-			std::vector<int32_t> neighbors; // size = maxNumNeighbors
-			uint32_t numNeighbors = 0;
-			Vec3f force;
-			//Vec3f sumPos, sumVel, sumSep;
-		};
-		std::vector<BoidData> boidData_;   // size = numBoids_
-
 		inline void setBoidPosition(uint32_t boidIndex, const Vec3f &pos);
 
 		inline Vec3f getBoidPosition(uint32_t boidIndex) const;
@@ -57,54 +49,37 @@ namespace regen {
 
 		inline Vec3f getBoidVelocity(uint32_t boidIndex) const;
 
-		inline Quaternion getBoidOrientation(uint32_t boidIndex) const;
-
-		inline void setBoidOrientation(
-				uint32_t boidIndex, const Quaternion &orientation);
+		inline void setBoidOrientation(uint32_t boidIndex, const Quaternion &orientation);
 
 		void updateTransforms();
 
-		void simulateBoids(float dt);
-
-		void simulateBoid(int32_t boidIdx, float dt);
-
-		Vec3f accumulateForce(
-				BoidData &boid,
-				const Vec3f &boidPos,
-				const Vec3f &boidVel);
+		void advanceBoid(uint32_t boidIdx, float dt);
 
 		Vec3f limitVelocity(
 				const Vec3f &lastDir,
 				const Vec3f &boidVel,
-				float &boidSpeed);
+				float &boidSpeed) const;
 
-		void homesickness(
-				const Vec3f &boidPos, Vec3f &boidForce);
+		void homesickness(const Vec3f &boidPos, Vec3f &boidForce) const;
 
 		bool avoidCollisions(
 				const Vec3f &boidPos,
 				const Vec3f &boidVel,
 				Vec3f &boidForce,
-				float dt);
+				float dt) const;
 
-		bool avoidDanger(const Vec3f &boidPos, Vec3f &boidForce);
+		bool avoidDanger(const Vec3f &boidPos, Vec3f &boidForce) const;
 
-		void attract(const Vec3f &boidPos, Vec3f &boidForce);
+		void attract(const Vec3f &boidPos, Vec3f &boidForce) const;
 
 		void updateCellIndex();
 
-		void updateNeighbours(int32_t boidIdx, const int32_t *neighborIndices, uint32_t neighborCount);
-
 		void clearGrid();
 
-		void updateGrid();
+		void insertIntoCells();
 
-		inline Vec3i getGridIndex3D(const Vec3f &boid) const;
+		friend struct BoidSliceData;
 	};
-
-	std::ostream &operator<<(std::ostream &out, const BoidSimulation::ObjectType &v);
-
-	std::istream &operator>>(std::istream &in, BoidSimulation::ObjectType &v);
 }
 
 #endif //REGEN_BOIDS_CPU_H

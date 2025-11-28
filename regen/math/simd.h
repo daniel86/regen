@@ -687,6 +687,26 @@ namespace regen {
 		BatchOf_int32 operator&(const BatchOf_int32 &other) const {
 			return BatchOf_int32{_mm256_and_si256(c, other.c)};
 		}
+
+		static BatchOf_int32 allZeroes() {
+			return BatchOf_int32{_mm256_setzero_si256()};
+		}
+
+		/**
+		 * Set an array of aligned int32_t to zero using SIMD.
+		 * @param data Pointer to the aligned int32_t array to zero.
+		 * @param size Number of elements to set to zero.
+		 */
+		template <typename IntType>
+		static void zeroAligned(IntType* __restrict data, size_t size) {
+			size_t i = 0;
+			BatchOf_int32 zero = allZeroes();
+			for (; i + simd::RegisterWidth <= size; i += simd::RegisterWidth) {
+				zero.storeAligned(data + i);
+			}
+			// Tail loop (in case size is not divisible by 8)
+			for (; i < size; ++i) { data[i] = 0; }
+		}
 	};
 
 	/**
