@@ -688,7 +688,7 @@ namespace regen {
 			return BatchOf_int32{_mm256_and_si256(c, other.c)};
 		}
 
-		static BatchOf_int32 allZeroes() {
+		static BatchOf_int32 allZeros() {
 			return BatchOf_int32{_mm256_setzero_si256()};
 		}
 
@@ -700,7 +700,7 @@ namespace regen {
 		template <typename IntType>
 		static void zeroAligned(IntType* __restrict data, size_t size) {
 			size_t i = 0;
-			BatchOf_int32 zero = allZeroes();
+			BatchOf_int32 zero = allZeros();
 			for (; i + simd::RegisterWidth <= size; i += simd::RegisterWidth) {
 				zero.storeAligned(data + i);
 			}
