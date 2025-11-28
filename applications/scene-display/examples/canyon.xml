@@ -9,7 +9,7 @@
     <constant name="far-plane" value="200.0"/>
     <constant name="far-plane*0.5" value="100.0"/>
     <constant name="num-cascades" value="4"/>
-    <constant name="num-fish" value="2000"/>
+    <constant name="num-fish" value="5000"/>
     <constant name="collision-bit" value="2"/>
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <include xml-file="scene-display/examples/behavior/carnivore.xml"/>

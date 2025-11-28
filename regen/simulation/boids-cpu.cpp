@@ -369,13 +369,13 @@ void BoidsCPU::cpuUpdate(double dt) {
 		}
 	}
 	boidBounds_ = bounds;
-	#ifdef QUAD_TREE_DEBUG_TIME
+	#ifdef REGEN_BOID_DEBUG_TIME
 	elapsedTime.push("simulation");
 	#endif
 
 	// update boids model transformation using the boids data
 	updateTransforms();
-	#ifdef QUAD_TREE_DEBUG_TIME
+	#ifdef REGEN_BOID_DEBUG_TIME
 	elapsedTime.push("transforms");
 	#endif
 
@@ -387,7 +387,7 @@ void BoidsCPU::cpuUpdate(double dt) {
 	updateCellIndex();
 	// add boids to the grid and compute their neighborhood relations.
 	insertIntoCells();
-	#ifdef QUAD_TREE_DEBUG_TIME
+	#ifdef REGEN_BOID_DEBUG_TIME
 	elapsedTime.push("binning");
 	#endif
 
@@ -397,7 +397,7 @@ void BoidsCPU::cpuUpdate(double dt) {
 	} else {
 		priv_->updateNeighbours(priv_->boidSlices_.front());
 	}
-	#ifdef QUAD_TREE_DEBUG_TIME
+	#ifdef REGEN_BOID_DEBUG_TIME
 	elapsedTime.push("neighbours");
 	elapsedTime.endFrame();
 	#endif
