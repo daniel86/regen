@@ -9,7 +9,7 @@ flat in int in_layer;
 #define in_layer 0
     #endif
 #endif
-#endif // VS_LAYER_SELECTION
+#endif // regen_layered_defines_defined_
 
 -- VS_SelectLayer
 #ifndef regen_VS_SelectLayer_defined_
