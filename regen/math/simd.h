@@ -43,6 +43,9 @@ namespace regen::simd {
 	inline __m256i set1_epi64(int64_t v) { return _mm256_set1_epi64x(v); }
 	inline __m256i set1_epi64u(uint64_t v) { return _mm256_set1_epi64x(v); }
 
+	inline __m256 setzero_ps() { return _mm256_setzero_ps(); }
+	inline __m256i setzero_si256() { return _mm256_setzero_si256(); }
+
 	inline __m256 load_ps(const float *p) { return _mm256_load_ps(p); }
 	inline __m256 loadu_ps(const float *p) { return _mm256_loadu_ps(p); }
 
@@ -71,6 +74,8 @@ namespace regen::simd {
 	inline __m256i loadu_si256(const int32_t *p) {
 		return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
 	}
+
+	inline __m256 epi_to_ps(const __m256i &v) { return _mm256_castsi256_ps(v); }
 
 	inline __m256 i32gather_ps(const float *p, const __m256i &indices) {
 		return _mm256_i32gather_ps(p, indices, sizeof(float));
@@ -129,6 +134,8 @@ namespace regen::simd {
 		return _mm_cvtss_f32(sums);
 	}
 
+	inline __m256 rcp_ps(const __m256 &a) { return _mm256_rcp_ps(a); }
+
 	inline __m256 cmp_lt(const __m256 &a, const __m256 &b) {
 		return _mm256_cmp_ps(a, b, _CMP_LT_OQ);
 	}
@@ -155,6 +162,10 @@ namespace regen::simd {
 
 	inline int movemask_ps(const __m256 &v) { return _mm256_movemask_ps(v); }
 
+	inline __m256 blendv_ps(const __m256 &a, const __m256 &b, const __m256 &mask) {
+		return _mm256_blendv_ps(a, b, mask);
+	}
+
 #elif REGEN_SIMD_MODE == SSE
 	static constexpr int8_t RegisterMask = 0x0F; // 4 bits for SSE
 	using Register = __m128; // 4 floats
@@ -163,12 +174,17 @@ namespace regen::simd {
 	inline __m128 set1_ps(float v) { return _mm_set1_ps(v); }
 	inline __m128i set1_epi32(int32_t v) { return _mm_set1_epi32(v); }
 
+	inline __m128 setzero_ps() { return _mm_setzero_ps(); }
+	inline __m128i setzero_si256() { return _mm_setzero_si128(); }
+
 	inline __m128 load_ps(const float *p) { return _mm_load_ps(p); }
 	inline __m128 loadu_ps(const float *p) { return _mm_loadu_ps(p); }
 
 	inline __m128i loadu_si256(const uint32_t *p) {
 		return _mm_loadu_si128(reinterpret_cast<const __m128i*>(indices));
 	}
+
+	inline __m128 epi_to_ps(const __m128i &v) { return _mm_castsi128_ps(v); }
 
 	inline __m128 i32gather_ps(const float *p, const __m128i &indices) {
 		return _mm_i32gather_ps(p, indices, sizeof(float));
@@ -200,6 +216,8 @@ namespace regen::simd {
 		return _mm_cvtss_f32(sums);
 	}
 
+	inline __m128 rcp_ps(const __m128 &a) { return _mm_rcp_ps(a); }
+
 	inline __m128 cmp_lt(const __m128 &a, const __m128 &b)  { return _mm_cmplt_ps(a, b); }
 	inline __m128 cmp_gt(const __m128 &a, const __m128 &b)  { return _mm_cmplt_ps(b, a); }
 	inline __m128 cmp_eq(const __m128 &a, const __m128 &b)  { return _mm_cmpeq_ps(a, b); }
@@ -213,6 +231,10 @@ namespace regen::simd {
 	inline __m128i cvttps_epi32(const __m128 &a) { return _mm_cvttps_epi32(a); }
 
 	inline int movemask_ps(const __m128 &v) { return _mm_movemask_ps(v); }
+
+	inline __m128 blendv_ps(const __m128 &a, const __m128 &b, const __m128 &mask) {
+		return _mm_blendv_ps(a, b, mask);
+	}
 
 #else // Fallback to scalar operations
 	static constexpr int8_t RegisterMask = 0x01; // 1 bit for scalar
@@ -260,6 +282,7 @@ namespace regen {
 	 * Supports basic arithmetic and comparison operations.
 	 */
 	struct BatchOf_float {
+		// Underlying SIMD register
 		simd::Register c;
 
 		/**
@@ -304,14 +327,14 @@ namespace regen {
 		 * @return A batch where all elements are set to 1.0f.
 		 */
 		static BatchOf_float allOnes() {
-			return BatchOf_float{_mm256_setzero_ps()}.cmp_lt(1.0f);
+			return BatchOf_float{simd::setzero_ps()}.cmp_lt(1.0f);
 		}
 
 		/**
 		 * @return A batch where all elements are set to 0.0f.
 		 */
 		static BatchOf_float allZeros() {
-			return BatchOf_float{_mm256_setzero_ps()};
+			return BatchOf_float{simd::setzero_ps()};
 		}
 
 		/**
@@ -330,25 +353,17 @@ namespace regen {
 			simd::storeu_ps(dst, c);
 		}
 
+		/**
+		 * Addition operator overloads.
+		 * @param other The other batch to add.
+		 * @return A new BatchOf_float containing the result.
+		 */
 		BatchOf_float operator+(const BatchOf_float &other) const {
 			return BatchOf_float{simd::add_ps(c, other.c)};
 		}
-
-		BatchOf_float operator-(const BatchOf_float &other) const {
-			return BatchOf_float{simd::sub_ps(c, other.c)};
+		BatchOf_float operator+(float scalar) const {
+			return BatchOf_float{simd::add_ps(c, simd::set1_ps(scalar))};
 		}
-
-		BatchOf_float operator/(const BatchOf_float &other) const {
-			return BatchOf_float{simd::div_ps(c, other.c)};
-		}
-
-		BatchOf_float operator*(const BatchOf_float &other) const {
-			return BatchOf_float{simd::mul_ps(c, other.c)};
-		}
-		BatchOf_float operator*(float scalar) const {
-			return BatchOf_float{simd::mul_ps(c, simd::set1_ps(scalar))};
-		}
-
 		void operator+=(const BatchOf_float &other) {
 			c = simd::add_ps(c, other.c);
 		}
@@ -356,6 +371,17 @@ namespace regen {
 			c = simd::add_ps(c, simd::set1_ps(scalar));
 		}
 
+		/**
+		 * Subtraction operator overloads.
+		 * @param other The other batch to subtract.
+		 * @return A new BatchOf_float containing the result.
+		 */
+		BatchOf_float operator-(const BatchOf_float &other) const {
+			return BatchOf_float{simd::sub_ps(c, other.c)};
+		}
+		BatchOf_float operator-(float scalar) const {
+			return BatchOf_float{simd::sub_ps(c, simd::set1_ps(scalar))};
+		}
 		void operator-=(const BatchOf_float &other) {
 			c = simd::sub_ps(c, other.c);
 		}
@@ -363,6 +389,35 @@ namespace regen {
 			c = simd::sub_ps(c, simd::set1_ps(scalar));
 		}
 
+		/**
+		 * Division operator overloads.
+		 * @param other The other batch to divide by.
+		 * @return A new BatchOf_float containing the result.
+		 */
+		BatchOf_float operator/(const BatchOf_float &other) const {
+			return BatchOf_float{simd::div_ps(c, other.c)};
+		}
+		BatchOf_float operator/(float scalar) const {
+			return BatchOf_float{simd::div_ps(c, simd::set1_ps(scalar))};
+		}
+		void operator/=(const BatchOf_float &other) {
+			c = simd::div_ps(c, other.c);
+		}
+		void operator/=(float scalar) {
+			c = simd::div_ps(c, simd::set1_ps(scalar));
+		}
+
+		/**
+		 * Multiplication operator overloads.
+		 * @param other The other batch to multiply by.
+		 * @return A new BatchOf_float containing the result.
+		 */
+		BatchOf_float operator*(const BatchOf_float &other) const {
+			return BatchOf_float{simd::mul_ps(c, other.c)};
+		}
+		BatchOf_float operator*(float scalar) const {
+			return BatchOf_float{simd::mul_ps(c, simd::set1_ps(scalar))};
+		}
 		void operator*=(const BatchOf_float &other) {
 			c = simd::mul_ps(c, other.c);
 		}
@@ -370,30 +425,26 @@ namespace regen {
 			c = simd::mul_ps(c, simd::set1_ps(scalar));
 		}
 
-		void operator/=(const BatchOf_float &other) {
-			c = simd::div_ps(c, other.c);
-		}
-
-		void operator&=(const BatchOf_float &other) {
-			c = simd::cmp_and(c, other.c);
-		}
-
+		/**
+		 * Comparison operator overloads.
+		 * @param other The other batch to compare with.
+		 * @return A new BatchOf_float containing the comparison results.
+		 */
 		template <typename T>
 		BatchOf_float operator<(const T &other) const { return cmp_lt(other); }
 		template <typename T>
 		BatchOf_float operator>(const T &other) const { return cmp_gt(other); }
 		template <typename T>
 		BatchOf_float operator>=(const T &other) const { return other.cmp_lt(*this); }
+		template <typename T>
+		BatchOf_float operator<=(const T &other) const { return other.cmp_gt(*this); }
 
-		/**
-		 * Convert the comparison mask to a float batch.
-		 * Each element in the returned batch will be 1.0f if the corresponding element in this batch is non-zero, else 0.0f.
-		 * @return A BatchOf_float representing the mask as floats.
-		 */
-		BatchOf_float maskToFloat() const {
-			return { _mm256_and_ps(c, _mm256_set1_ps(1.0f)) };
+		void operator&=(const BatchOf_float &other) {
+			c = simd::cmp_and(c, other.c);
 		}
-
+		void operator|=(const BatchOf_float &other) {
+			c = simd::cmp_or(c, other.c);
+		}
 		template <typename T>
 		BatchOf_float operator&&(const T &other) const { return cmp_and(other); }
 		template <typename T>
@@ -422,16 +473,14 @@ namespace regen {
 		/**
 		 * Load a single float value into the batch.
 		 */
-		void setScalar(float v) {
-			c = simd::set1_ps(v);
-		}
+		void setScalar(float v) { c = simd::set1_ps(v); }
 
 		/**
 		 * Check if each element in the batch is positive.
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is positive, else 0.0f.
 		 */
 		BatchOf_float isPositive() const {
-			return BatchOf_float{simd::cmp_gt(c, _mm256_setzero_ps())};
+			return BatchOf_float{simd::cmp_gt(c, simd::setzero_ps())};
 		}
 
 		/**
@@ -439,15 +488,14 @@ namespace regen {
 		 * @return A BatchOf_float where each element is 1.0f if the corresponding element in this batch is negative, else 0.0f.
 		 */
 		BatchOf_float isNegative() const {
-			return BatchOf_float{simd::cmp_lt(c, _mm256_setzero_ps())};
+			return BatchOf_float{simd::cmp_lt(c, simd::setzero_ps())};
 		}
 
 		/**
 		 * @return True if all elements in the batch are zero.
 		 */
 		bool isAllZero() const {
-			int mask = simd::movemask_ps(c);
-			return (mask == 0);
+			return simd::movemask_ps(c) == 0;
 		}
 
 		/**
@@ -457,31 +505,23 @@ namespace regen {
 		BatchOf_float abs() const {
 			// 32-bit integer with all bits 1 except the sign bit,
 			// then reinterpret the integer bits as floats
-			__m256 mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
+			simd::Register mask = simd::epi_to_ps(simd::set1_epi32(0x7FFFFFFF));
 			// AND the mask with the float values to clear the sign bits
-			return BatchOf_float{_mm256_and_ps(this->c, mask)};
+			return BatchOf_float{simd::cmp_and(this->c, mask)};
 		}
 
 		/**
-		 * Blend two batches based on a mask.
-		 * For each element, if the corresponding element in the mask has its sign bit set,
-		 * the element from 'other' is selected; otherwise, the element from this batch is retained.
-		 * @param other The other batch to blend with.
-		 * @param mask The mask batch determining which elements to select from 'other'.
-		 * @return A blended BatchOf_float.
+		 * Compute the reciprocal of each element in the batch.
+		 * This can be more efficient than division.
+		 * @return A BatchOf_float where each element is the reciprocal of the corresponding element in this batch.
 		 */
-		BatchOf_float blend(const BatchOf_float &other, const BatchOf_float &mask) const {
-			// select elements from 'other' where the sign bit of 'mask' is set
-			return BatchOf_float{ _mm256_blendv_ps(c, other.c, mask.c)};
-		}
-
-		/**
-		 * Convert the comparison mask to an 8-bit bitmask.
-		 * Each bit in the returned byte corresponds to an element in the batch.
-		 * @return An 8-bit bitmask representing the comparison results.
-		 */
-		uint8_t toBitmask8() const {
-			return static_cast<uint8_t>(simd::movemask_ps(c) & 0xFF);
+		BatchOf_float reciprocal() const {
+			// First approximation (12-bit accurate)
+			simd::Register y = simd::rcp_ps(c);
+			// Newton-Raphson: y = y * (2 - x*y)
+			simd::Register xy = simd::mul_ps(c, y);
+			simd::Register two_minus_xy = simd::sub_ps(simd::set1_ps(2.0f), xy);
+			return BatchOf_float{simd::mul_ps(y, two_minus_xy)};
 		}
 
 		/**
@@ -492,6 +532,7 @@ namespace regen {
 		BatchOf_float cmp_lt(const BatchOf_float &other) const {
 			return BatchOf_float{simd::cmp_lt(c, other.c)};
 		}
+
 		/**
 		 * Less-than comparison with a scalar float.
 		 * @param other The scalar float to compare with.
@@ -509,6 +550,7 @@ namespace regen {
 		BatchOf_float cmp_gt(const BatchOf_float &other) const {
 			return BatchOf_float{simd::cmp_gt(c, other.c)};
 		}
+
 		/**
 		 * Greater-than comparison with a scalar float.
 		 * @param other The scalar float to compare with.
@@ -518,18 +560,71 @@ namespace regen {
 			return BatchOf_float{simd::cmp_gt(c, simd::set1_ps(other))};
 		}
 
+		/**
+		 * Compute the logical AND of two comparison masks.
+		 * @param other The other comparison mask batch.
+		 * @return A BatchOf_float representing the logical AND of the two masks.
+		 */
 		BatchOf_float cmp_and(const BatchOf_float &other) const {
 			return BatchOf_float{simd::cmp_and(c, other.c)};
 		}
+
+		/**
+		 * Compute the logical AND of this comparison mask with a scalar float mask.
+		 * @param other The scalar float mask.
+		 * @return A BatchOf_float representing the logical AND of the mask with the scalar.
+		 */
 		BatchOf_float cmp_and(float other) const {
 			return BatchOf_float{simd::cmp_and(c, simd::set1_ps(other))};
 		}
 
+		/**
+		 * Compute the logical OR of two comparison masks.
+		 * @param other The other comparison mask batch.
+		 * @return A BatchOf_float representing the logical OR of the two masks.
+		 */
 		BatchOf_float cmp_or(const BatchOf_float &other) const {
 			return BatchOf_float{simd::cmp_or(c, other.c)};
 		}
+
+		/**
+		 * Compute the logical OR of this comparison mask with a scalar float mask.
+		 * @param other The scalar float mask.
+		 * @return A BatchOf_float representing the logical OR of the mask with the scalar.
+		 */
 		BatchOf_float cmp_or(float other) const {
 			return BatchOf_float{simd::cmp_or(c, simd::set1_ps(other))};
+		}
+
+		/**
+		 * Convert the comparison mask to a float batch.
+		 * Each element in the returned batch will be 1.0f if the corresponding element in this batch is non-zero, else 0.0f.
+		 * @return A BatchOf_float representing the mask as floats.
+		 */
+		BatchOf_float maskToFloat() const {
+			return { simd::cmp_and(c, simd::set1_ps(1.0f)) };
+		}
+
+		/**
+		 * Convert the comparison mask to an 8-bit bitmask.
+		 * Each bit in the returned byte corresponds to an element in the batch.
+		 * @return An 8-bit bitmask representing the comparison results.
+		 */
+		uint8_t toBitmask8() const {
+			return static_cast<uint8_t>(simd::movemask_ps(c) & 0xFF);
+		}
+
+		/**
+		 * Blend two batches based on a mask.
+		 * For each element, if the corresponding element in the mask has its sign bit set,
+		 * the element from 'other' is selected; otherwise, the element from this batch is retained.
+		 * @param other The other batch to blend with.
+		 * @param mask The mask batch determining which elements to select from 'other'.
+		 * @return A blended BatchOf_float.
+		 */
+		BatchOf_float blend(const BatchOf_float &other, const BatchOf_float &mask) const {
+			// select elements from 'other' where the sign bit of 'mask' is set
+			return BatchOf_float{ simd::blendv_ps(c, other.c, mask.c)};
 		}
 	};
 
@@ -689,7 +784,7 @@ namespace regen {
 		}
 
 		static BatchOf_int32 allZeros() {
-			return BatchOf_int32{_mm256_setzero_si256()};
+			return BatchOf_int32{simd::setzero_si256()};
 		}
 
 		/**

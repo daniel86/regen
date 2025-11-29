@@ -96,7 +96,7 @@ struct BoidsCPU::Private {
 
 	// Multithreading data
 	std::vector<BoidSliceData> boidSlices_;
-	uint32_t sliceSize_{};
+	uint32_t sliceSize_ = 0u;
 	JobFrame jobFrame_;
 
 	// Configuration parameters
@@ -209,6 +209,7 @@ void BoidsCPU::initBoidSimulation() {
 	priv_->yawAdjust_.setAxisAngle(Vec3f(0, 1, 0), priv_->baseOrientation_);
 	priv_->boidsScale_ = boidsScale_->getVertex(0).r;
 
+	// Create slices for multithreading
 	if constexpr (BOID_USE_MULTITHREADING) {
 		JobPool& pool = threading::getJobPool();
 		const uint32_t numWorkerThreads = pool.numThreads();
@@ -499,7 +500,7 @@ void BoidsCPU::Private::performSlicedJob() {
 void BoidsCPU::updateCellIndex() {
 	// NOTE: This could easily be done in parallel if needed.
 	//       But it seems superfast already, but in case it becomes a bottleneck,
-	//       we can parallelize it.
+	//       we can parallelize it using multi threading.
 	const auto numBoids = numBoids_;
 
 	const auto* __restrict boidPosX = static_cast<float*>(__builtin_assume_aligned(priv_->boidPositionsX_.data(), 32));
@@ -550,13 +551,12 @@ void BoidsCPU::updateCellIndex() {
 				(getBoidPosition(boidIdx) - gridBounds_.min) / priv_->cellSize_,
 				// ensure the boid position is within the grid bounds
 				Vec3f::zero());
-		Vec3i gridIndex(
+		const Vec3i gridIndex{
 				static_cast<int>(std::trunc(boidPos.x)),
 				static_cast<int>(std::trunc(boidPos.y)),
-				static_cast<int>(std::trunc(boidPos.z)));
+				static_cast<int>(std::trunc(boidPos.z))};
 		// ensure the boid position is within the grid bounds
-		const Vec3i idx3D = Vec3i::min(gridIndex,
-						  priv_->gridSize_ - Vec3i::one());
+		const Vec3i idx3D = Vec3i::min(gridIndex, priv_->gridSize_ - Vec3i::one());
 
 		boidGridIndex[boidIdx] = getGridIndex(idx3D, priv_->gridSize_);
 	}
@@ -565,17 +565,16 @@ void BoidsCPU::updateCellIndex() {
 void BoidsCPU::insertIntoCells() {
 	// Note: This function would be a bit more difficult to parallelize since multiple threads
 	//       could write to the same cell simultaneously.
-	//       E.g. if each thread has a private copy of the grid, we would need to merge them at the end.
+	//       E.g. if each thread has a private copy of the grid, we could need to merge them at the end.
 	//       However, since this function is relatively fast already, we can leave it as is for now.
-	//       Prefix sum could also be used to parallelize this function over cells instead of boids.
 	const auto numBoids = numBoids_;
 	uint32_t boidIdx = 0u;
 
 	auto* __restrict cellCounts =
 		static_cast<uint32_t*>(__builtin_assume_aligned(priv_->cellCounts_.data(), 32));
-	auto* __restrict grid = priv_->grid_.data();
 	const auto* __restrict boidGridIndex =
 		static_cast<const uint32_t*>(__builtin_assume_aligned(priv_->boidGridIndex_.data(), 32));
+	auto* grid = priv_->grid_.data();
 
 	for (boidIdx = 0; boidIdx < numBoids; ++boidIdx) {
 		const uint32_t cellIndex = boidGridIndex[boidIdx];
@@ -721,65 +720,69 @@ void BoidsCPU::Private::updateForces(const BoidSimulationFrame &frame, uint32_t 
 		queueVelZ[i] = globalVelZ[neighborIdx];
 	}
 
-	Vec3f sumPos = Vec3f::zero();
-	Vec3f sumVel = Vec3f::zero();
-	Vec3f sumSep = Vec3f::zero();
+	Vec3f boidSum;
+	const float aaw = alpha * alignmentWeight_;
+	const float acw = alpha * coherenceWeight_;
+	const float sw = separationWeight_;
 	uint32_t queueIdx = 0;
 
 	if constexpr (BOID_USE_SIMD) {
-		{ // pass 1:
-			const BatchOf_Vec3f fixedPos = BatchOf_Vec3f{
-				BatchOf_float::fromScalar(boidPosX),
-				BatchOf_float::fromScalar(boidPosY),
-				BatchOf_float::fromScalar(boidPosZ) };
-			const BatchOf_float avoidance = BatchOf_float::fromScalar(avoidanceDistanceSq_);
-			const BatchOf_float epsilon = BatchOf_float::fromScalar(0.0001f);
+		const BatchOf_Vec3f fixedPos {
+			BatchOf_float::fromScalar(boidPosX),
+			BatchOf_float::fromScalar(boidPosY),
+			BatchOf_float::fromScalar(boidPosZ) };
+		const BatchOf_float avoidance = BatchOf_float::fromScalar(avoidanceDistanceSq_);
+		const BatchOf_float v_aaw = BatchOf_float::fromScalar(aaw);
+		const BatchOf_float v_acw = BatchOf_float::fromScalar(acw);
+		const BatchOf_float v_sw = BatchOf_float::fromScalar(sw);
 
-			BatchOf_Vec3f sumPosVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			BatchOf_Vec3f separation = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+		BatchOf_Vec3f boidSumVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
 
-			for (; queueIdx + simd::RegisterWidth <= numNeighbors; queueIdx += simd::RegisterWidth) {
-				// load the positions of the neighbors into a SIMD register
-				BatchOf_Vec3f x = BatchOf_Vec3f::loadAligned(
+		for (; queueIdx + simd::RegisterWidth <= numNeighbors; queueIdx += simd::RegisterWidth) {
+			// ---- Phase 1: velocity term ----
+			{
+				const BatchOf_Vec3f vel = BatchOf_Vec3f::loadAligned(
+					queueVelX + queueIdx,
+					queueVelY + queueIdx,
+					queueVelZ + queueIdx);
+				boidSumVec += vel * v_aaw;
+			}
+
+			// ---- Phase 2: cohesion + separation ----
+			{
+				const BatchOf_Vec3f pos = BatchOf_Vec3f::loadAligned(
 						queuePosX + queueIdx,
 						queuePosY + queueIdx,
 						queuePosZ + queueIdx);
 				// Accumulate position for the cohesion term.
-				sumPosVec += x;
+				boidSumVec += pos * v_acw;
+
 				// Compute vector from neighbor (x) to boid (fixedPos) for the separation term.
-				x = fixedPos - x;
+				const BatchOf_Vec3f sep = fixedPos - pos;
 				// Compute distance squared which is used for weighting the separation force
 				// (closer neighbors contribute more).
-				BatchOf_float distSq = x.lengthSquared();
+				BatchOf_float distSq = sep.lengthSquared();
 				// Use masking to only consider neighbors within the avoidance distance.
-				distSq = (distSq < avoidance).maskToFloat() / (distSq + epsilon);
+				//distSq = (distSq < avoidance).maskToFloat() / (distSq + 0.0001f);
+				distSq = (distSq < avoidance).maskToFloat() * (distSq + 0.0001f).reciprocal();
 				// Finally, accumulate the separation force.
-				separation += x * distSq;
+				boidSumVec += sep * distSq * v_sw;
 			}
-			// Horizontal sum of SIMD registers to get final results
-			sumSep += separation.hsum();
-			sumPos += sumPosVec.hsum();
 		}
-
-		{ // pass 2: Compute average velocity of neighbors (alignment term)
-			// note: we do this separately because the number of available registers is limited,
-			//       and we might create too much register pressure otherwise.
-			BatchOf_Vec3f sumVelVec = BatchOf_Vec3f::fromScalar(Vec3f::zero());
-			for (queueIdx=0; queueIdx + simd::RegisterWidth <= numNeighbors; queueIdx += simd::RegisterWidth) {
-				sumVelVec += BatchOf_Vec3f::loadAligned(
-					queueVelX + queueIdx,
-					queueVelY + queueIdx,
-					queueVelZ + queueIdx);
-			}
-			sumVel += sumVelVec.hsum();
-		}
+		// Horizontal sum of SIMD registers to get final results
+		boidSum = boidSumVec.hsum();
+	} else {
+		boidSum = Vec3f::zero();
 	}
 
 	// Fallback to scalar loop for remaining elements
+	Vec3f scalarPosSum = Vec3f::zero();
+	Vec3f scalarVelSum = Vec3f::zero();
+	Vec3f scalarSepSum = Vec3f::zero();
 	for (; queueIdx < numNeighbors; queueIdx++) {
-		sumPos.x += queuePosX[queueIdx];
-		sumPos.y += queuePosY[queueIdx];
-		sumPos.z += queuePosZ[queueIdx];
+		scalarPosSum.x += queuePosX[queueIdx];
+		scalarPosSum.y += queuePosY[queueIdx];
+		scalarPosSum.z += queuePosZ[queueIdx];
 
 		const Vec3f boidDirection {
 			boidPosX - queuePosX[queueIdx],
@@ -787,24 +790,24 @@ void BoidsCPU::Private::updateForces(const BoidSimulationFrame &frame, uint32_t 
 			boidPosZ - queuePosZ[queueIdx] };
 		const float dSq = boidDirection.lengthSquared();
 		const auto mask = static_cast<float>(dSq < avoidanceDistanceSq_);
-		sumSep += boidDirection * mask / (dSq + 0.0001f); // avoid division by zero
+		scalarSepSum += boidDirection * mask / (dSq + 0.0001f); // avoid division by zero
 
-		sumVel.x += queueVelX[queueIdx];
-		sumVel.y += queueVelY[queueIdx];
-		sumVel.z += queueVelZ[queueIdx];
+		scalarVelSum.x += queueVelX[queueIdx];
+		scalarVelSum.y += queueVelY[queueIdx];
+		scalarVelSum.z += queueVelZ[queueIdx];
 	}
 
-	sumVel *= alpha;
-	sumVel.x -= boidVelocityX_[boidIdx];
-	sumVel.y -= boidVelocityY_[boidIdx];
-	sumVel.z -= boidVelocityZ_[boidIdx];
-
-	sumPos *= alpha;
-	sumPos.x -= boidPosX;
-	sumPos.y -= boidPosY;
-	sumPos.z -= boidPosZ;
-
-	boidForce_[boidIdx] = sumSep*separationWeight_ + sumVel*alignmentWeight_ + sumPos*coherenceWeight_;
+	const auto boidPos = Vec3f{ boidPosX, boidPosY, boidPosZ };
+	const auto boidVel = Vec3f{
+		boidVelocityX_[boidIdx],
+		boidVelocityY_[boidIdx],
+		boidVelocityZ_[boidIdx] };
+	boidForce_[boidIdx] = boidSum +
+		scalarPosSum * acw +
+		scalarVelSum * aaw +
+		scalarSepSum * sw -
+		boidVel*alignmentWeight_ -
+		boidPos*coherenceWeight_;
 }
 
 void BoidsCPU::Private::advanceBoid(BoidSliceData &slice) {
