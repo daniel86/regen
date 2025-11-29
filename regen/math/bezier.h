@@ -131,13 +131,19 @@ namespace regen::math {
 		 * @return the curve parameter t [0, 1].
 		 */
 		static float lookupParameter(const ArcLengthLUT& lut, float sQuery) {
-			// find segment
-			// TODO: this can be improved, e.g. binary search
-			int i = 0;
-			while (i < (int)lut.s.size()-1 && lut.s[i+1] < sQuery) {
-				i++;
+			// Find the segment via binary search
+			int low = 0;
+			int high = static_cast<int>(lut.s.size()) - 1;
+			while (low < high) {
+				int mid = (low + high) / 2;
+				if (lut.s[mid] < sQuery) {
+					low = mid + 1;
+				} else {
+					high = mid;
+				}
 			}
-			// interpolate
+			int i = std::max(0, low - 1);
+			// Interpolate
 			float alpha = (sQuery - lut.s[i]) / (lut.s[i+1] - lut.s[i]);
 			return lut.t[i] + alpha * (lut.t[i+1] - lut.t[i]);
 		}
