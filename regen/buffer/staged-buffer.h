@@ -223,13 +223,13 @@ namespace regen {
 				inputSize = other.inputSize;
 			}
 
-			ref_ptr<ShaderInput> input;
+			ShaderInput *input;
 			uint32_t offset = 0;
 			std::vector<uint32_t> lastStamp = {0, 0};
 			uint32_t inputSize = 0;
 		};
 
-		std::vector<ref_ptr<StagedInput>> stagedInputs_;
+		std::vector<StagedInput> stagedInputs_;
 
 		// dirty segments are used to track which parts of the buffer have changed
 		struct SegmentRange {
@@ -280,7 +280,9 @@ namespace regen {
 
 		inline void createNextDirtySegment();
 
-		inline uint32_t &lastInputStamp(StagedInput &blockInput);
+		inline uint32_t getLastInputStamp(const StagedInput &blockInput) const;
+
+		inline void setLastInputStamp(StagedInput &blockInput) const;
 
 		void updateStorageFlags();
 

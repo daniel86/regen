@@ -197,9 +197,8 @@ void StagedBuffer::updateStorageFlags() {
 }
 
 void StagedBuffer::addStagedInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
-	auto bufferInput = ref_ptr<StagedInput>::alloc();
-	bufferInput->input = input;
-	stagedInputs_.emplace_back(bufferInput);
+	auto &bufferInput = stagedInputs_.emplace_back();
+	bufferInput.input = input.get();
 	inputs_.emplace_back(input, name);
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
@@ -214,7 +213,7 @@ void StagedBuffer::addStagedInput(const ref_ptr<ShaderInput> &input, const std::
 void StagedBuffer::removeStagedInput(std::string_view name) {
 	for (auto it = stagedInputs_.begin(); it != stagedInputs_.end(); ++it) {
 		auto &blockInput = *it;
-		if (blockInput->input->name() == name) {
+		if (blockInput.input->name() == name) {
 			// remove the input from the inputs_ vector
 			for (auto inputIt = inputs_.begin(); inputIt != inputs_.end(); ++inputIt) {
 				if (inputIt->name_ == name) {
@@ -226,7 +225,7 @@ void StagedBuffer::removeStagedInput(std::string_view name) {
 			stagedInputs_.erase(it);
 			if (clientBuffer_->hasSegments()) {
 				// remove the segment from the client buffer
-				clientBuffer_->removeSegment(blockInput->input->clientBuffer());
+				clientBuffer_->removeSegment(blockInput.input->clientBuffer());
 			}
 			return;
 		}
@@ -245,25 +244,32 @@ void StagedBuffer::update(bool forceUpdate) {
 	}
 }
 
-uint32_t &StagedBuffer::lastInputStamp(StagedInput &blockInput) {
+uint32_t StagedBuffer::getLastInputStamp(const StagedInput &blockInput) const {
 	const auto &buffer = shared_->stagingBuffer_;
-	return blockInput.lastStamp[(buffer.get() != nullptr) ? buffer->nextWriteIndex() : 0u];
+	const uint32_t stampIdx = (buffer.get() != nullptr) ? buffer->nextWriteIndex() : 0u;
+	return blockInput.lastStamp[stampIdx];
+}
+
+void StagedBuffer::setLastInputStamp(StagedInput &blockInput) const {
+	const auto &buffer = shared_->stagingBuffer_;
+	const uint32_t stampIdx = (buffer.get() != nullptr) ? buffer->nextWriteIndex() : 0u;
+	blockInput.lastStamp[stampIdx] = blockInput.input->stampOfReadData();
 }
 
 uint32_t StagedBuffer::updateStagedInputs() {
 	const uint32_t numStagedInputs = static_cast<uint32_t>(stagedInputs_.size());
-	auto* stagedInputs = stagedInputs_.data();
+	StagedInput* stagedInputs = stagedInputs_.data();
 
 	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
 	bool hasClientData = (numStagedInputs != 0); // whether all inputs have client data
 
 	for (uint32_t i = 0; i < numStagedInputs; ++i) {
-		const auto &blockInput = *stagedInputs[i].get();
-		const auto &in = *blockInput.input.get();
-		if (!hasNewSize && blockInput.inputSize != in.alignedInputSize()) {
+		const StagedInput &blockInput = stagedInputs[i];
+		const ShaderInput &in = *blockInput.input;
+		if (blockInput.inputSize != in.alignedInputSize()) {
 			hasNewSize = true;
 		}
-		if (hasClientData && !in.hasClientData()) {
+		if (!in.hasClientData()) {
 			hasClientData = false;
 		}
 	}
@@ -273,7 +279,7 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	if (!clientBuffer_->hasSegments() && hasClientData) [[unlikely]] {
 		std::vector<ref_ptr<ClientBuffer>> segments(numStagedInputs);
 		for (uint32_t i = 0; i < numStagedInputs; ++i) {
-			segments[i] = stagedInputs[i]->input->clientBuffer();
+			segments[i] = stagedInputs[i].input->clientBuffer();
 		}
 		clientBuffer_->setSegments(segments);
 		clientBuffer_->swapData();
@@ -294,12 +300,12 @@ uint32_t StagedBuffer::updateStagedInputs() {
 
 void StagedBuffer::updateRequiredSize() {
 	const uint32_t numStagedInputs = static_cast<uint32_t>(stagedInputs_.size());
-	auto* stagedInputs = stagedInputs_.data();
+	StagedInput* stagedInputs = stagedInputs_.data();
 
 	requiredSize_ = 0;
 	for (size_t i = 0; i < numStagedInputs; ++i) {
-		auto &blockInput = *stagedInputs[i].get();
-		const auto &in = *blockInput.input.get();
+		StagedInput &blockInput = stagedInputs[i];
+		const ShaderInput &in = *blockInput.input;
 		// Align the offset to the required alignment
 		// baseAlignment is always a power of two, so we can use bitwise AND
 		requiredSize_ = (requiredSize_ + in.baseAlignment() - 1) & ~(in.baseAlignment() - 1);
@@ -334,8 +340,8 @@ bool StagedBuffer::updateDirtySegments() {
 	bool lastChanged = false;
 
 	for (uint32_t inputIdx = 0u; inputIdx < numStagedInputs; ++inputIdx) {
-		auto &blockInput = *stagedInputs[inputIdx].get();
-		const bool thisChanged = blockInput.input->stampOfReadData() != lastInputStamp(blockInput);
+		StagedInput &blockInput = stagedInputs[inputIdx];
+		const bool thisChanged = blockInput.input->stampOfReadData() != getLastInputStamp(blockInput);
 		if (thisChanged && lastChanged) {
 			// this input adds to the current segment
 			const uint32_t dirtyIdx = numDirtySegments - 1;
@@ -368,7 +374,7 @@ void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffs
 	const uint32_t fullSize = clientBuffer_->dataSize();
 	const uint32_t numDirtySegments = numDirtySegments_;
 
-	const auto* __restrict stagedInputs = stagedInputs_.data();
+	auto* __restrict stagedInputs = stagedInputs_.data();
 	const auto* __restrict bufferRanges = dirtyBufferRanges_.data();
 	const auto* __restrict segmentRanges = dirtySegmentRanges_.data();
 
@@ -389,8 +395,7 @@ void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffs
 
 		const auto &segmentRange = segmentRanges[segmentIdx];
 		for (uint32_t inputIdx = segmentRange.startIdx; inputIdx < segmentRange.endIdx; ++inputIdx) {
-			auto &bufferInput = *stagedInputs[inputIdx].get();
-			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
+			setLastInputStamp(stagedInputs[inputIdx]);
 		}
 	}
 
@@ -409,15 +414,14 @@ void StagedBuffer::copyFullData(byte *mappedBufferData, uint32_t localMapOffset)
 	const auto fullSize = clientBuffer_->dataSize();
 	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
 
-	const uint32_t offset = firstSegment->offset - localMapOffset;
+	const uint32_t offset = firstSegment.offset - localMapOffset;
 	memcpy(mappedBufferData + offset,
-		   mapped.r + firstSegment->offset,
-		   lastSegment->offset + lastSegment->inputSize - firstSegment->offset);
+		   mapped.r + firstSegment.offset,
+		   lastSegment.offset + lastSegment.inputSize - firstSegment.offset);
 
 	// update the last stamps for all inputs in the dirty range
 	for (uint32_t inputIdx = startIdx; inputIdx < endIdx; ++inputIdx) {
-		auto &bufferInput = *stagedInputs_[inputIdx].get();
-		lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
+		setLastInputStamp(stagedInputs_[inputIdx]);
 	}
 	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, fullSize, mapped.r_index);
 }
@@ -434,7 +438,7 @@ void StagedBuffer::markBufferDirty() {
 void StagedBuffer::resetDataStamps() {
 	// reset the last stamps for all inputs and segments.
 	for (auto &input: stagedInputs_) {
-		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
+		std::memset(input.lastStamp.data(), 0, input.lastStamp.size() * sizeof(uint32_t));
 	}
 }
 
@@ -601,7 +605,7 @@ void StagedBuffer::copyStagingData(bool forceUpdate) {
 		// last stamp vector for each input.
 		// we reset the stamps causing a re-load of all segments.
 		for (auto &input: stagedInputs_) {
-			input->lastStamp.resize(numStagingSegments);
+			input.lastStamp.resize(numStagingSegments);
 		}
 		resetDataStamps();
 		shared_->numBufferSegments_ = numStagingSegments;
@@ -654,8 +658,7 @@ void StagedBuffer::updateNonMapped() {
 
 		// update the last stamps for all inputs in the dirty range
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
-			auto &bufferInput = *stagedInputs_[inputIdx].get();
-			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
+			setLastInputStamp(stagedInputs_[inputIdx]);
 		}
 	}
 
@@ -701,8 +704,7 @@ void StagedBuffer::updateTemporaryMapped() {
 					   dirtyRange_b.size);
 
 				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
-					auto &bufferInput = *stagedInputs_[inputIdx].get();
-					lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
+					setLastInputStamp(stagedInputs_[inputIdx]);
 				}
 
 				clientBuffer_->unmapRange(BUFFER_GPU_READ,
