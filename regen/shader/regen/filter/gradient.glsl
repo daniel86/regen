@@ -13,25 +13,32 @@ uniform vec2 in_inverseViewport;
 
 #include regen.filter.sampling.computeTexco
 
-vec2 uvFlipX(vec2 uv) {
-    // FIXME collision map x is flipped from ortho view
-    return vec2(1.0 - uv.x, uv.y);
-}
+#ifdef FLIP_X
+    #ifdef FLIP_Y
+vec2 uvFlip(vec2 uv) { return vec2(1.0 - uv.x, 1.0 - uv.y); }
+    #else
+vec2 uvFlip(vec2 uv) { return vec2(1.0 - uv.x, uv.y); }
+    #endif
+#elif defined(FLIP_Y)
+vec2 uvFlip(vec2 uv) { return vec2(uv.x, 1.0 - uv.y); }
+#else
+#define uvFlip(uv) (uv)
+#endif
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
     vecTexco uv = computeTexco(texco_2D);
 
     vec2 texel = vec2(TEX_TEXEL_X${TEX_ID_inputTexture}, TEX_TEXEL_Y${TEX_ID_inputTexture});
-    float tl = texture(in_inputTexture, uvFlipX(uv + texel * vec2(-1,  1))).r;
-    float  t = texture(in_inputTexture, uvFlipX(uv + texel * vec2( 0,  1))).r;
-    float tr = texture(in_inputTexture, uvFlipX(uv + texel * vec2( 1,  1))).r;
-    float  l = texture(in_inputTexture, uvFlipX(uv + texel * vec2(-1,  0))).r;
-    float  c = texture(in_inputTexture, uvFlipX(uv)).r;
-    float  r = texture(in_inputTexture, uvFlipX(uv + texel * vec2( 1,  0))).r;
-    float bl = texture(in_inputTexture, uvFlipX(uv + texel * vec2(-1, -1))).r;
-    float  b = texture(in_inputTexture, uvFlipX(uv + texel * vec2( 0, -1))).r;
-    float br = texture(in_inputTexture, uvFlipX(uv + texel * vec2( 1, -1))).r;
+    float tl = texture(in_inputTexture, uvFlip(uv + texel * vec2(-1,  1))).r;
+    float  t = texture(in_inputTexture, uvFlip(uv + texel * vec2( 0,  1))).r;
+    float tr = texture(in_inputTexture, uvFlip(uv + texel * vec2( 1,  1))).r;
+    float  l = texture(in_inputTexture, uvFlip(uv + texel * vec2(-1,  0))).r;
+    float  c = texture(in_inputTexture, uvFlip(uv)).r;
+    float  r = texture(in_inputTexture, uvFlip(uv + texel * vec2( 1,  0))).r;
+    float bl = texture(in_inputTexture, uvFlip(uv + texel * vec2(-1, -1))).r;
+    float  b = texture(in_inputTexture, uvFlip(uv + texel * vec2( 0, -1))).r;
+    float br = texture(in_inputTexture, uvFlip(uv + texel * vec2( 1, -1))).r;
 
     float sum = tl + t + tr + l + c + r + bl + b + br;
 

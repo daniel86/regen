@@ -528,6 +528,7 @@
         <node id="Collision-Flow">
             <fbo id="collision-fbo" clear-buffers="1" draw-buffers="1"/>
             <texture name="inputTexture" id="collision-blur"/>
+            <define key="FLIP_X" value="TRUE"/>
             <fullscreen-pass shader="regen.filter.gradient.sobel"/>
         </node>
     </node>

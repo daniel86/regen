@@ -51,8 +51,12 @@ vec4 getCollisionVector(vec3 posWorld)
     // information, best we can do is to sample the neighboring points and compute
     // the reflection vector pointing towards the weakest collision.
     // the collision map UV coordinate for posWorld
-    // FIXME collision map x is flipped from ortho view
+    #ifdef COLLISION_MAP_FLIP_X
     uv.x = 1.0 - uv.x;
+    #endif
+    #ifdef COLLISION_MAP_FLIP_Y
+    uv.y = 1.0 - uv.y;
+    #endif
     vec2 step = vec2(${COLLISION_MAP_TX},${COLLISION_MAP_TY}) * 3.0;
     float ct = texture(in_collisionMap, uv + vec2(0.0, step.y)).r;
     float cb = texture(in_collisionMap, uv - vec2(0.0, step.y)).r;

@@ -374,6 +374,7 @@
             <texture name="collisionMap" fbo="collision-fbo" attachment="0" />
             <input name="collisionMapArea" type="vec2" value="90.0,90.0"/>
             <input name="collisionMapCenter" type="vec2" value="0.0,0.0"/>
+            <define key="COLLISION_MAP_FLIP_X" value="TRUE"/>
             <input name="colliderStrength" type="float" value="5.0"/>
             <!-- TODO: Rather use existing buffer block! But the name matching would not really work well
                        in general with the adaptive buffer container used by TF!

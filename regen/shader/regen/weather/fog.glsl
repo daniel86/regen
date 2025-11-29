@@ -6,10 +6,12 @@ const vec2 in_fogDistance = vec2(0.0,100.0);
 
 float fogIntensity(float d) {
     float x = smoothstep(in_fogDistance.x, in_fogDistance.y, d);
-    // TODO: support S-Curve Variant
-    // return x * x * (3.0 - 2.0 * x); // smoothstep curve, manual
 #ifdef USE_EXP_FOG
     return 1.0 - exp( -pow(1.75*x, 2.0) );
+#elif defined(USE_EXP2_FOG)
+    return 1.0 - exp( -pow(1.5*x, 2.0) * pow(1.5*x, 2.0) );
+#elif defined(USE_S_CURVE_FOG)
+    return x * x * (3.0 - 2.0 * x); // smoothstep curve, manual
 #else
     return x;
 #endif
