@@ -467,7 +467,7 @@ void BoidsCPU::clearGrid() {
 		}
 	}
 
-	if (!priv_->grid_.empty()) {
+	if (!priv_->grid_.empty()) [[likely]] {
 		const uint32_t numCells = priv_->grid_.size();
 		priv_->cellCounts_.resize(numCells);
 		// Reset the cell counts to zero
@@ -673,7 +673,7 @@ void BoidsCPU::Private::updateNeighbours(BoidSimulationFrame &frame, uint32_t bo
 			hitIdx < numHits &&
 			numNeighbors < maxNumNeighbors; ++hitIdx) {
 		const uint32_t neighborIdx = neighborIndices[boidQueue[hitIdx]];
-		if (neighborIdx == boidIdx) continue; // skip self
+		if (neighborIdx == boidIdx) [[unlikely]] continue; // skip self
 		neighbors[numNeighbors++] = neighborIdx;
 	}
 	boidNumNeighbors_[boidIdx] = numNeighbors;
