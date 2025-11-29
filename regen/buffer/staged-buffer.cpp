@@ -257,7 +257,8 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	updatedSize_ = 0u; // total size of the inputs that have changed
 
 	for (auto &blockInput : stagedInputs_) {
-		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
+		const uint32_t alignedSize = blockInput->input->alignedBaseSize() * blockInput->input->numElements();
+		hasNewSize = hasNewSize || (blockInput->inputSize != alignedSize);
 		hasClientData = hasClientData && blockInput->input->hasClientData();
 		if (blockInput->input->stampOfReadData() != lastInputStamp(*blockInput.get())) {
 			updatedSize_ += blockInput->input->inputSize();
