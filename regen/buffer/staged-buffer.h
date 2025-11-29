@@ -278,13 +278,7 @@ namespace regen {
 
 		ref_ptr<Shared> shared_;
 
-		inline void resetDirtySegments();
-
 		inline void createNextDirtySegment();
-
-		void setDirtyRange(uint32_t dirtyIdx, StagedInput &input, uint32_t inputIdx);
-
-		void appendToDirtyRange(uint32_t dirtyIdx, StagedInput &input, uint32_t inputIdx);
 
 		inline uint32_t &lastInputStamp(StagedInput &blockInput);
 
@@ -293,6 +287,10 @@ namespace regen {
 		void enableWriteAccess();
 
 		void setStagingBuffering(BufferingMode mode);
+
+		void updateRequiredSize();
+
+		bool updateDirtySegments();
 
 		void copyDirtyData(byte *bufferData, uint32_t mapOffset);
 
