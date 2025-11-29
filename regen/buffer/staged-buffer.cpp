@@ -330,24 +330,32 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	return requiredSize_;
 }
 
-void StagedBuffer::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset) {
-	const auto fullSize = clientBuffer_->dataSize();
-	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
+void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffset) {
+	const uint32_t fullSize = clientBuffer_->dataSize();
+	const uint32_t numDirtySegments = numDirtySegments_;
 
-	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
+	const auto* __restrict stagedInputs = stagedInputs_.data();
+	const auto* __restrict bufferRanges = dirtyBufferRanges_.data();
+	const auto* __restrict segmentRanges = dirtySegmentRanges_.data();
+
+	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
+	const byte* __restrict srcData = mapped.r;
+
+	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments; ++segmentIdx) {
 		// Copy the whole segment range at once.
-		auto &dirtyRange = dirtyBufferRanges_[segmentIdx];
+		const auto &dirtyRange = bufferRanges[segmentIdx];
 		// NOTE: The main buffer maybe is not mapped from the start if the adopted buffer range, e.g.
 		//       in case starts at first dirt segment. However, the block input offsets are always
 		//       relative to the start of the buffer, so we need to adjust the offset accordingly...
-		const uint32_t offset = dirtyRange.offset - localMapOffset;
-		memcpy(mappedBufferData + offset,
-			   mapped.r + dirtyRange.offset,
-			   dirtyRange.size);
+		const uint32_t dstOffset = dirtyRange.offset - localMapOffset;
+		memcpy(
+			dstData + dstOffset,
+			srcData + dirtyRange.offset,
+			dirtyRange.size);
 
-		auto &segmentRange = dirtySegmentRanges_[segmentIdx];
+		const auto &segmentRange = segmentRanges[segmentIdx];
 		for (uint32_t inputIdx = segmentRange.startIdx; inputIdx < segmentRange.endIdx; ++inputIdx) {
-			auto &bufferInput = *stagedInputs_[inputIdx].get();
+			auto &bufferInput = *stagedInputs[inputIdx].get();
 			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 		}
 	}
