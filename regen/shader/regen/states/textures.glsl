@@ -244,9 +244,7 @@ float sampleHeight(vec2 uv) {
 #ifndef REGEN_applyHeightMaps_INCLUDED_
 #define2 REGEN_applyHeightMaps_INCLUDED_
 #include regen.states.textures.includes
-// TODO: redundant with below
-void applyHeightMaps(inout vec3 P, vec3 N, int vertexIndex)
-{
+void applyHeightMaps(inout vec3 P, vec3 N, int vertexIndex) {
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
@@ -280,8 +278,7 @@ void applyHeightMaps(inout vec3 P, vec3 N, int vertexIndex)
 #else
 #include regen.states.textures.includes
 
-void textureMappingVertex(inout vec3 P, inout vec3 N, int vertexIndex)
-{
+void textureMappingVertex(inout vec3 P, inout vec3 N, int vertexIndex) {
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
@@ -319,8 +316,7 @@ void textureMappingVertex(inout vec3 P, inout vec3 N, int vertexIndex)
 #else
 #include regen.states.textures.includes
 
-void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
-{
+void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N) {
     // NOTE: the normal bump mapping must be done first, as other texture
     //       sampling methods may require bumped normals such as refraction textures.
 #for INDEX to NUM_TEXTURES
