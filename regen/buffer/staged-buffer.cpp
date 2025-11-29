@@ -252,27 +252,32 @@ uint32_t &StagedBuffer::lastInputStamp(StagedInput &blockInput) {
 }
 
 uint32_t StagedBuffer::updateStagedInputs() {
+	const uint32_t numStagedInputs = static_cast<uint32_t>(stagedInputs_.size());
+	auto* stagedInputs = stagedInputs_.data();
+
 	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
 	bool hasClientData = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
 
-	for (auto &blockInput : stagedInputs_) {
-		const uint32_t alignedSize = blockInput->input->alignedBaseSize() * blockInput->input->numElements();
+	for (size_t i = 0; i < numStagedInputs; ++i) {
+		const auto &blockInput = stagedInputs[i];
+		const auto &in = blockInput->input;
+		const uint32_t alignedSize = in->alignedInputSize();
+
 		hasNewSize = hasNewSize || (blockInput->inputSize != alignedSize);
-		hasClientData = hasClientData && blockInput->input->hasClientData();
-		if (blockInput->input->stampOfReadData() != lastInputStamp(*blockInput.get())) {
-			updatedSize_ += blockInput->input->inputSize();
+		hasClientData = hasClientData && in->hasClientData();
+		if (in->stampOfReadData() != lastInputStamp(*blockInput.get())) {
+			updatedSize_ += in->inputSize();
 		}
 	}
 	hasClientData_ = hasClientData;
 
 	//  Initialize the client buffer here lazily.
-	if (hasClientData_ && !stagedInputs_.empty() && !clientBuffer_->hasSegments()) {
-		std::vector<ref_ptr<ClientBuffer>> segments(stagedInputs_.size());
-		REGEN_DEBUG("Initializing client buffer for block " << name()
-														   << " with " << stagedInputs_.size() << " segments");
-		for (size_t i = 0; i < stagedInputs_.size(); ++i) {
-			auto &blockInput = stagedInputs_[i];
+	if (hasClientData && numStagedInputs!=0 && !clientBuffer_->hasSegments()) {
+		std::vector<ref_ptr<ClientBuffer>> segments(numStagedInputs);
+		REGEN_DEBUG("Initializing block " << name()  << " with " << numStagedInputs << " segments");
+		for (size_t i = 0; i < numStagedInputs; ++i) {
+			auto &blockInput = stagedInputs[i];
 			segments[i] = blockInput->input->clientBuffer();
 		}
 		clientBuffer_->setSegments(segments);
@@ -281,13 +286,14 @@ uint32_t StagedBuffer::updateStagedInputs() {
 
 	if (hasNewSize) {
 		requiredSize_ = 0;
-		for (auto &blockInput: stagedInputs_) {
-			auto &in = blockInput->input;
+		for (size_t i = 0; i < numStagedInputs; ++i) {
+			auto &blockInput = stagedInputs[i];
+			const auto &in = blockInput->input;
 			// Align the offset to the required alignment
 			// baseAlignment is always a power of two, so we can use bitwise AND
 			requiredSize_ = (requiredSize_ + in->baseAlignment() - 1) & ~(in->baseAlignment() - 1);
 			blockInput->offset = requiredSize_;
-			blockInput->inputSize =  in->alignedBaseSize() * in->numElements();
+			blockInput->inputSize =  in->alignedInputSize();
 			requiredSize_ += blockInput->inputSize;
 		}
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)
@@ -301,8 +307,8 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	resetDirtySegments();
 	// Update dirty segments.
 	bool lastChanged = false; // whether the last input changed or not
-	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(stagedInputs_.size()); ++inputIdx) {
-		auto &blockInput = *stagedInputs_[inputIdx].get();
+	for (uint32_t inputIdx = 0u; inputIdx < numStagedInputs; ++inputIdx) {
+		auto &blockInput = *stagedInputs[inputIdx].get();
 		if (blockInput.input->stampOfReadData() != lastInputStamp(blockInput)) {
 			if (lastChanged) {
 				// this input adds to the current segment

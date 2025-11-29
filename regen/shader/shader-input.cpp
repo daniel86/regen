@@ -129,6 +129,7 @@ void ShaderInput::updateAlignment() {
 	if (numElements() > 1u) {
 		alignedBaseSize_ = baseAlignment_ * alignmentCount_;
 	}
+	alignedInputSize_ = alignedBaseSize_ * numElements_ui_;
 	clientBuffer_->setBaseAlignment(baseAlignment_);
 }
 
@@ -214,18 +215,15 @@ void ShaderInput::updateAlignedSize() {
 	// e.g. in case of STD140, each array element must be padded to a multiple of 16 bytes,
 	// so if we have an array of 3 vec3f, the size will be 3 * 16 = 48 bytes,
 	// but the unaligned size will be 3 * 12 = 36 bytes.
-	if (numElements() > 1 && !isVertexAttribute_) {
-		auto alignedSize = alignedBaseSize_ * numElements_ui_;
-		if (alignedSize != unalignedSize_) {
-			// allocate space in client buffer for aligned data.
-			// note: this will make it more difficult to update the data on the client side,
-			// but it enables us to form contiguous buffers for the GPU.
-			REGEN_INFO("Re-alignment needed for " << name()
-												  << "(" << unalignedSize_ << " to " << alignedSize << ")");
-			inputSize_ = alignedSize;
-			// use strided data access in mapClient* functions
-			mapClientStride_ = alignedBaseSize_;
-		}
+	if (numElements() > 1 && !isVertexAttribute_ && alignedInputSize_ != unalignedSize_) {
+		// allocate space in client buffer for aligned data.
+		// note: this will make it more difficult to update the data on the client side,
+		// but it enables us to form contiguous buffers for the GPU.
+		REGEN_INFO("Re-alignment needed for " << name()
+			<< "(" << unalignedSize_ << " to " << alignedInputSize_ << ")");
+		inputSize_ = alignedInputSize_;
+		// use strided data access in mapClient* functions
+		mapClientStride_ = alignedBaseSize_;
 	}
 }
 
