@@ -6,7 +6,7 @@ using namespace regen;
 
 AttributeFeedbackAnimation::AttributeFeedbackAnimation(
 		const ref_ptr<Mesh> &inputMesh,
-		const std::string &shaderKey)
+		std::string_view shaderKey)
 		: Animation(true, false),
 		  animationNode_(ref_ptr<StateNode>::alloc()),
 		  inputMesh_(inputMesh),

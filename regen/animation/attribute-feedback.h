@@ -17,7 +17,7 @@ namespace regen {
 		 * @param inputMesh the mesh to animate.
 		 * @param shaderKey the shader key to use for the animation.
 		 */
-		AttributeFeedbackAnimation(const ref_ptr<Mesh> &inputMesh, const std::string &shaderKey);
+		AttributeFeedbackAnimation(const ref_ptr<Mesh> &inputMesh, std::string_view shaderKey);
 
 		~AttributeFeedbackAnimation() override = default;
 

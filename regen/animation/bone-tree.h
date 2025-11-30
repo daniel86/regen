@@ -174,7 +174,7 @@ namespace regen {
 		 * @return the animation index.
 		 */
 		int32_t addAnimationTrack(
-				const std::string &trackName,
+				std::string_view trackName,
 				ref_ptr<StaticAnimationData> &animData,
 				double duration,
 				double ticksPerSecond);

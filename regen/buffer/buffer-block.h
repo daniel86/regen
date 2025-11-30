@@ -43,7 +43,7 @@ namespace regen {
 		 * @param storageQualifier the storage qualifier.
 		 * @param memoryLayout the memory layout.
 		 */
-		BufferBlock(const std::string &name,
+		BufferBlock(std::string_view name,
 				BufferTarget target,
 				const BufferUpdateFlags &hints,
 				Qualifier storageQualifier,
@@ -53,9 +53,7 @@ namespace regen {
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer object
 		 */
-		explicit BufferBlock(
-				const StagedBuffer &other,
-				const std::string &name="");
+		explicit BufferBlock(const StagedBuffer &other, std::string_view name="");
 
 		~BufferBlock() override;
 

@@ -14,7 +14,7 @@ static BufferMemoryLayout getMemoryLayout(VertexLayout layout) {
 }
 
 VertexBuffer::VertexBuffer(
-		const std::string &name,
+		std::string_view name,
 		const BufferUpdateFlags &hints,
 		VertexLayout vertexLayout)
 		: StagedBuffer(name, ARRAY_BUFFER, hints, getMemoryLayout(vertexLayout)) {
@@ -25,7 +25,7 @@ VertexBuffer::VertexBuffer(
 	isBufferBlock_ = true;
 }
 
-VertexBuffer::VertexBuffer(const StagedBuffer &other, const std::string &name)
+VertexBuffer::VertexBuffer(const StagedBuffer &other, std::string_view name)
 		: StagedBuffer(other, name) {
 	enableInput_ = [this](int loc) {};
 	isBufferBlock_ = true;

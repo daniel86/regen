@@ -24,7 +24,7 @@ NamedShaderInput::NamedShaderInput(
 }
 
 ShaderInput::ShaderInput(
-		const std::string &name,
+		std::string_view name,
 		GLenum baseType,
 		uint32_t dataTypeBytes,
 		int32_t valsPerElement,

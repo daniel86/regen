@@ -78,7 +78,7 @@ namespace regen {
 		 * @param normalize Specifies whether fixed-point data values should be normalized.
 		 */
 		ShaderInput(
-				const std::string &name,
+				std::string_view name,
 				GLenum baseType,
 				uint32_t dataTypeBytes,
 				int32_t valsPerElement,
@@ -712,7 +712,6 @@ namespace regen {
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
 		/** the name overwrite. */
-		// TODO: could use global atom table for shader input names
 		std::string name_;
 		/** the type overwrite. */
 		std::string type_;

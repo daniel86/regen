@@ -17,7 +17,7 @@ float StagedBuffer::MAX_UPDATE_RATIO_PARTIAL_TEMPORARY = 0.33f;
 uint32_t StagedBuffer::UPDATE_RATE_RANGE = 60;
 
 StagedBuffer::StagedBuffer(
-		const std::string &name,
+		std::string_view name,
 		BufferTarget target,
 		const BufferUpdateFlags &hints,
 		BufferMemoryLayout memoryLayout)
@@ -53,11 +53,11 @@ StagedBuffer::StagedBuffer(
 	};
 }
 
-static std::string getName(const StagedBuffer &other, const std::string &name) {
+static std::string_view getName(const StagedBuffer &other, std::string_view name) {
 	return name.empty() ? other.name() : name;
 }
 
-StagedBuffer::StagedBuffer(const StagedBuffer &other, const std::string &name)
+StagedBuffer::StagedBuffer(const StagedBuffer &other, std::string_view name)
 		: BufferObject(other),
 		  ShaderInput(getName(other,name), GL_INVALID_ENUM, 0, 0, 0, false),
 		  stagingFlags_(other.bufferTarget(), other.bufferUpdateHints()) {
@@ -195,10 +195,10 @@ void StagedBuffer::updateStorageFlags() {
 	}
 }
 
-void StagedBuffer::addStagedInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
+void StagedBuffer::addStagedInput(const ref_ptr<ShaderInput> &input, std::string_view name) {
 	auto &bufferInput = stagedInputs_.emplace_back();
 	bufferInput.input = input.get();
-	inputs_.emplace_back(input, name);
+	inputs_.emplace_back(input, std::string(name));
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
 	input->setMemoryLayout(memoryLayout_);

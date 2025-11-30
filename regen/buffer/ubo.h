@@ -11,7 +11,7 @@ namespace regen {
 	 */
 	class UBO : public BufferBlock {
 	public:
-		UBO(const std::string &name, const BufferUpdateFlags &hints);
+		UBO(std::string_view name, const BufferUpdateFlags &hints);
 
 		~UBO() override = default;
 

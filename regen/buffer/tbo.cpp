@@ -2,7 +2,7 @@
 
 using namespace regen;
 
-TBO::TBO(const std::string &name, GLenum texelFormat, const BufferUpdateFlags &hints)
+TBO::TBO(std::string_view name, GLenum texelFormat, const BufferUpdateFlags &hints)
 		: StagedBuffer(name, TEXTURE_BUFFER, hints, BUFFER_MEMORY_PACKED) {
 	enableInput_ = [](int loc) {
 		// nothing to do here for the moment.

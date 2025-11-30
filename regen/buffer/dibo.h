@@ -10,7 +10,7 @@ namespace regen {
 	 */
 	class DrawIndirectBuffer : public SSBO {
 	public:
-		DrawIndirectBuffer(const std::string &name, const BufferUpdateFlags &hints);
+		DrawIndirectBuffer(std::string_view name, const BufferUpdateFlags &hints);
 	};
 } // namespace
 

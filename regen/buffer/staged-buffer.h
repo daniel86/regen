@@ -30,7 +30,7 @@ namespace regen {
 		 * @param hints the buffer update hints.
 		 * @param memoryLayout the memory layout.
 		 */
-		StagedBuffer(const std::string &name,
+		StagedBuffer(std::string_view name,
 				BufferTarget target,
 				const BufferUpdateFlags &hints,
 				BufferMemoryLayout memoryLayout);
@@ -38,7 +38,7 @@ namespace regen {
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 */
-		StagedBuffer(const StagedBuffer &other, const std::string &name = "");
+		StagedBuffer(const StagedBuffer &other, std::string_view name = "");
 
 		~StagedBuffer() override;
 
@@ -46,7 +46,7 @@ namespace regen {
 		 * Add a uniform to the staged buffer.
 		 * @param input the shader input.
 		 */
-		void addStagedInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
+		void addStagedInput(const ref_ptr<ShaderInput> &input, std::string_view name = "");
 
 		/**
 		 * Remove an input by name.

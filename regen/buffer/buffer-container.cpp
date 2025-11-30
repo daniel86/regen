@@ -4,7 +4,7 @@
 using namespace regen;
 
 BufferContainer::BufferContainer(
-	const std::string &bufferName,
+	std::string_view bufferName,
 	const std::vector<NamedShaderInput> &namedInputs,
 	const BufferUpdateFlags &hints)
 		: State(),
@@ -14,20 +14,20 @@ BufferContainer::BufferContainer(
 	updateBuffer();
 }
 
-BufferContainer::BufferContainer(const std::string &bufferName, const BufferUpdateFlags &hints)
+BufferContainer::BufferContainer(std::string_view bufferName, const BufferUpdateFlags &hints)
 	: State(),
 	  bufferUpdateHints_(hints),
 	  bufferName_(bufferName) {
 }
 
-void BufferContainer::addInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
+void BufferContainer::addInput(const ref_ptr<ShaderInput> &input, std::string_view name) {
 	if (input->isBufferBlock()) {
 		auto block = ref_ptr<BufferBlock>::dynamicCast(input);
 		for (auto &blockUniform: block->stagedInputs()) {
 			namedInputs_.emplace_back(blockUniform.in_, blockUniform.name_);
 		}
 	} else {
-		namedInputs_.emplace_back(input, name);
+		namedInputs_.emplace_back(input, std::string(name));
 	}
 	isAllocated_ = false;
 }

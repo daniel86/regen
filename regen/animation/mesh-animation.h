@@ -35,7 +35,7 @@ namespace regen {
 			 * @param a_name attribute name.
 			 * @param i_name interpolation mode name.
 			 */
-			Interpolation(const std::string &a_name, const std::string &i_name)
+			Interpolation(std::string_view a_name, std::string_view i_name)
 					: attributeName(a_name), interpolationName(i_name), interpolationKey("") {}
 
 			/**
@@ -43,7 +43,7 @@ namespace regen {
 			 * @param i_name interpolation mode name.
 			 * @param i_key interpolation include key.
 			 */
-			Interpolation(const std::string &a_name, const std::string &i_name, const std::string &i_key)
+			Interpolation(std::string_view a_name, std::string_view i_name, std::string_view i_key)
 					: attributeName(a_name), interpolationName(i_name), interpolationKey(i_key) {}
 		};
 

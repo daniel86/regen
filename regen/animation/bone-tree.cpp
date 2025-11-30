@@ -97,7 +97,7 @@ ref_ptr<BoneNode> BoneTree::findNode(const std::string &name) {
 }
 
 int32_t BoneTree::addAnimationTrack(
-		const std::string &trackName,
+		std::string_view trackName,
 		ref_ptr<StaticAnimationData> &staticData,
 		double duration,
 		double ticksPerSecond) {

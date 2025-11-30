@@ -23,7 +23,7 @@ namespace regen {
 		 */
 		explicit BBoxBuffer(
 			const Bounds<Vec3f> &initialBounds,
-			const std::string &name="BoundingBox");
+			std::string_view name="BoundingBox");
 
 		~BBoxBuffer() override = default;
 

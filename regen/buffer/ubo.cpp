@@ -3,7 +3,7 @@
 
 using namespace regen;
 
-UBO::UBO(const std::string &name, const BufferUpdateFlags &hints) :
+UBO::UBO(std::string_view name, const BufferUpdateFlags &hints) :
 		BufferBlock(name, UNIFORM_BUFFER, hints, UNIFORM, BUFFER_MEMORY_STD140) {
 }
 

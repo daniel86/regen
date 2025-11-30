@@ -22,7 +22,7 @@ namespace regen {
 
 BBoxBuffer::BBoxBuffer(
 		const Bounds<Vec3f> &initialBounds,
-		const std::string &name) :
+		std::string_view name) :
 	SSBO(name, BufferUpdateFlags::FULL_PER_FRAME),
 	bbox_(Bounds<Vec3f>::create(initialBounds.min, initialBounds.max))
 {

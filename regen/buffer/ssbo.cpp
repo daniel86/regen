@@ -3,14 +3,14 @@
 
 using namespace regen;
 
-SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMask) :
+SSBO::SSBO(std::string_view name, const BufferUpdateFlags &hints, int memoryMask) :
 		BufferBlock(name, SHADER_STORAGE_BUFFER, hints,
 		            BufferBlock::BUFFER,
 		            BUFFER_MEMORY_STD430),
 		memoryMask_(memoryMask) {
 }
 
-SSBO::SSBO(const StagedBuffer &other, const std::string &name) :
+SSBO::SSBO(const StagedBuffer &other, std::string_view name) :
 		BufferBlock(other, name) {
 	flags_.target = SHADER_STORAGE_BUFFER;
 	glTarget_ = glBufferTarget(flags_.target);

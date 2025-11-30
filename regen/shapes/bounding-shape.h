@@ -51,7 +51,7 @@ namespace regen {
 		 * @brief Set the name of this shape
 		 * @param name The name
 		 */
-		void setName(const std::string &name) { name_ = name; }
+		void setName(std::string_view name) { name_ = name; }
 
 		/**
 		 * @brief Get the name of this shape

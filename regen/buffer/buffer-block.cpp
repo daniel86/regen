@@ -7,7 +7,7 @@
 using namespace regen;
 
 BufferBlock::BufferBlock(
-		const std::string &name,
+		std::string_view name,
 		BufferTarget target,
 		const BufferUpdateFlags &hints,
 		Qualifier blockQualifier,
@@ -23,7 +23,7 @@ BufferBlock::BufferBlock(
 	isBufferBlock_ = true;
 }
 
-BufferBlock::BufferBlock(const StagedBuffer &other, const std::string &name)
+BufferBlock::BufferBlock(const StagedBuffer &other, std::string_view name)
 		: StagedBuffer(other, name),
 		  blockQualifier_(BufferBlock::BUFFER) {
 	enableInput_ = [this](int loc) { enableBufferBlock(loc); };

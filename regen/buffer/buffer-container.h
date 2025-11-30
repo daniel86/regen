@@ -27,7 +27,7 @@ namespace regen {
 		 * The required buffers are allocated automatically, no need to call
 		 * allocateBuffers() afterwards.
 		 */
-		BufferContainer(const std::string &bufferName,
+		BufferContainer(std::string_view bufferName,
 				const std::vector<NamedShaderInput> &inputs,
 				const BufferUpdateFlags &hints);
 
@@ -36,7 +36,7 @@ namespace regen {
 		 * Add individual ShaderInput objects using the addInput() method,
 		 * once done, call the allocateBuffers() method to allocate the required buffers.
 		 */
-		BufferContainer(const std::string &bufferName, const BufferUpdateFlags &hints);
+		BufferContainer(std::string_view bufferName, const BufferUpdateFlags &hints);
 
 		/**
 		 * Copy constructor.
@@ -53,7 +53,7 @@ namespace regen {
 		 * Add a shader input to the container.
 		 * @param input the shader input object.
 		 */
-		void addInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
+		void addInput(const ref_ptr<ShaderInput> &input, std::string_view name = "");
 
 		/**
 		 * Allocate the buffers for the shader inputs.

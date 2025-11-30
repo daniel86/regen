@@ -47,14 +47,14 @@ namespace regen {
 			WRITE_ONLY = 1 << 4
 		};
 
-		SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMask = 0);
+		SSBO(std::string_view name, const BufferUpdateFlags &hints, int memoryMask = 0);
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer object
 		 * @param name name of the new buffer block
 		 */
-		explicit SSBO(const StagedBuffer &other, const std::string &name="");
+		explicit SSBO(const StagedBuffer &other, std::string_view name="");
 
 		/**
 		 * Sets the memory mask.

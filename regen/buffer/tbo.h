@@ -15,7 +15,7 @@ namespace regen {
 		 *
 		 * @param usage the buffer usage.
 		 */
-		TBO(const std::string &name, GLenum texelFormat, const BufferUpdateFlags &hints);
+		TBO(std::string_view name, GLenum texelFormat, const BufferUpdateFlags &hints);
 
 		/**
 		 * @return the input data.
