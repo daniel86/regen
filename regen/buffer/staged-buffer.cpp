@@ -374,8 +374,7 @@ void StagedBuffer::copyDirtyData(byte* __restrict gpuBufferData, uint32_t localM
 	const auto* __restrict segmentRanges = dirtySegmentRanges_.data();
 
 	const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
-	const byte* __restrict alignedData_CPU =
-		static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
+	const byte* __restrict cpuBufferData = mapped.r;
 
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments; ++segmentIdx) {
 		// Copy the whole segment range at once.
@@ -386,7 +385,7 @@ void StagedBuffer::copyDirtyData(byte* __restrict gpuBufferData, uint32_t localM
 		const uint32_t dstOffset = dirtyRange.offset - localMapOffset;
 		memcpy(
 			gpuBufferData + dstOffset,
-			alignedData_CPU + dirtyRange.offset,
+			cpuBufferData + dirtyRange.offset,
 			dirtyRange.size);
 
 		const auto &segmentRange = segmentRanges[segmentIdx];
@@ -409,12 +408,10 @@ void StagedBuffer::copyFullData(byte* __restrict gpuBufferData, uint32_t localMa
 	// copy the whole range of block inputs.
 	const auto fullSize = clientBuffer_->dataSize();
 	const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
-	const byte* __restrict alignedData_CPU =
-		static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
 
 	const uint32_t offset = firstSegment.offset - localMapOffset;
 	memcpy(gpuBufferData + offset,
-		   alignedData_CPU + firstSegment.offset,
+		   mapped.r + firstSegment.offset,
 		   lastSegment.offset + lastSegment.inputSize - firstSegment.offset);
 
 	// update the last stamps for all inputs in the dirty range
@@ -642,7 +639,7 @@ void StagedBuffer::updateNonMapped() {
 
 	const auto dataSize = clientBuffer_->dataSize();
 	const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
-	const auto* __restrict srcData = static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
+	const byte* __restrict srcData = mapped.r;
 
 	for (uint32_t dirtyIdx = 0; dirtyIdx < numDirtySegments_; ++dirtyIdx) {
 		const auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
@@ -690,20 +687,18 @@ void StagedBuffer::updateTemporaryMapped() {
 			const uint32_t localOffset = shared_->stagingOffset_ + dirtyRange_b.offset;
 
 			// Note: It is safe to assume 32-byte alignment here, as all drivers use aligned memory.
-			auto* __restrict bufferData = static_cast<byte*>(__builtin_assume_aligned(
-				shared_->stagingBuffer_->beginMappedWrite(
+			byte* __restrict bufferData = shared_->stagingBuffer_->beginMappedWrite(
 					drawBufferRef_,
 					false,
 					localOffset,
-					dirtyRange_b.size), 32));
+					dirtyRange_b.size);
 			if (bufferData) {
 				const auto dataSize = clientBuffer_->dataSize();
 				const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
-				const auto* __restrict srcData = static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
 
 				const uint32_t offset = dirtyRange_b.offset - localOffset;
 				memcpy(bufferData + offset,
-					   srcData + dirtyRange_b.offset,
+					   mapped.r + dirtyRange_b.offset,
 					   dirtyRange_b.size);
 
 				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
