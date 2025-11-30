@@ -29,7 +29,7 @@ namespace regen {
 		/**
 		 * Create a buffer object.
 		 * @param target the buffer target.
-		 * @param hint the buffer update hint.
+		 * @param hints provides info how the buffer object is going to be used.
 		 */
 		BufferObject(BufferTarget target, const BufferUpdateFlags &hints);
 
@@ -67,7 +67,7 @@ namespace regen {
 		/**
 		 * Set the buffer update hint.
 		 * This will determine how the buffer can be updated.
-		 * @param hint the update hint to set.
+		 * @param hints the update hint to set.
 		 */
 		void setBufferUpdateHint(const BufferUpdateFlags &hints) { flags_.updateHints = hints; }
 
@@ -151,7 +151,7 @@ namespace regen {
 		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 * @param other another buffer object to copy from.
 		 */
-		void setBufferData(const BufferObject &other) const;
+		void setBufferData(const BufferObject &other);
 
 		/**
 		 * Copy data from another buffer object to this one.
@@ -255,7 +255,8 @@ namespace regen {
 
 		/**
 		 * Get a memory pool for specified usage.
-		 * @param usage the usage hint.
+		 * @param target the buffer target.
+		 * @param mode the storage mode.
 		 * @return memory pool.
 		 */
 		static BufferPool *bufferPool(BufferTarget target, BufferStorageMode mode);

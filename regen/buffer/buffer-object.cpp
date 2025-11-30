@@ -246,7 +246,7 @@ void BufferObject::setBufferData(const void *data) {
 	setBufferData(data, allocations_[0]);
 }
 
-void BufferObject::setBufferData(const BufferObject &other) const {
+void BufferObject::setBufferData(const BufferObject &other) {
 	auto &ref0 = allocations_[0];
 	auto &ref1 = other.allocations_[0];
 	glCopyNamedBufferSubData(

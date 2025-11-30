@@ -416,7 +416,7 @@ float downsample(vec3 texCoord, sampler2DArray depthTexture, vec2 texelSize) {
 }
 
 float downsample(vec3 texCoord, samplerCube depthTexture, vec2 texelSize) {
-    // For cue maps, return the next mip level directly
+    // For cube maps, return the next mip level directly
     return textureLod(depthTexture, texCoord, 1.0).r;
 }
 #endif
