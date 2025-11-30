@@ -2,11 +2,6 @@
 #include "regen/gl-types/queries/elapsed-time.h"
 #include <regen/gl-types/gl-param.h>
 
-//#define REGEN_STAGING_SYSTEM_DEBUG_TIME
-//#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
-//#define REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-//#define REGEN_STAGING_EXPLICIT_FLUSH
-
 using namespace regen;
 
 // 4KB (page size) default alignment for staging buffers.
@@ -31,6 +26,11 @@ float StagingSystem::MIN_COOLDOWN_NEVER_WRITE = 200.0f;
 float StagingSystem::MAX_COOLDOWN_NEVER_WRITE = 2000.0f;
 
 namespace regen {
+	static constexpr bool STAGING_DEBUG_STALLS = false;
+	static constexpr bool STAGING_EXPLICIT_FLUSH = false;
+	static constexpr bool STAGING_DEBUG_TIME = false;
+	static constexpr bool STAGING_DEBUG_STATISTICS = false;
+
 	// a BO under control of the staging system
 	struct StagingSystem::ManagedBO {
 		BlockPtr bo = nullptr;
@@ -236,11 +236,11 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 			//   (that uses flush). But flushing might not be worth it for small buffers at least
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
-#ifdef REGEN_STAGING_EXPLICIT_FLUSH
-			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_FLUSH;
-#else
-			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
-#endif
+			if constexpr(STAGING_EXPLICIT_FLUSH) {
+				arena->flags.mapMode = BUFFER_MAP_PERSISTENT_FLUSH;
+			} else {
+				arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
+			}
 			arena->flags.bufferingMode = RING_BUFFER;
 			arena->numRingSegments = 3;
 			maxRingSegments = 16;
@@ -248,11 +248,11 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 		case WRITE_PER_FRAME_LARGE_DATA:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
-#ifdef REGEN_STAGING_EXPLICIT_FLUSH
-			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_FLUSH;
-#else
-			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
-#endif
+			if constexpr(STAGING_EXPLICIT_FLUSH) {
+				arena->flags.mapMode = BUFFER_MAP_PERSISTENT_FLUSH;
+			} else {
+				arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
+			}
 			arena->flags.bufferingMode = RING_BUFFER;
 			arena->numRingSegments = 2;
 			maxRingSegments = 4;
@@ -464,16 +464,16 @@ void StagingSystem::scheduledCopy(const BufferCopyRange &c1) {
 
 void StagingSystem::updateData(float dt_ms) {
 	//copyInProgress_.store(true, std::memory_order_release);
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-	static ElapsedTimeDebugger elapsedTime("Staging System Update", 300);
-	elapsedTime.beginFrame();
-#endif
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-	uint32_t numDirtyArenas = 0;
-	uint32_t numDirtyBOs = 0;
-	uint32_t numDirtySegments = 0;
-	uint32_t numTotalBOs = 0;
-#endif
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().beginFrame();
+	}
+	if constexpr(STAGING_DEBUG_STATISTICS) {
+		stats_.numDirtyArenas = 0;
+		stats_.numDirtyBOs = 0;
+		stats_.numDirtySegments = 0;
+		stats_.numTotalBOs = 0;
+	}
+
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		// skip inactive arenas: those that are not initialized, and those that are cooling down.
@@ -486,16 +486,16 @@ void StagingSystem::updateData(float dt_ms) {
 			arena->resize();
 			arena->sort();
 		}
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-		elapsedTime.push(REGEN_STRING(arena->type << " resized"));
-#endif
+		if constexpr(STAGING_DEBUG_TIME) {
+			elapsedTime().push(REGEN_STRING(arena->type << " resized"));
+		}
 		if (!arena->flags.isReadable() && !arena->isDirty) {
 			// early exit writing arenas before fencing in case of no updates.
 			continue;
 		}
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-		numDirtyArenas++;
-#endif
+		if constexpr(STAGING_DEBUG_STATISTICS) {
+			stats_.numDirtyArenas++;
+		}
 
 		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
 		const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
@@ -511,8 +511,14 @@ void StagingSystem::updateData(float dt_ms) {
 		// This might block the CPU in case of the last write into this segment
 		// has not been consumed by the GPU yet.
 		// TODO: The interaction with the fence still consumes a lot of CPU time.
-		//		- Only use one fence in the whole system, i.e. one fence per frame?
-		//      - Only use fences every few frames or adaptively based on stall rate?
+		//		- The main bottleneck now seems *setFencePoint*. Reason might be that
+		//          we do glDeleteSync/glFenceSync calls every time setFencePoint is called.
+		//		- As far as I know, we cannot re-use fences across frames.
+		//		- Maybe the only way to improve would be to reduce the number of fences.
+		//      - Idea: Let arenas share fences. However, this is difficult because arenas
+		//        currently may have ring buffers of different sizes.
+		//		- Maybe the mechanism can be adjusted such that we do not need a fence every
+		//          frame for every arena.
 		if (useFence) {
 			arena->stagingBuffer->fence(copyIdx).wait();
 		}
@@ -526,13 +532,13 @@ void StagingSystem::updateData(float dt_ms) {
 			//if (managed.bo->hasDirtySegments()) {
 			//	REGEN_INFO("Dirty BO: " << managed.bo->name());
 			//}
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-			if (managed.bo->hasDirtySegments()) {
-				numDirtyBOs++;
-				numDirtySegments += managed.bo->numDirtySegments();
+			if constexpr(STAGING_DEBUG_STATISTICS) {
+				if (managed.bo->hasDirtySegments()) {
+					stats_.numDirtyBOs++;
+					stats_.numDirtySegments += managed.bo->numDirtySegments();
+				}
+				stats_.numTotalBOs++;
 			}
-			numTotalBOs++;
-#endif
 			managed.bo->copyStagingData(forceUpdate);
 		}
 
@@ -547,72 +553,74 @@ void StagingSystem::updateData(float dt_ms) {
 			//REGEN_INFO("Scheduled copy " << copy);
 		}
 		numScheduledCopies_ = 0; // reset scheduled copies
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-		elapsedTime.push(REGEN_STRING(arena->type << " copied"));
-#endif
+		if constexpr(STAGING_DEBUG_TIME) {
+			elapsedTime().push(REGEN_STRING(arena->type << " copied"));
+		}
 
 		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
 		// written data of this frame has been consumed by the GPU.
 		if (useFence) {
 			arena->stagingBuffer->fence(drawIdx).setFencePoint();
 		}
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-		elapsedTime.push(REGEN_STRING(arena->type << " synced"));
-#endif
+		if constexpr(STAGING_DEBUG_TIME) {
+			elapsedTime().push(REGEN_STRING(arena->type << " synced"));
+		}
 
 		// Advance to next segment in case of multi-buffering and ring buffers.
 		arena->stagingBuffer->swapBuffers();
 		arena->isDirty = false; // reset dirty flag
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-		elapsedTime.push(REGEN_STRING(arena->type << " swapped"));
-#endif
-
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STALLS
-		if (useFence) {
-			REGEN_INFO("Arena " << arena->type << " stall rate: "
-				<< arena->stagingBuffer->fence(copyIdx).getStallRate());
+		if constexpr(STAGING_DEBUG_TIME) {
+			elapsedTime().push(REGEN_STRING(arena->type << " swapped"));
 		}
-		REGEN_INFO("Arena " << arena->type << " fragmentation: "
-			<< arena->freeList->getFragmentationScore());
-#endif
+
+		if constexpr(STAGING_DEBUG_STALLS) {
+			if (useFence) {
+				REGEN_INFO("Arena " << arena->type << " stall rate: "
+					<< arena->stagingBuffer->fence(copyIdx).getStallRate());
+			}
+			REGEN_INFO("Arena " << arena->type << " fragmentation: "
+				<< arena->freeList->getFragmentationScore());
+		}
 	}
-#ifndef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
-	swapClientData();
-#endif
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-	elapsedTime.push("client swapped");
-#endif
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-	elapsedTime.endFrame();
-#endif
+
+	if constexpr (!ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS) {
+		// finally, swap client buffers
+		swapClientData();
+	}
+
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push("client swapped");
+		elapsedTime().endFrame();
+	}
 	copyInProgress_.store(false, std::memory_order_release);
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-	REGEN_INFO("Copied "
-		<< numDirtyBOs << " (" << numTotalBOs << ") BO(s) with "
-		<< numDirtySegments << " dirty segments in "
-		<< numDirtyArenas << " arenas. ");
-#endif
+
+	if constexpr(STAGING_DEBUG_STATISTICS) {
+		REGEN_INFO("Copied "
+			<< stats_.numDirtyBOs << " (" << stats_.numTotalBOs << ") BO(s) with "
+			<< stats_.numDirtySegments << " dirty segments in "
+			<< stats_.numDirtyArenas << " arenas. ");
+	}
 }
 
 void StagingSystem::swapClientData() {
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-	uint32_t numSwapCopies = 0;
-#endif
+	if constexpr(STAGING_DEBUG_STATISTICS) {
+		stats_.numSwapCopies = 0;
+	}
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		if (!arena) continue; // skip uninitialized arenas
 
 		for (auto &managed: arena->bufferObjects) {
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-			numSwapCopies += managed.bo->clientBuffer()->swapData();
-#else
-			managed.bo->clientBuffer()->swapData();
-#endif
+			if constexpr(STAGING_DEBUG_STATISTICS) {
+				stats_.numSwapCopies += managed.bo->clientBuffer()->swapData();
+			} else {
+				managed.bo->clientBuffer()->swapData();
+			}
 		}
 	}
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
-	REGEN_INFO("Client swap required " << numSwapCopies << " copies.");
-#endif
+	if constexpr(STAGING_DEBUG_STATISTICS) {
+		REGEN_INFO("Client swap required " << stats_.numSwapCopies << " copies.");
+	}
 }
 
 bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate) {

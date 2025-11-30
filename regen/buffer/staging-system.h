@@ -2,6 +2,7 @@
 #define REGEN_STAGING_SYSTEM_H_
 
 #include "staged-buffer.h"
+#include "regen/gl-types/queries/elapsed-time.h"
 #include "regen/utility/free-list.h"
 
 // Note: We need to swap client buffers after each copy from
@@ -11,6 +12,8 @@
 //#define REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
 
 namespace regen {
+	static constexpr bool ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS = false;
+
 	/**
 	 * \brief A staging system that manages staging buffers for buffer objects (BOs).
 	 *
@@ -192,6 +195,19 @@ namespace regen {
 		void moveToArena(ManagedBO &managed, ArenaType targetArenaType);
 
 		bool updateArenaSize(Arena *arena);
+
+		struct StagingStatistics {
+			uint32_t numDirtyArenas = 0;
+			uint32_t numDirtyBOs = 0;
+			uint32_t numDirtySegments = 0;
+			uint32_t numTotalBOs = 0;
+			uint32_t numSwapCopies = 0;
+		} stats_;
+
+		static ElapsedTimeDebugger elapsedTime() {
+			static ElapsedTimeDebugger x("Staging System", 300);
+			return x;
+		}
 	};
 
 	// support streaming operators for ArenaType

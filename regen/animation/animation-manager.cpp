@@ -250,10 +250,9 @@ void AnimationManager::cpuUpdateStep() {
 		index->update(static_cast<float>(dt));
 	}
 
-#ifdef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
-	// make client buffers we just wrote available for the next frame in the staging system.
-	swapClientData();
-#endif
+	if constexpr (ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS) {
+		swapClientData();
+	}
 
 	// Clear processing flags
 	cpu_isUpdateActive_.clear(std::memory_order_release);
