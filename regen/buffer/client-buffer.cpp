@@ -8,6 +8,10 @@ using namespace regen;
 
 //#define USE_CLIENT_BUFFER_POOL
 
+namespace regen {
+	static constexpr uint32_t CLIENT_BUFFER_ALIGNMENT = 32;
+}
+
 ClientBuffer::ClientBuffer() {
 	// initially any data that will be allocated will be owned by this instance.
 	// this is until it is added as a segment to another ClientBuffer.
@@ -529,14 +533,14 @@ void ClientBuffer::ownerResize() {
 		}
 	}
 #else
-	dataSlots_[0] = new byte[dataSize_];
+	dataSlots_[0] = static_cast<byte*>(std::aligned_alloc(CLIENT_BUFFER_ALIGNMENT, dataSize_));
 	if (clientBufferMode_ == SingleBuffer) {
 		dataSlots_[1] = nullptr;
 	} else if (clientBufferMode_ == DoubleBuffer) {
-		dataSlots_[1] = new byte[dataSize_];
+		dataSlots_[1] = static_cast<byte*>(std::aligned_alloc(CLIENT_BUFFER_ALIGNMENT, dataSize_));
 	} else if (clientBufferMode_ == AdaptiveBuffer) {
 		if (dataSlots_[1]) {
-			dataSlots_[1] = new byte[dataSize_];
+			dataSlots_[1] = static_cast<byte*>(std::aligned_alloc(CLIENT_BUFFER_ALIGNMENT, dataSize_));
 		}
 	}
 #endif
@@ -898,7 +902,7 @@ void ClientBuffer::createSecondSlot() {
 	dataRefs_[1] = ClientBuffer::getMemoryPool()->alloc(allocator, dataSize_);
 	dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
 #else
-	dataSlots_[1] = new byte[dataSize_];
+	dataSlots_[1] = static_cast<byte*>(std::aligned_alloc(CLIENT_BUFFER_ALIGNMENT, dataSize_));
 #endif
 	std::memcpy(dataSlots_[1], dataSlots_[0], dataSize_);
 

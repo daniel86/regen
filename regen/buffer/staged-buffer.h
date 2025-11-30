@@ -294,9 +294,9 @@ namespace regen {
 
 		bool updateDirtySegments();
 
-		void copyDirtyData(byte *bufferData, uint32_t mapOffset);
+		void copyDirtyData(byte *gpuBufferData, uint32_t mapOffset);
 
-		void copyFullData(byte *bufferData, uint32_t mapOffset);
+		void copyFullData(byte *gpuBufferData, uint32_t mapOffset);
 
 		void updateNonMapped();
 

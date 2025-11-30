@@ -365,7 +365,7 @@ bool StagedBuffer::updateDirtySegments() {
 	return numDirtySegments > 0;
 }
 
-void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffset) {
+void StagedBuffer::copyDirtyData(byte* __restrict gpuBufferData, uint32_t localMapOffset) {
 	const uint32_t fullSize = clientBuffer_->dataSize();
 	const uint32_t numDirtySegments = numDirtySegments_;
 
@@ -373,8 +373,9 @@ void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffs
 	const auto* __restrict bufferRanges = dirtyBufferRanges_.data();
 	const auto* __restrict segmentRanges = dirtySegmentRanges_.data();
 
-	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
-	const byte* __restrict srcData = mapped.r;
+	const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
+	const byte* __restrict alignedData_CPU =
+		static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
 
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments; ++segmentIdx) {
 		// Copy the whole segment range at once.
@@ -384,8 +385,8 @@ void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffs
 		//       relative to the start of the buffer, so we need to adjust the offset accordingly...
 		const uint32_t dstOffset = dirtyRange.offset - localMapOffset;
 		memcpy(
-			dstData + dstOffset,
-			srcData + dirtyRange.offset,
+			gpuBufferData + dstOffset,
+			alignedData_CPU + dirtyRange.offset,
 			dirtyRange.size);
 
 		const auto &segmentRange = segmentRanges[segmentIdx];
@@ -397,21 +398,23 @@ void StagedBuffer::copyDirtyData(byte* __restrict dstData, uint32_t localMapOffs
 	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, fullSize, mapped.r_index);
 }
 
-void StagedBuffer::copyFullData(byte *mappedBufferData, uint32_t localMapOffset) {
+void StagedBuffer::copyFullData(byte* __restrict gpuBufferData, uint32_t localMapOffset) {
 	// full write of mapped range
 	// get start and end indices from first and last segment
-	uint32_t startIdx = dirtySegmentRanges_[0].startIdx;
-	uint32_t endIdx   = dirtySegmentRanges_[numDirtySegments_ - 1].endIdx;
-	auto &firstSegment = stagedInputs_[startIdx];
-	auto &lastSegment = stagedInputs_[endIdx - 1];
+	const uint32_t startIdx = dirtySegmentRanges_[0].startIdx;
+	const uint32_t endIdx   = dirtySegmentRanges_[numDirtySegments_ - 1].endIdx;
+	const auto &firstSegment = stagedInputs_[startIdx];
+	const auto &lastSegment = stagedInputs_[endIdx - 1];
 
 	// copy the whole range of block inputs.
 	const auto fullSize = clientBuffer_->dataSize();
-	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
+	const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
+	const byte* __restrict alignedData_CPU =
+		static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
 
 	const uint32_t offset = firstSegment.offset - localMapOffset;
-	memcpy(mappedBufferData + offset,
-		   mapped.r + firstSegment.offset,
+	memcpy(gpuBufferData + offset,
+		   alignedData_CPU + firstSegment.offset,
 		   lastSegment.offset + lastSegment.inputSize - firstSegment.offset);
 
 	// update the last stamps for all inputs in the dirty range
@@ -638,18 +641,19 @@ void StagedBuffer::updateNonMapped() {
 	shared_->stagingBuffer_->beginNonMappedWrite();
 
 	const auto dataSize = clientBuffer_->dataSize();
-	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
+	const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
+	const auto* __restrict srcData = static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
 
 	for (uint32_t dirtyIdx = 0; dirtyIdx < numDirtySegments_; ++dirtyIdx) {
-		auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
-		auto &dirtyRange_b = dirtyBufferRanges_[dirtyIdx];
+		const auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
+		const auto &dirtyRange_b = dirtyBufferRanges_[dirtyIdx];
 		const uint32_t localOffset = shared_->stagingOffset_ + dirtyRange_b.offset;
 
 		shared_->stagingBuffer_->setSubData(
 				drawBufferRef_,
 				localOffset,
 				dirtyRange_b.size,
-				mapped.r + dirtyRange_b.offset);
+				srcData + dirtyRange_b.offset);
 
 		// update the last stamps for all inputs in the dirty range
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
@@ -681,21 +685,25 @@ void StagedBuffer::updateTemporaryMapped() {
 
 	if (doPartialUpdate) {
 		for (uint32_t dirtyIdx = 0; dirtyIdx < numDirtySegments_; ++dirtyIdx) {
-			auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
-			auto &dirtyRange_b = dirtyBufferRanges_[dirtyIdx];
+			const auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
+			const auto &dirtyRange_b = dirtyBufferRanges_[dirtyIdx];
 			const uint32_t localOffset = shared_->stagingOffset_ + dirtyRange_b.offset;
-			byte *bufferData = shared_->stagingBuffer_->beginMappedWrite(
+
+			// Note: It is safe to assume 32-byte alignment here, as all drivers use aligned memory.
+			auto* __restrict bufferData = static_cast<byte*>(__builtin_assume_aligned(
+				shared_->stagingBuffer_->beginMappedWrite(
 					drawBufferRef_,
 					false,
 					localOffset,
-					dirtyRange_b.size);
+					dirtyRange_b.size), 32));
 			if (bufferData) {
 				const auto dataSize = clientBuffer_->dataSize();
-				auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
+				const auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
+				const auto* __restrict srcData = static_cast<byte*>(__builtin_assume_aligned(mapped.r, 32));
 
 				const uint32_t offset = dirtyRange_b.offset - localOffset;
 				memcpy(bufferData + offset,
-					   mapped.r + dirtyRange_b.offset,
+					   srcData + dirtyRange_b.offset,
 					   dirtyRange_b.size);
 
 				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
@@ -753,9 +761,7 @@ void StagedBuffer::updatePersistentMapped() {
 			lastSegment.offset - firstSegment.offset + lastSegment.size);
 	if (bufferData) {
 		// only copy the dirty segments to the mapped buffer.
-		copyDirtyData(
-				bufferData,
-				firstSegment.offset);
+		copyDirtyData(bufferData, firstSegment.offset);
 		// push the dirty segments to the flush queue for just-in-time flushing.
 		if (stagingFlags_.useExplicitFlushing()) {
 			auto dirtySegments = (BufferRange2ui *) (&dirtyBufferRanges_.data()[0].offset);
@@ -789,13 +795,13 @@ void StagedBuffer::createNextDirtySegment() {
 }
 
 void StagedBuffer::Shared::setUpdatedFrame(bool isUpdated) {
-	bool &wasUpdated = updatedFrames_[updateIdx_++];
 	// count the number of frames that had an update over the last n frames.
-	updateCount_ += (wasUpdated != isUpdated) * (isUpdated*2 - 1);
-	wasUpdated = isUpdated;
+	updateCount_ += (updatedFrames_[updateIdx_] != isUpdated) * (isUpdated*2 - 1);
+	updatedFrames_[updateIdx_++] = isUpdated;
 	// wrap around the index
-	updateIdx_ *= (updateIdx_ < updateRange_);
-	hasUpdateRotated_ = hasUpdateRotated_ || (updateIdx_ >= updateRange_);
+	const bool wrap = (updateIdx_ >= updateRange_);
+	updateIdx_ *= (1 - static_cast<int>(wrap));
+	hasUpdateRotated_ |= (wrap);
 }
 
 void StagedBuffer::resetUpdateHistory() {
