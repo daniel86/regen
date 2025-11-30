@@ -188,8 +188,8 @@ ref_ptr<SSBO> LODState::createIndirectDrawBuffer(const std::vector<DrawCommand> 
 	return buffer;
 }
 
-static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uint32_t numBaseLevels) {
-	static const uint32_t lodMappings[5][4] = {
+static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels) {
+	static constexpr uint32_t lodMappings[5][4] = {
 		{0, 0, 0, 0}, // 0 LOD
 		{0, 0, 0, 0}, // 1 LODs
 		{0, 0, 1, 1}, // 2 LODs
@@ -271,7 +271,7 @@ void LODState::updateVisibility(uint32_t layerIdx, uint32_t lodLevel, uint32_t n
 		if (indirectDrawBuffers_.empty()) {
 			auto &part = cullShape_->parts()[partIdx];
 			part->updateVisibility(
-					getPartLOD(lodLevel, part->numLODs(), numLODs_),
+					getPartLOD(lodLevel, part->numLODs()),
 					numInstances, baseInstance);
 		} else {
 			auto &current = indirectDrawData_[partIdx].current;
@@ -340,7 +340,7 @@ void LODState::enable(RenderState *rs) {
 		if (lodLevelWithInstance != -1) {
 			// set the LOD level for the mesh
 			for (auto &part : cullShape_->parts()) {
-				auto partLODLevel = getPartLOD(lodLevelWithInstance, part->numLODs(), numLODs_);
+				auto partLODLevel = getPartLOD(lodLevelWithInstance, part->numLODs());
 				part->updateVisibility(partLODLevel, part->numInstances(), 0);
 			}
 		}

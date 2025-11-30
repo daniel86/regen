@@ -148,7 +148,6 @@ void StagedBuffer::updateStorageFlags() {
 	// NOTE: in local staging we avoid persistent mapping the buffer to CPU memory to avoid performance issues
 	//       with fencing, as currently local staging uses per-BO and per-segment fences which is overkill
 	//       for most cases.
-	// TODO: support adaptive ring buffering for local staging as well.
 	if (sizeClass == BUFFER_SIZE_SMALL) {
 		// If the buffer is small (e.g. < 512 Byte), then ..
 		setStagingMapMode(BUFFER_MAP_TEMPORARY);

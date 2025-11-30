@@ -151,7 +151,7 @@ namespace regen {
 		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 * @param other another buffer object to copy from.
 		 */
-		void setBufferData(const BufferObject &other);
+		void setBufferData(const BufferObject &other) const;
 
 		/**
 		 * Copy data from another buffer object to this one.

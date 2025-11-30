@@ -3,14 +3,6 @@
 
 using namespace regen;
 
-// TODO: would be nice if updateBuffer would not be needed.
-//       at least information about shader inputs is needed early when shaders are compiled,
-//       but the actual buffers do not need to be allocated then. So we could dynamically create
-//       ShaderInput etc. and then make a deferred data allocation.
-//       However, one workflow would be that a shader input is added to the container, and then
-//       the input is changed, e.g. to n instances. however, input does not really have a reference
-//       to the container where it is stored.
-
 BufferContainer::BufferContainer(
 	const std::string &bufferName,
 	const std::vector<NamedShaderInput> &namedInputs,
@@ -147,11 +139,6 @@ void BufferContainer::updateBuffer() {
 
 ref_ptr<StagedBuffer> BufferContainer::getBufferObject(const ref_ptr<ShaderInput> &input) {
 	return bufferObjectOfInput_[input.get()];
-}
-
-void BufferContainer::enable(RenderState *rs) {
-	updateBuffer();
-	State::enable(rs);
 }
 
 void BufferContainer::printLayout() {

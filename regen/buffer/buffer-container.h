@@ -68,9 +68,6 @@ namespace regen {
 		 */
 		ref_ptr<StagedBuffer> getBufferObject(const ref_ptr<ShaderInput> &input);
 
-		// Override from State
-		void enable(RenderState *rs) override;
-
 		/**
 		 * Print the layout of the buffer container, i.e. what UBOs, TBOs and
 		 * SSBOs are used and how much memory they use.

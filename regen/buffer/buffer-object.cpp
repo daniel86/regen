@@ -246,21 +246,24 @@ void BufferObject::setBufferData(const void *data) {
 	setBufferData(data, allocations_[0]);
 }
 
-void BufferObject::setBufferData(const BufferObject &other) {
+void BufferObject::setBufferData(const BufferObject &other) const {
+	auto &ref0 = allocations_[0];
+	auto &ref1 = other.allocations_[0];
 	glCopyNamedBufferSubData(
-			other.allocations_[0]->bufferID(),
-			allocations_[0]->bufferID(),
-			other.allocations_[0]->address(),
-			allocations_[0]->address(),
-			other.allocations_[0]->allocatedSize());
+			ref1->bufferID(),
+			ref0->bufferID(),
+			ref1->address(),
+			ref0->address(),
+			ref1->allocatedSize());
 }
 
 void BufferObject::setBufferData(uint32_t readBufferID, uint32_t readAddress, uint32_t readSize) {
+	auto &ref = allocations_[0];
 	glCopyNamedBufferSubData(
 			readBufferID,
-			allocations_[0]->bufferID(),
+			ref->bufferID(),
 			readAddress,
-			allocations_[0]->address(),
+			ref->address(),
 			readSize);
 }
 
@@ -288,8 +291,7 @@ void BufferObject::setBufferToZero(const ref_ptr<BufferReference> &ref) {
 	if (!flags_.isWritable() || !flags_.isMappable()) {
 		// CPU is not allowed to write to this buffer, so we cannot set data directly.
 		// But we can copy data to a temporary buffer and then copy it to the target buffer.
-		auto tempRef = BufferObject::adoptBufferRange(
-				ref->allocatedSize(),
+		auto tempRef = adoptBufferRange(ref->allocatedSize(),
 				bufferPool(flags_.target, BUFFER_MODE_CPU_W_MAP_TEMPORARY));
 		setToZero(tempRef);
 		glCopyNamedBufferSubData(
@@ -330,8 +332,7 @@ void BufferObject::setBufferSubData(uint32_t localOffset, uint32_t dataSize, con
 	if (!flags_.isWritable()) {
 		// CPU is not allowed to write to this buffer, so we cannot set data directly.
 		// But we can copy data to a temporary buffer and then copy it to the target buffer.
-		auto tempRef = BufferObject::adoptBufferRange(
-				dataSize,
+		auto tempRef = adoptBufferRange(dataSize,
 				bufferPool(flags_.target, BUFFER_MODE_STATIC_WRITE));
 		glNamedBufferSubData(
 				tempRef->bufferID(),
@@ -365,8 +366,7 @@ void BufferObject::readBufferSubData(uint32_t localOffset, uint32_t dataSize, by
 	if (!flags_.isWritable()) {
 		// CPU is not allowed to read from this buffer, so we cannot read data directly.
 		// But we can copy data to a temporary buffer and then copy it to the target buffer.
-		auto tempRef = BufferObject::adoptBufferRange(
-				dataSize,
+		auto tempRef = adoptBufferRange(dataSize,
 				bufferPool(flags_.target, BUFFER_MODE_STATIC_READ));
 		glCopyNamedBufferSubData(
 				ref->bufferID(),
@@ -401,15 +401,15 @@ void *BufferObject::map(uint32_t relativeOffset, uint32_t mappedSize, uint32_t a
 		return ref->mappedData() + relativeOffset;
 	} else {
 		return glMapNamedBufferRange(
-				allocations_[0]->bufferID(),
-				allocations_[0]->address() + relativeOffset,
+				ref->bufferID(),
+				ref->address() + relativeOffset,
 				mappedSize,
 				accessFlags);
 	}
 }
 
 void *BufferObject::map(uint32_t accessFlags) {
-	return BufferObject::map(allocations_[0], accessFlags);
+	return map(allocations_[0], accessFlags);
 }
 
 void *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags) {
@@ -428,7 +428,7 @@ void BufferObject::unmap() const {
 	auto &ref = allocations_[0];
 	if (!ref->mappedData()) {
 		// only unmap if the buffer is not mapped persistently
-		glUnmapNamedBuffer(allocations_[0]->bufferID());
+		glUnmapNamedBuffer(ref->bufferID());
 	}
 }
 
