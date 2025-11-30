@@ -258,20 +258,16 @@ void StagedBuffer::setLastInputStamp(StagedInput &blockInput) const {
 
 uint32_t StagedBuffer::updateStagedInputs() {
 	const uint32_t numStagedInputs = static_cast<uint32_t>(stagedInputs_.size());
-	StagedInput* stagedInputs = stagedInputs_.data();
+	const StagedInput* stagedInputs = stagedInputs_.data();
 
-	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
-	bool hasClientData = (numStagedInputs != 0); // whether all inputs have client data
-
+	// whether the size of the block has changed
+	bool hasNewSize = (requiredSize_ == 0);
+	// whether all inputs have client data, and we have at least one input.
+	bool hasClientData = (numStagedInputs != 0);
 	for (uint32_t i = 0; i < numStagedInputs; ++i) {
-		const StagedInput &blockInput = stagedInputs[i];
-		const ShaderInput &in = *blockInput.input;
-		if (blockInput.inputSize != in.alignedInputSize()) {
-			hasNewSize = true;
-		}
-		if (!in.hasClientData()) {
-			hasClientData = false;
-		}
+		const ShaderInput &in = *stagedInputs[i].input;
+		hasNewSize |= (stagedInputs[i].inputSize != in.alignedInputSize());
+		hasClientData &= in.hasClientData();
 	}
 	hasClientData_ = hasClientData;
 
