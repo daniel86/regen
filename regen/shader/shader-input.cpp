@@ -169,12 +169,6 @@ void ShaderInput::set_buffer(uint32_t buffer, const ref_ptr<BufferReference> &it
 }
 
 void ShaderInput::enableAttribute(int loc) const {
-	// TODO: Avoid writing server data here, this should be handled more centrally e.g. via the staging system.
-	//           - writeServerData can then be removed, it is only used here currently.
-	if (clientBuffer_->stampOfReadData() != bufferStamp_) {
-		// the client buffer has changed, so we need to re-upload the data.
-		writeServerData();
-	}
 	(this->*(this->enableAttribute_))(loc);
 }
 
