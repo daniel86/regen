@@ -8,7 +8,7 @@
 #ifndef __SHADING_DIRECT_H_
 #define __SHADING_DIRECT_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include <regen/states/light-state.h>
 #include <regen/textures/texture-state.h>
 #include <regen/camera/light-camera.h>

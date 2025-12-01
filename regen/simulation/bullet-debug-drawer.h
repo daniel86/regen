@@ -1,9 +1,9 @@
 #ifndef REGEN_BULLET_DEBUG_DRAWER_H
 #define REGEN_BULLET_DEBUG_DRAWER_H
 
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 #include "regen/shader/shader-state.h"
-#include "regen/states/state-configurer.h"
+#include "../scene/state-configurer.h"
 #include "bullet-physics.h"
 #include <btBulletDynamicsCommon.h>
 

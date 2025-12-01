@@ -1,7 +1,7 @@
 #ifndef BLIT_TO_SCREEN_H_
 #define BLIT_TO_SCREEN_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/textures/fbo.h"
 
 namespace regen {

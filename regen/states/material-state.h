@@ -1,7 +1,7 @@
 #ifndef REGEN_MATERIAL_H_
 #define REGEN_MATERIAL_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include <regen/textures/texture-state.h>
 #include "regen/shader/shader-input.h"
 #include "regen/textures/texture-config.h"

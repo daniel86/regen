@@ -6,9 +6,9 @@
  */
 
 #include <regen/utility/string-util.h>
-#include <regen/states/atomic-states.h>
 
 #include "depth-state.h"
+#include "atomic-states.h"
 
 using namespace regen;
 

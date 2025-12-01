@@ -3,14 +3,14 @@
 
 #include <string>
 
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 #include <regen/scene/scene-input.h>
 #include "regen/utility/event-object.h"
 #include "regen/utility/ref-ptr.h"
 #include "regen/scene/resource.h"
-#include "regen/states/state.h"
+#include "regen/scene/state.h"
 #include "scene-input.h"
-#include "regen/states/state-node.h"
+#include "regen/scene/state-node.h"
 #include "scene-processors.h"
 #include "../simulation/bullet-physics.h"
 #include "regen/scene/scene.h"

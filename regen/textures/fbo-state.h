@@ -1,8 +1,8 @@
 #ifndef REGEN_FBO_STATE_H_
 #define REGEN_FBO_STATE_H_
 
-#include "regen/states/state.h"
-#include "regen/states/atomic-states.h"
+#include "regen/scene/state.h"
+#include "../gl-types/atomic-states.h"
 #include "fbo.h"
 
 namespace regen {

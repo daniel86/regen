@@ -7,7 +7,7 @@
 
 #include <regen/gl-types/gl-util.h>
 #include <regen/utility/string-util.h>
-#include <regen/states/atomic-states.h>
+#include "atomic-states.h"
 
 #include "tesselation-state.h"
 

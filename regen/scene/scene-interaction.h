@@ -1,7 +1,7 @@
 #ifndef REGEN_SCENE_INTERACTION_H
 #define REGEN_SCENE_INTERACTION_H
 
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 
 namespace regen {
 	/**

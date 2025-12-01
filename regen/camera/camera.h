@@ -2,7 +2,7 @@
 #define REGEN_CAMERA_H
 
 #include <span>
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/math/matrix.h>
 #include <regen/shapes/frustum.h>

@@ -1,6 +1,7 @@
 #include <random>
 #include "person-controller.h"
 
+#include "regen/scene/resource-manager.h"
 #include "world/character-object.h"
 
 using namespace regen;

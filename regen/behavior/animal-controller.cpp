@@ -1,5 +1,7 @@
 #include <random>
 #include "animal-controller.h"
+
+#include "regen/scene/resource-manager.h"
 #include "skeleton/bone-controller.h"
 #include "world/character-object.h"
 

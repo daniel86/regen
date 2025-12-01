@@ -3,17 +3,17 @@
 
 #include <vector>
 
-#include <regen/states/state.h>
-#include <regen/states/state-config.h>
+#include <regen/scene/state.h>
 #include <regen/buffer/vbo.h>
 #include <regen/gl-types/vao.h>
 #include <regen/buffer/ssbo.h>
 #include "regen/shader/shader.h"
 #include <regen/animation/animation.h>
 #include "../simulation/physical-object.h"
-#include "regen/states/state-node.h"
+#include "regen/scene/state-node.h"
 #include "regen/camera/sorting.h"
 #include "regen/buffer/element-buffer.h"
+#include "regen/scene/state-config.h"
 #include "regen/states/material-state.h"
 #include "regen/shapes/bounding-shape.h"
 

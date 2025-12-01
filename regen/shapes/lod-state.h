@@ -1,7 +1,7 @@
 #ifndef REGEN_LOD_STATE_H_
 #define REGEN_LOD_STATE_H_
 
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 #include <regen/shapes/spatial-index.h>
 #include "regen/camera/sorting.h"
 #include "regen/buffer/ssbo.h"

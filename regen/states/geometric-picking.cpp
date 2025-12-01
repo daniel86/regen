@@ -1,5 +1,5 @@
 #include "geometric-picking.h"
-#include "atomic-states.h"
+#include "../gl-types/atomic-states.h"
 #include "feedback-state.h"
 #include "regen/scene/node-processor.h"
 

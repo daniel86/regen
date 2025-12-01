@@ -1,7 +1,7 @@
 #ifndef REGEN_HORIZON_DIVIDER_NODE_H_
 #define REGEN_HORIZON_DIVIDER_NODE_H_
 
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 #include <regen/camera/camera.h>
 
 namespace regen {

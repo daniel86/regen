@@ -2,7 +2,7 @@
 #define REGEN_CUBE_CAMERA_H_
 
 #include <regen/camera/camera.h>
-#include "regen/states/blend-state.h"
+#include "../gl-types/blend-state.h"
 
 namespace regen {
 	/**

@@ -3,7 +3,7 @@
 
 #include <queue>
 #include <regen/gl-types/render-state.h>
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 
 namespace regen {
 	/**

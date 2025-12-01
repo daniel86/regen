@@ -6,7 +6,7 @@
 #include "regen/shapes/frustum.h"
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"
-#include "regen/states/state-configurer.h"
+#include "../scene/state-configurer.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl-types/draw-command.h"
 #include "regen/buffer/dibo.h"

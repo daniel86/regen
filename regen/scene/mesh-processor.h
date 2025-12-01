@@ -12,8 +12,6 @@
 #include <regen/scene/scene-loader.h>
 #include <regen/scene/scene-input.h>
 #include <regen/scene/scene-processors.h>
-#include <regen/states/state-configurer.h>
-#include <regen/scene/resource-manager.h>
 
 #define REGEN_MESH_NODE_CATEGORY "mesh"
 

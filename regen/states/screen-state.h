@@ -1,7 +1,7 @@
 #ifndef REGEN_SCREEN_STATE_H_
 #define REGEN_SCREEN_STATE_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/textures/fbo-state.h"
 
 namespace regen {

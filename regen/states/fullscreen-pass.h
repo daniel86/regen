@@ -1,9 +1,8 @@
 #ifndef REGEN_FULLSCREEN_PASS_H_
 #define REGEN_FULLSCREEN_PASS_H_
 
-#include <regen/states/state.h>
-#include <regen/states/state-node.h>
-#include <regen/states/state-configurer.h>
+#include <regen/scene/state.h>
+#include <regen/scene/state-configurer.h>
 #include "regen/shader/shader-state.h"
 #include <regen/objects/primitives/rectangle.h>
 

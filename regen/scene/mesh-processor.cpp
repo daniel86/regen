@@ -1,4 +1,6 @@
 #include "mesh-processor.h"
+
+#include "regen/objects/composite-mesh.h"
 #include "regen/shapes/lod-state.h"
 
 using namespace regen::scene;

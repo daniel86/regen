@@ -1,7 +1,7 @@
 #ifndef REGEN_CULL_SHAPE_H_
 #define REGEN_CULL_SHAPE_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/buffer/ssbo.h"
 #include "regen/states/model-transformation.h"
 #include "spatial-index.h"

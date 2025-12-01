@@ -1,7 +1,7 @@
 #ifndef REGEN_PREFIX_SCAN_H
 #define REGEN_PREFIX_SCAN_H
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/buffer/ssbo.h"
 #include "compute-pass.h"
 

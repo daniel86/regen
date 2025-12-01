@@ -1,7 +1,7 @@
 #ifndef FEEDBACK_STATE_H_
 #define FEEDBACK_STATE_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include <regen/buffer/vbo.h>
 
 namespace regen {

@@ -1,7 +1,7 @@
 #ifndef REGEN_BUFFER_CONTAINER_H_
 #define REGEN_BUFFER_CONTAINER_H_
 
-#include "regen/states/state.h"
+#include "regen/scene/state.h"
 #include "ubo.h"
 #include "tbo.h"
 #include "regen/textures/texture-buffer.h"

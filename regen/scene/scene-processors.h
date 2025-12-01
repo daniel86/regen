@@ -8,8 +8,8 @@
 #ifndef REGEN_SCENE_INPUT_PROCESSORS_H_
 #define REGEN_SCENE_INPUT_PROCESSORS_H_
 
-#include <regen/states/state.h>
-#include <regen/states/state-node.h>
+#include <regen/scene/state.h>
+#include <regen/scene/state-node.h>
 #include <regen/scene/scene-input.h>
 
 namespace regen {

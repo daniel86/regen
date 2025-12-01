@@ -7,9 +7,7 @@
 #include "star-map.h"
 #include "regen/utility/filesystem.h"
 #include "darkness.h"
-
-#include <regen/states/depth-state.h>
-#include <regen/states/state-configurer.h>
+#include "regen/scene/state-configurer.h"
 
 using namespace regen;
 

@@ -1,6 +1,6 @@
 #include "impostor-billboard.h"
 #include "regen/scene/resource-manager.h"
-#include "regen/states/state-configurer.h"
+#include "../../scene/state-configurer.h"
 
 using namespace regen;
 

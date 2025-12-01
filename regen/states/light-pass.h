@@ -1,7 +1,7 @@
 #ifndef REGEN_LIGHT_PASS_H_
 #define REGEN_LIGHT_PASS_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/shader/shader-state.h"
 #include <regen/objects/mesh.h>
 #include <regen/camera/light-camera.h>

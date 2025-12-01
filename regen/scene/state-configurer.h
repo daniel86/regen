@@ -8,8 +8,8 @@
 #ifndef STATE_CONFIGURER_H_
 #define STATE_CONFIGURER_H_
 
-#include <regen/states/state-node.h>
-#include <regen/states/state.h>
+#include <regen/scene/state-node.h>
+#include <regen/scene/state.h>
 #include <regen/textures/texture-state.h>
 #include "regen/shader/shader-state.h"
 #include "regen/shader/shader-input.h"

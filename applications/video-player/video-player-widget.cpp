@@ -5,9 +5,9 @@
 #include <regen/textures/texture-state.h>
 #include "regen/shader/shader-state.h"
 #include "regen/textures/fbo-state.h"
-#include <regen/states/blit-state.h>
+#include <../../regen/gl-types/blit-state.h>
 #include <regen/objects/primitives/rectangle.h>
-#include <regen/states/state-configurer.h>
+#include <../../regen/scene/state-configurer.h>
 
 #include <QtWidgets/QFileDialog>
 #include <QtGui/QMouseEvent>

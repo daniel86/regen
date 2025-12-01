@@ -1,7 +1,4 @@
 #include "scene-loader.h"
-#include "regen/states/blit-state.h"
-#include "regen/states/depth-state.h"
-#include "regen/states/tesselation-state.h"
 #include "regen/scene/animation-processor.h"
 #include "regen/scene/shape-processor.h"
 #include "regen/scene/debug-node-processor.h"
@@ -13,14 +10,16 @@
 #include "regen/effects/bloom-pass.h"
 #include "regen/scene/node-processor.h"
 #include "regen/states/direct-shading.h"
-#include "regen/states/stencil-state.h"
-#include "regen/states/alpha-state.h"
 #include <regen/scene/mesh-processor.h>
 #include <regen/scene/loadable-input.h>
 #include <regen/scene/shader-define-processor.h>
 
 #include "regen/behavior/skeleton/bone-controller.h"
 #include "regen/behavior/world/body-part.h"
+#include "regen/gl-types/alpha-state.h"
+#include "regen/gl-types/blit-state.h"
+#include "regen/gl-types/stencil-state.h"
+#include "regen/gl-types/tesselation-state.h"
 #include "regen/states/horizon-divider.h"
 
 using namespace regen::scene;

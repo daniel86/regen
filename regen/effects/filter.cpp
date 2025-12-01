@@ -1,6 +1,4 @@
-#include <regen/states/state-configurer.h>
 #include <regen/textures/texture.h>
-
 #include "filter.h"
 
 using namespace regen;

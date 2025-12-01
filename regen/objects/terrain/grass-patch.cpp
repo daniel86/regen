@@ -1,7 +1,7 @@
 #include "grass-patch.h"
 #include "regen/textures/texture-loader.h"
 #include "regen/objects/composite-mesh.h"
-#include "regen/states/alpha-state.h"
+#include "../../gl-types/alpha-state.h"
 
 using namespace regen;
 

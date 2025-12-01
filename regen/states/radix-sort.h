@@ -1,7 +1,7 @@
 #ifndef REGEN_RADIX_SORT_GPU_H
 #define REGEN_RADIX_SORT_GPU_H
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "compute-pass.h"
 
 namespace regen {

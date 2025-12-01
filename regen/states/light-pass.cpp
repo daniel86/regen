@@ -1,4 +1,3 @@
-#include <regen/states/state-configurer.h>
 #include <regen/objects/primitives/box.h>
 #include <regen/objects/primitives/rectangle.h>
 

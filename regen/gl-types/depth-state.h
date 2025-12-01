@@ -8,7 +8,7 @@
 #ifndef REGEN_DEPTH_STATE_H_
 #define REGEN_DEPTH_STATE_H_
 
-#include <regen/states/atomic-states.h>
+#include "atomic-states.h"
 
 namespace regen {
 	/**

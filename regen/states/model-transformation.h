@@ -3,7 +3,7 @@
 
 #include <regen/av/audio.h>
 #include <regen/math/quaternion.h>
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/buffer/buffer-container.h"
 #include "regen/buffer/position-reader.h"
 

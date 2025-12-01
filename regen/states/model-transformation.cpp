@@ -4,6 +4,7 @@
 #include "../simulation/boids-cpu.h"
 #include "../simulation/boids-gpu.h"
 #include "regen/animation/transform-animation.h"
+#include "regen/scene/resource-manager.h"
 #include "regen/scene/value-generator.h"
 #include "regen/textures/height-map.h"
 

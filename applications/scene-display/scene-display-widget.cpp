@@ -32,7 +32,7 @@ using namespace std;
 #include "../../regen/simulation/impulse-controller.h"
 #include "../../regen/behavior/animal-controller.h"
 #include "regen/av/video-recorder.h"
-#include "regen/states/blit-state.h"
+#include "../../regen/gl-types/blit-state.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 

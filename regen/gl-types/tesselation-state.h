@@ -8,7 +8,7 @@
 #ifndef TESSELATION_STATE_H_
 #define TESSELATION_STATE_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 
 #include <GL/glew.h>
 #include <regen/math/vector.h>

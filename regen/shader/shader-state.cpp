@@ -12,7 +12,7 @@
 #include "regen/shader/includer.h"
 
 #include "shader-state.h"
-#include "regen/states/state-configurer.h"
+#include "../scene/state-configurer.h"
 
 using namespace regen;
 

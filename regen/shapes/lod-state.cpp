@@ -1,4 +1,4 @@
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 #include "lod-state.h"
 
 #include "aabb.h"

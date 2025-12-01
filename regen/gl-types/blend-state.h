@@ -8,7 +8,7 @@
 #ifndef __BLEND_STATE_H_
 #define __BLEND_STATE_H_
 
-#include <regen/states/atomic-states.h>
+#include "atomic-states.h"
 
 namespace regen {
 	/**

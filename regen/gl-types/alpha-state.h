@@ -1,7 +1,7 @@
 #ifndef REGEN_ALPHA_STATE_H_
 #define REGEN_ALPHA_STATE_H_
 
-#include <regen/states/atomic-states.h>
+#include <regen/gl-types/atomic-states.h>
 
 namespace regen {
 	/**

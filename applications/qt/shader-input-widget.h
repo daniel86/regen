@@ -7,7 +7,7 @@
 #include <regen/regen.h>
 #include "regen/shader/shader-input.h"
 #include <regen/animation/animation.h>
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 #include <QTreeWidgetItem>
 #include "qt-application.h"
 #include "qt/ui_shader-input-editor.h"

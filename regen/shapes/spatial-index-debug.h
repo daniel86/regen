@@ -1,12 +1,12 @@
 #ifndef REGEN_SPATIAL_INDEX_DEBUG_H
 #define REGEN_SPATIAL_INDEX_DEBUG_H
 
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 
 #include "aabb.h"
 #include "obb.h"
 #include "regen/shader/shader-state.h"
-#include "regen/states/state-configurer.h"
+#include "../scene/state-configurer.h"
 #include "spatial-index.h"
 #include "regen/utility/debug-interface.h"
 

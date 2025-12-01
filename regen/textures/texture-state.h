@@ -8,9 +8,11 @@
 #ifndef TEXTURE_NODE_H_
 #define TEXTURE_NODE_H_
 
-#include <regen/states/state.h>
-#include <regen/states/blend-state.h>
+#include <regen/scene/state.h>
 #include <regen/textures/texture.h>
+
+#include "regen/gl-types/blend-state.h"
+#include "regen/scene/scene-loader.h"
 #include "regen/shader/shader-function.h"
 
 namespace regen {

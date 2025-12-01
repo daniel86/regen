@@ -1,7 +1,8 @@
 #include "cloud-layer.h"
 
 #include <regen/external/osghimmel/noise.h>
-#include <regen/states/state-configurer.h>
+
+#include "regen/scene/state-configurer.h"
 
 using namespace regen;
 

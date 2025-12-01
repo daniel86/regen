@@ -1,11 +1,12 @@
 #ifndef REGEN_COMPUTE_PASS_H_
 #define REGEN_COMPUTE_PASS_H_
 
-#include <regen/states/state.h>
-#include <regen/states/state-node.h>
-#include <regen/states/state-configurer.h>
+#include <regen/scene/state.h>
+#include <regen/scene/state-node.h>
 #include "regen/shader/shader-state.h"
 #include <regen/states/compute-state.h>
+
+#include "regen/scene/state-configurer.h"
 
 namespace regen {
 	/**

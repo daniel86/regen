@@ -3,7 +3,7 @@
 
 #include <regen/states/model-transformation.h>
 #include <regen/camera/camera.h>
-#include <regen/states/state-node.h>
+#include <regen/scene/state-node.h>
 
 namespace regen {
 	/**

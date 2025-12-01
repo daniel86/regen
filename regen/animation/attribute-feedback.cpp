@@ -1,6 +1,6 @@
 #include "attribute-feedback.h"
 #include "regen/objects/composite-mesh.h"
-#include "regen/states/state-configurer.h"
+#include "../scene/state-configurer.h"
 
 using namespace regen;
 

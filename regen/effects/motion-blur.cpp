@@ -1,9 +1,8 @@
 
 #include <regen/utility/string-util.h>
-#include <regen/states/atomic-states.h>
-#include <regen/states/depth-state.h>
-
 #include "motion-blur.h"
+
+#include "regen/gl-types/depth-state.h"
 
 using namespace regen;
 

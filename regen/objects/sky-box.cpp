@@ -8,11 +8,8 @@
 #include <climits>
 
 #include <regen/objects/primitives/rectangle.h>
-#include <regen/states/atomic-states.h>
-#include <regen/states/depth-state.h>
-#include <regen/states/state-configurer.h>
-
 #include "sky-box.h"
+#include "regen/gl-types/depth-state.h"
 
 using namespace regen;
 

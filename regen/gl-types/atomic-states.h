@@ -1,7 +1,7 @@
 #ifndef ATOMIC_STATES_H_
 #define ATOMIC_STATES_H_
 
-#include <regen/states/state.h>
+#include <regen/scene/state.h>
 #include "regen/textures/fbo.h"
 
 namespace regen {

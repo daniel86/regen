@@ -6,13 +6,12 @@
 #include <regen/camera/camera.h>
 #include <regen/states/light-state.h>
 #include <regen/objects/sky/sky-layer.h>
-#include <regen/states/blend-state.h>
 #include <regen/objects/primitives/rectangle.h>
 
 #include <regen/external/osghimmel/timef.h>
 #include "regen/utility/time.h"
 #include "astronomy.h"
-#include "regen/states/depth-state.h"
+#include "regen/gl-types/depth-state.h"
 
 namespace regen {
 	class Sky : public StateNode, public Animation, public Resource {
