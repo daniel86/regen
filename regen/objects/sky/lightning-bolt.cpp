@@ -387,9 +387,9 @@ void LightningBolt::createResources() {
 		brightness_->setVertexData(numVertices);
 		strikeIdx_->setVertexData(numVertices);
 
-		setInput(strikeIdx_);
-		setInput(brightness_);
 		setInput(pos_);
+		setInput(brightness_);
+		setInput(strikeIdx_);
 		updateVertexData();
 
 		// create single LOD level
