@@ -556,7 +556,6 @@
                 <node id="Lightning-Bolt0">
                     <input type="float" name="lightningWidth" value="0.6"/>
                     <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
-                    <define key="FAIL_XXX" value="TRUE"/>
                     <mesh id="lightning-mesh"/>
                 </node>
             </node>
