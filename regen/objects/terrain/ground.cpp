@@ -153,27 +153,31 @@ void Ground::addMask(
 void Ground::updatePatchSize() {
 	// compute number of patches in x/z direction based on map size
 	// and number of patches per row (this is used for direction with less extent)
-	// FIXME: last row of patches may not fit exactly! could be fixed by scaling model transform.
-	//         or patches could have width!=height
 	if (mapSize_.x > mapSize_.z) {
-		patchSize_ = mapSize_.z / static_cast<float>(numPatchesPerRow_);
+		patchSize_.y = mapSize_.z / static_cast<float>(numPatchesPerRow_);
+		// set number of patches
 		numPatches_.y = numPatchesPerRow_;
-		numPatches_.x = static_cast<uint32_t>(std::ceil(mapSize_.x / patchSize_));
+		numPatches_.x = static_cast<uint32_t>(std::ceil(mapSize_.x / patchSize_.y));
+		// adjust patch size in x direction to evenly cover the ground
+		patchSize_.x = patchSize_.y + fmod(mapSize_.x, patchSize_.y) / static_cast<float>(numPatches_.x);
 	}
 	else {
-		patchSize_ = mapSize_.x / static_cast<float>(numPatchesPerRow_);
+		patchSize_.x = mapSize_.x / static_cast<float>(numPatchesPerRow_);
+		// set number of patches
 		numPatches_.x = numPatchesPerRow_;
-		numPatches_.y = static_cast<uint32_t>(std::ceil(mapSize_.z / patchSize_));
+		numPatches_.y = static_cast<uint32_t>(std::ceil(mapSize_.z / patchSize_.x));
+		// adjust patch size in z direction to evenly cover the ground
+		patchSize_.y = patchSize_.x + fmod(mapSize_.z, patchSize_.x) / static_cast<float>(numPatches_.y);
 	}
-	rectangleConfig_.posScale = Vec3f(patchSize_, 1.0f, patchSize_);
+	rectangleConfig_.posScale = Vec3f(patchSize_.x, 1.0f, patchSize_.y);
 	REGEN_INFO("Ground num patches: " << numPatches_ << " with patch size: " << patchSize_);
 }
 
 void Ground::updateGroundPatches() {
-	auto numPatches = numPatches_.x * numPatches_.y;
-	float offsetX = mapCenter_.x - (mapSize_.x / 2.0f);
-	float offsetZ = mapCenter_.z - (mapSize_.z / 2.0f);
-	auto patchHalfSize = patchSize_ / 2.0f;
+	const auto numPatches = numPatches_.x * numPatches_.y;
+	const float offsetX = mapCenter_.x - (mapSize_.x / 2.0f);
+	const float offsetZ = mapCenter_.z - (mapSize_.z / 2.0f);
+	const auto patchHalfSize = patchSize_ / 2.0f;
 	uint32_t tfIndex = 0;
 
 	tf_->set_numInstances(numPatches);
@@ -181,8 +185,8 @@ void Ground::updateGroundPatches() {
 	auto tfData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 	for (uint32_t xIdx=0; xIdx<numPatches_.x; ++xIdx) {
 		for (uint32_t zIdx=0; zIdx<numPatches_.y; ++zIdx) {
-			auto xPos = offsetX + (static_cast<float>(xIdx) * patchSize_) + patchHalfSize;
-			auto zPos = offsetZ + (static_cast<float>(zIdx) * patchSize_) + patchHalfSize;
+			const auto xPos = offsetX + (static_cast<float>(xIdx) * patchSize_.x) + patchHalfSize.x;
+			const auto zPos = offsetZ + (static_cast<float>(zIdx) * patchSize_.y) + patchHalfSize.y;
 			auto &patchTF = tfData.w[tfIndex++];
 			patchTF.x = xPos;
 			patchTF.y = mapCenter_.y - mapSize_.y * 0.5f;
@@ -197,10 +201,10 @@ void Ground::updateAttributes() {
 	// update bounding box
 	Vec3f minPos = rectangleConfig_.translation;
 	Vec3f maxPos = rectangleConfig_.translation;
-	minPos.x -= patchSize_ * 0.5f;
-	minPos.z -= patchSize_ * 0.5f;
-	maxPos.x += patchSize_ * 0.5f;
-	maxPos.z += patchSize_ * 0.5f;
+	minPos.x -= patchSize_.x * 0.5f;
+	minPos.z -= patchSize_.y * 0.5f;
+	maxPos.x += patchSize_.x * 0.5f;
+	maxPos.z += patchSize_.y * 0.5f;
 	minPos.y -= skirtSize_;
 	maxPos.y += 0.1f*mapSize_.y;
 	minPos.y -= 0.1f*mapSize_.y;

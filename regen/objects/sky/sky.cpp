@@ -18,12 +18,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 		  Animation(true, true),
 		  cam_(cam),
 		  screen_(screen) {
-	ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
-	depth->set_depthFunc(GL_LEQUAL);
-	depth->set_depthRange(1.0, 1.0);
-	depth->set_useDepthWrite(false);
-	depth->set_useDepthTest(true);
-	state()->joinStates(depth);
+	depth_ = ref_ptr<DepthState>::alloc();
+	depth_->set_depthFunc(GL_LEQUAL);
+	depth_->set_depthRange(1.0, 1.0);
+	depth_->set_useDepthWrite(false);
+	depth_->set_useDepthTest(true);
 
 	noonColor_ = Vec3f(0.5, 0.5, 0.5);
 	dawnColor_ = Vec3f(0.2, 0.15, 0.15);
@@ -97,11 +96,8 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	setAnimationName("sky");
 	// make sure the client buffer data is initialized
 	Sky::cpuUpdate(0.0f);
-	// Note: disabled because animation manager allways activates this state,
-	//       but we do not need to if sky does not need update.
-	// TODO: Make the "idle" state part of animation, then animation manager can
-	//       skip activation of this state.
-	//joinAnimationState(state());
+
+	joinAnimationState(state());
 	GL_ERROR_LOG();
 }
 
@@ -244,11 +240,13 @@ void Sky::gpuUpdate(RenderState *rs, double dt) {
 	if (!needsUpdate) {
 		return;
 	}
-	state_->enable(rs);
+	//state_->enable(rs);
+	depth_->enable(rs);
 	for (auto &layer: layer_) {
 		layer->updateSky(rs, dt);
 	}
-	state_->disable(rs);
+	depth_->disable(rs);
+	//state_->disable(rs);
 }
 
 SkyView::SkyView(const ref_ptr<Sky> &sky)
@@ -268,6 +266,7 @@ void SkyView::addLayer(const ref_ptr<SkyLayer> &layer) {
 void SkyView::traverse(RenderState *rs) {
 	if (!isHidden_ && !state_->isHidden() && !layer_.empty()) {
 		sky_->state()->enable(rs);
+		sky_->depth_->enable(rs);
 		state()->enable(rs);
 
 		// render first layer without blending
@@ -287,6 +286,7 @@ void SkyView::traverse(RenderState *rs) {
 		}
 
 		state()->disable(rs);
+		sky_->depth_->disable(rs);
 		sky_->state()->disable(rs);
 	}
 }

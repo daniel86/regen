@@ -560,6 +560,11 @@
             <input type="float" name="uvNoiseScale" value="0.5"/>
             <input type="float" name="softParticleScale" value="30.0"/>
             <input type="float" name="lifetimeSmoothstep" value="1.0"/>
+            <!-- Apply fogging based on distance. -->
+            <input type="float" name="fogDensity" value="1.0"/>
+            <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" min="0.0" max="{{far-plane}}"/>
+            <input type="vec3" name="fogColor" value="0.2,0.33,0.3" schema="color"/>
+            <input type="vec2" name="farDistance" value="75.0,{{far-plane}}"/>
             <node id="Particle-Density0">
                 <mesh id="test-particles0" shader="regen.particles.sprite.density"/>
             </node>
@@ -752,13 +757,6 @@
         </view>
 
         <!-- render particles into a separate buffer -->
-        <!-- FIXME: Depth-Fog is not applied to particles, and emission! difficulty is that depth is not available.
-                    Earlier a demo had a dedicated T-Buffer next to G-buffer that also stored depth, that could
-                    be the approach to fix it.
-                    However, particles use their own buffer, and emission is part of g-buffer.
-                    Also, emission is more difficult: it is generated with blurring from multiple mips.
-                    Will be difficult to get the depth buffer for that.
-        -->
         <node import="Particle-Update-FBO"/>
         <!-- render transparent objects -->
         <node id="Transparent-Pass">
@@ -857,7 +855,7 @@
                     <bloom fbo="g-buffer" attachment="1" bloom-texture="emission-map-bloom"/>
                 </node>
                 <node id="Shaded Scene">
-                    <!-- TODO: this blit could be avoided by rendering emission into attachment 1 of g-buffer
+                    <!-- NOTE: this blit could be avoided by rendering emission into attachment 1 of g-buffer
                                and then computing fog in attachment 4. Or switch back to GL blending instead of
                                blending in the shader. -->
                     <blit src-fbo="g-buffer" src-attachment="1"

@@ -44,6 +44,8 @@ namespace regen {
 		std::map<QTreeWidgetItem *, ref_ptr<StateNode>> nodes_;
 		std::map<QTreeWidgetItem *, const Animation*> animations_;
 
+		std::map<ShaderInput*, QWidget*> inputWidgets_;
+
 		void updateInitialValue(ShaderInput *x);
 
 		bool handleState(

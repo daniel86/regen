@@ -17,6 +17,8 @@ namespace regen {
 
 		QSlider *createSlider(int vectorIndex, bool isExternal = true);
 
+		void initializeValue();
+
 	public slots:
 
 		void valueUpdated();

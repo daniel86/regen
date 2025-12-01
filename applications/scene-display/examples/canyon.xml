@@ -872,7 +872,7 @@
 
         <!-- Copy G-buffer albedo into the first attachment such that we can run water shader
              only locally where water is visible. -->
-        <!-- TODO: The blit below is a bit expensive, and not needed where water is visible!
+        <!-- NOTE: The blit below is a bit expensive, and not needed where water is visible!
                    However, the depth pass below cannot be moved before the water rendering,
                    as it needs to sample the depth buffer.
                    It could be that doing a stencil only pass first, then doing

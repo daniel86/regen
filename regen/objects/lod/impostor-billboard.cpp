@@ -208,7 +208,10 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create the snapshot FBO
-		// TODO: Add support for depth correction.
+		// TODO: Add support for depth correction?
+		//       - Depth texture is already created when snapshot FBO is created.
+		//       - This should be given to draw shader, there it must be sampled, and gl_FragCoord.z
+		//         must be adjusted accordingly, which is very expensive.
 		auto fbo = ref_ptr<FBO>::alloc(snapshotWidth_, snapshotHeight_, numSnapshotViews_);
 		std::vector<GLenum> drawAttachments;
 

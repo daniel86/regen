@@ -75,6 +75,31 @@ VectorWidget::VectorWidget(const RegenWidgetData &data, QWidget *parent)
 	ignoreValueChanges_ = false;
 }
 
+void VectorWidget::initializeValue() {
+	auto mapped = input_->mapClientDataRaw(BUFFER_GPU_READ);
+	const byte *value = mapped.r;
+	const uint32_t count = input_->valsPerElement();
+	QSlider *valueWidgets[4] =
+			{ui_.xValueEdit, ui_.yValueEdit, ui_.zValueEdit, ui_.wValueEdit};
+	QLineEdit *valueTexts[4] =
+			{ui_.xValueText, ui_.yValueText, ui_.zValueText, ui_.wValueText};
+
+	ignoreValueChanges_ = true;
+	for (uint32_t i = 0; i < count; ++i) {
+		float x = readInputValue(input_, value, i);
+		valueWidgets[i]->setValue(static_cast<int>(x * 1000.0f));
+		valueTexts[i]->setText(QString::number(x));
+	}
+	ignoreValueChanges_ = false;
+
+	// set value of external sliders
+	for (uint32_t i = 0; i < count; ++i) {
+		for (auto *slider: externalSlider_[i]) {
+			slider->setValue(valueWidgets[i]->value());
+		}
+	}
+}
+
 QSlider *VectorWidget::createSlider(int componentIndex, bool isExternal) {
 	auto mapped = input_->mapClientDataRaw(BUFFER_GPU_READ);
 	const byte *value = mapped.r;

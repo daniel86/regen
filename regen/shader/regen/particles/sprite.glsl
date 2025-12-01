@@ -152,7 +152,7 @@ void main() {
     opacity *= color.a;
     #endif
     #ifdef HAS_fogDistance
-    opacity *= fogIntensity(distance(P, in_cameraPosition.xyz));
+    opacity *= 1.0 - fogIntensity(distance(P, in_cameraPosition.xyz));
     #endif
     out_density = opacity;
 #else // HAS_DENSITY_OUTPUT
@@ -250,5 +250,6 @@ void main()
 #ifdef HAS_brightness
     color.rgb *= in_brightness;
 #endif
+
     out_color = color;
 }

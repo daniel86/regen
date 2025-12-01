@@ -279,7 +279,7 @@ namespace regen {
 
 		Vec2ui numPatches_ = Vec2ui::one();
 		uint32_t numPatchesPerRow_ = 1;
-		float patchSize_ = 0.0f;
+		Vec2f patchSize_ = Vec2f::zero();
 
 		ref_ptr<Material> groundMaterial_;
 		std::vector<MaterialConfig> materialConfigs_;

@@ -12,6 +12,7 @@
 #include <regen/external/osghimmel/timef.h>
 #include "regen/utility/time.h"
 #include "astronomy.h"
+#include "regen/states/depth-state.h"
 
 namespace regen {
 	class Sky : public StateNode, public Animation, public Resource {
@@ -97,6 +98,7 @@ namespace regen {
 		ref_ptr<Astronomy> astro_;
 
 		std::list<ref_ptr<SkyLayer> > layer_;
+		ref_ptr<DepthState> depth_;
 
 		ref_ptr<Light> sun_;
 		ref_ptr<Light> moon_;

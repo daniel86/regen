@@ -801,7 +801,7 @@
                 <fbo id="screen-density" draw-buffers="1"/>
                 <texture name="heightTexture" id="ground-height" map-to="HEIGHT"
                          mapping="xz_plane" blend-mode="ADD" blend-factor="{{map-height}}"/>
-                <!-- TODO: output density only -->
+                <define key="OUTPUT_TYPE" value="WHITE"/>
                 <mesh id="ground-path"/>
             </node>
             <node id="Path-Mask-Blur">
@@ -872,9 +872,8 @@
         </shape>
         <shape id="weapon-shape" index="1" cull="1" type="obb"
                mesh-id="dwarf" mesh-index="0" transform-id="dwarf-tf">
-            <!-- FIXME: Shape does not move with bones, and is wrong then.
-                But we need to use separate shape for hiding/drawing weapon.
-            -->
+            <!-- FIXME: Shape of weapon does not move with bones, and is wrong then.
+                   But we need to use separate shape for hiding/drawing weapon.  -->
         </shape>
         <object id="dwarf" type="character" mesh="dwarf" mesh-index="1" radius="5.0">
             <!--

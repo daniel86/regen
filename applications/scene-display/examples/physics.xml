@@ -59,7 +59,7 @@
         <depth pixel-size="24"/>
     </fbo>
     <fbo id="cube-emission-fbo"
-         size-mode="abs" size="256,256,6"
+         size-mode="abs" size="128,128,6"
          target="TEXTURE_CUBE_MAP"
          sampler-type="samplerCube"
          pixel-type="FLOAT" pixel-size="24">
@@ -80,16 +80,6 @@
         <texture id="normal"/>
         <depth pixel-size="24"/>
     </fbo>
-    <!--
-    <fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
-      <depth pixel-size="24" pixel-type="FLOAT"
-         wrapping="REPEAT"
-         min-filter="NEAREST" mag-filter="NEAREST"
-         compare-mode="COMPARE_R_TO_TEXTURE"
-         compare-function="LEQUAL"
-         sampler-type="sampler2DShadow" />
-    </fbo>
-    -->
     <!-- Textures -->
     <texture id="reflector-noise" type="noise" preset="perlin" noise-scale="4.0"
             size="2048.0,2048.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
@@ -122,19 +112,6 @@
             tf="sphere1-tf">
         <culling index="main-index" />
     </camera>
-    <!--
-    <camera id="spot-camera" light="spot-light" camera="main-camera" />
-    -->
-    <!-- Lights -->
-    <!--
-    <light id="spot-light"
-           type="SPOT"
-           position="3.0,8.0,4.0"
-           direction="-0.37,-0.95,-0.46"
-           diffuse="0.2,0.45,0.435"
-           radius="10.0,21.0"
-           cone-angles="11.5,25.5" />
-    -->
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0">
         <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.05" lod="4"/>
@@ -275,12 +252,6 @@
             <node import="Paraboloid-Background-Pass"/>
             <node import="Cube-Reflector"/>
         </node>
-        <view id="Paraboloid Reflection -- Result">
-            <fbo id="SCREEN"/>
-            <texture name="inputTexture" fbo="paraboloid-reflection-buffer" attachment="1"/>
-            <input type="int" name="arrayTextureSize" value="2"/>
-            <fullscreen-pass shader="regen.filter.sampling.array"/>
-        </view>
     </node>
 
     <!--**************************-->
@@ -317,11 +288,6 @@
             <node import="Cube-Background-Pass"/>
             <node import="Paraboloid-Reflector"/>
         </node>
-        <view id="Cube Reflection -- Result">
-            <fbo id="SCREEN"/>
-            <texture name="inputTexture" fbo="cube-reflection-buffer" attachment="1"/>
-            <fullscreen-pass shader="regen.filter.sampling.cube"/>
-        </view>
     </node>
 
     <!--**************************-->
@@ -460,27 +426,6 @@
         </node>
     </node>
 
-    <node id="Cube-Emission-Update">
-        <node id="Cube-Emission-Depth">
-            <depth test="1" write="1"/>
-            <fbo id="cube-emission-fbo" clear-depth="1"/>
-            <texture name="inputTexture" fbo="cube-reflection-buffer" attachment="depth"/>
-            <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
-        </node>
-        <node id="Cube-Emission-Draw">
-            <fbo id="cube-emission-fbo" clear-buffers="0" draw-buffers="0"/>
-            <node import="Emission-Draw" />
-        </node>
-        <node id="Cube-Emission-Blur">
-            <input type="int" name="numBlurPixels" value="9"/>
-            <input type="float" name="blurSigma" value="5.0"/>
-            <filter-sequence id="cube-emission-color" fbo="cube-emission-fbo" attachment="0">
-                <filter shader="regen.filter.blur.horizontal"/>
-                <filter shader="regen.filter.blur.vertical"/>
-            </filter-sequence>
-        </node>
-    </node>
-
     <node id="Emission-Draw-Lightning-Bolt">
         <depth test="1" write="0"/>
         <input type="float" name="lightningWidth" value="0.15"/>
@@ -498,14 +443,6 @@
         <node import="Emission-Draw-Lightning-Bolt" />
         <node import="Emission-Draw-Glow">
             <texture name="inputTexture" id="emission-color"/>
-        </node>
-    </node>
-
-    <node id="Cube-Emission-Draw">
-        <blend mode="alpha"/>
-        <node import="Emission-Draw-Lightning-Bolt" />
-        <node import="Emission-Draw-Glow">
-            <texture name="inputTexture" id="cube-emission-color"/>
         </node>
     </node>
 
@@ -541,14 +478,6 @@
         <cull mode="FRONT"/>
         <define key="OUTPUT_TYPE" value="DEPTH"/>
 
-        <!--
-          <node id="Spot-Shadow">
-            <fbo id="spot-shadow" clear-depth="1" />
-            <camera id="spot-camera" />
-            <node import="Shadow-Caster" />
-          </node>
-        -->
-
         <node id="Sun-Shadow">
             <fbo id="sun-shadow" clear-depth="1"/>
             <camera id="sun-camera"/>
@@ -574,14 +503,6 @@
                        shadow-attachment="depth"
                        shadow-camera="sun-camera"/>
             </light-pass>
-            <!--
-                    <light-pass type="SPOT" ambient="0" shader="regen.shading.deferred.spot">
-                        <light id="spot-light"
-                            shadow-buffer="spot-shadow"
-                            shadow-attachment="depth"
-                            shadow-camera="spot-camera" />
-                     </light-pass>
-            -->
         </node>
     </node>
 
@@ -596,14 +517,6 @@
         </node>
 
         <node import="G-Buffer-Emission-Update"/>
-        <view id="Emission-Color">
-            <blit src-fbo="emission-fbo" src-attachment="0" dst-fbo="SCREEN"/>
-        </view>
-        <view id="Emission-Blur">
-            <fbo id="SCREEN"/>
-            <texture name="inputTexture" id="emission-color"/>
-            <fullscreen-pass shader="regen.filter.sampling"/>
-        </view>
 
         <node id="Transparent-Pass">
             <blend mode="add"/>
@@ -629,7 +542,34 @@
                   when copies are created.
         -->
         <!--
-        <node import="Cube-Emission-Update"/>
+        <node id="Cube-Emission-Update">
+            <node id="Cube-Emission-Depth">
+                <depth test="1" write="1"/>
+                <fbo id="cube-emission-fbo" clear-depth="1"/>
+                <texture name="inputTexture" fbo="cube-reflection-buffer" attachment="depth"/>
+                <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
+            </node>
+            <node id="Cube-Emission-Draw">
+                <fbo id="cube-emission-fbo" clear-buffers="0" draw-buffers="0"/>
+                <depth test="1" write="0"/>
+                <blend mode="lighten"/>
+                <node id="Lightning-Bolt0">
+                    <input type="float" name="lightningWidth" value="0.6"/>
+                    <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
+                    <define key="FAIL_XXX" value="TRUE"/>
+                    <mesh id="lightning-mesh"/>
+                </node>
+            </node>
+            <node id="Cube-Emission-Blur">
+                <input type="int" name="numBlurPixels" value="9"/>
+                <input type="float" name="blurSigma" value="5.0"/>
+                <filter-sequence id="cube-emission-color" fbo="cube-emission-fbo" attachment="0">
+                    <filter shader="regen.filter.blur.horizontal"/>
+                    <filter shader="regen.filter.blur.vertical"/>
+                </filter-sequence>
+            </node>
+        </node>
+
         <view id="Cube-Emission-Color">
             <fbo id="SCREEN"/>
             <texture name="inputTexture" fbo="cube-emission-fbo" attachment="0"/>
@@ -643,7 +583,13 @@
         <node id="Cube-Transparent-Pass">
             <blend mode="add"/>
             <depth test="1" write="0"/>
-            <node import="Cube-Emission-Draw" />
+            <node id="Cube-Emission-Draw">
+                <blend mode="alpha"/>
+                <node import="Emission-Draw-Lightning-Bolt" />
+                <node import="Emission-Draw-Glow">
+                    <texture name="inputTexture" id="cube-emission-color"/>
+                </node>
+            </node>
         </node>
         -->
     </node>
@@ -653,19 +599,6 @@
             <depth test="1" write="0"/>
             <sky id="sky"/>
         </node>
-        <!--
-        <node import="Rain">
-            <texture name="depthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
-        </node>
-        -->
-        <!--
-        <node import="Paraboloid-Emission-Update"/>
-        <node id="Paraboloid-Transparent-Pass">
-            <blend mode="add"/>
-            <depth test="1" write="0"/>
-            <node import="Paraboloid-Emission-Draw" />
-        </node>
-        -->
     </node>
 
     <node id="Post-Pass">
@@ -682,6 +615,36 @@
 
     <!--**************************-->
     <!--**************************-->
+
+    <node id="Debug-Views">
+        <view id="Paraboloid Reflection">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" fbo="paraboloid-reflection-buffer" attachment="1"/>
+            <input type="int" name="arrayTextureSize" value="2"/>
+            <fullscreen-pass shader="regen.filter.sampling.array"/>
+        </view>
+        <view id="Cube Reflection">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" fbo="cube-reflection-buffer" attachment="1"/>
+            <fullscreen-pass shader="regen.filter.sampling.cube"/>
+        </view>
+        <view id="Emission-Color">
+            <blit src-fbo="emission-fbo" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Emission-Blur">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="emission-color"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+        <view id="Bullet-Debug">
+            <node import="bullet-debug">
+                <fbo id="g-buffer" draw-buffers="0"/>
+            </node>
+            <node>
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </node>
+        </view>
+    </node>
 
     <node id="root">
         <resource id="sky"/>
@@ -741,15 +704,8 @@
 
                 <node import="Post-Pass"/>
             </node>
+            <node import="Debug-Views"/>
 
-            <view id="Bullet-Debug">
-                <node import="bullet-debug">
-                    <fbo id="g-buffer" draw-buffers="0"/>
-                </node>
-                <node>
-                    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
-                </node>
-            </view>
             <node import="GUI-Pass">
                 <fbo id="g-buffer" draw-buffers="0"/>
             </node>

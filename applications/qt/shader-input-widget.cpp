@@ -60,8 +60,37 @@ void ShaderInputWidget::resetParameter(ShaderInput *input) {
 	}
 	byte *initialValue = initialValue_[input];
 	input->writeVertex(0, initialValue);
-	// TODO: Only update the changed value.
-	activateValue(selectedItem_, selectedItem_);
+
+	// Find the corresponding widget and update it
+	if (auto &inputWidget = inputWidgets_[input]) {
+		auto &schema = input->schema();
+		switch (schema.semantics()) {
+			case InputSchema::COLOR: {
+				if (auto *colorWidget = dynamic_cast<ColorWidget *>(inputWidget)) {
+					colorWidget->initializeColor();
+				}
+				break;
+			}
+			case InputSchema::TEXTURE: {
+				//if (auto *textureWidget = dynamic_cast<TextureWidget *>(inputWidget)) {
+				//}
+				break;
+			}
+			case InputSchema::UNKNOWN:
+				if (dynamic_cast<TextureWidget *>(inputWidget) != nullptr) {
+					break;
+				}
+				// fall through
+			default: {
+				if (auto *vectorWidget = dynamic_cast<VectorWidget *>(inputWidget)) {
+					vectorWidget->initializeValue();
+				}
+				break;
+			}
+		}
+	} else {
+		REGEN_WARN("No widget found for input \"" << input->name() << "\".");
+	}
 }
 
 void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
@@ -387,6 +416,7 @@ bool ShaderInputWidget::addParameter(
             break;
     }
     addParameterWidget_(parameterWidget, namedInput, icon);
+	inputWidgets_[in.get()] = parameterWidget;
 
 	return true;
 }

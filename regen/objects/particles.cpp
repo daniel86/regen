@@ -319,7 +319,9 @@ void Particles::gpuUpdate(RenderState *rs, double dt) {
 	// Ping-Pong VBO references so that next feedback goes to other buffer.
 	updateIdx_ = nextIdx;
 
-	// TODO: Update bounding box every ~166 ms
+	// TODO: Update bounding box every ~166 ms.
+	//      Problem: No support yet for binding VBO as SSBO.
+	//      The current interface requires StagedBuffer.
 	/**
 	bbox_time_ += dt;
 	if (bbox_time_ > 166.0) {
