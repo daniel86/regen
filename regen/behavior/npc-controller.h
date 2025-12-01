@@ -3,7 +3,7 @@
 
 #include "behavior-tree.h"
 #include "../animation/bone-tree.h"
-#include "regen/states/model-transformation.h"
+#include "../objects/model-transformation.h"
 #include "regen/utility/indexed.h"
 #include "navigation/navigation-controller.h"
 #include "navigation/path-planner.h"

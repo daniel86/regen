@@ -1,10 +1,9 @@
 #ifndef REGEN_LIGHT_STATE_H
 #define REGEN_LIGHT_STATE_H
 
-#include <regen/states/model-transformation.h>
 #include <regen/camera/camera.h>
 #include <regen/math/vector.h>
-#include <regen/objects/primitives/cone.h>
+#include <regen/objects/model-transformation.h>
 #include <regen/animation/bone-tree.h>
 #include <regen/animation/animation.h>
 

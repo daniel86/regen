@@ -1,7 +1,7 @@
 #ifndef REGEN_BOUNDING_SHAPE_H_
 #define REGEN_BOUNDING_SHAPE_H_
 
-#include "regen/states/model-transformation.h"
+#include "../objects/model-transformation.h"
 #include "orthogonal-projection.h"
 
 namespace regen {

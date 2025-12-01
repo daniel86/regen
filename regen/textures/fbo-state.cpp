@@ -2,7 +2,7 @@
 #include "../gl-types/atomic-states.h"
 
 #include "fbo-state.h"
-#include "regen/states/screen-state.h"
+#include "screen-state.h"
 
 using namespace regen;
 

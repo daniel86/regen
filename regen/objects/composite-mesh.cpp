@@ -20,6 +20,7 @@
 #include "regen/objects/terrain/grass-patch.h"
 #include "silhouette-mesh.h"
 #include "primitives/blanket.h"
+#include "primitives/cone.h"
 #include "terrain/blanket-trail.h"
 #include "terrain/ground-path.h"
 

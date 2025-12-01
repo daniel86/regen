@@ -14,7 +14,7 @@
 #include "regen/camera/sorting.h"
 #include "regen/buffer/element-buffer.h"
 #include "regen/scene/state-config.h"
-#include "regen/states/material-state.h"
+#include "../textures/material-state.h"
 #include "regen/shapes/bounding-shape.h"
 
 namespace regen {

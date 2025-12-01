@@ -12,7 +12,6 @@
 
 #include <regen/objects/mesh.h>
 #include <regen/states/light-state.h>
-#include <regen/states/material-state.h>
 #include <regen/animation/animation.h>
 #include <regen/animation/bones.h>
 #include <regen/camera/camera.h>

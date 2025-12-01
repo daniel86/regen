@@ -2,6 +2,8 @@
 #include <regen/objects/primitives/rectangle.h>
 
 #include "light-pass.h"
+
+#include "regen/objects/primitives/cone.h"
 #include "regen/scene/shader-input-processor.h"
 
 using namespace regen;

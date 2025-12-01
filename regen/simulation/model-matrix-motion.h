@@ -3,7 +3,7 @@
 #define MODEL_MATRIX_H_
 
 #include <regen/animation/animation.h>
-#include <regen/states/model-transformation.h>
+#include <regen/objects/model-transformation.h>
 #include <regen/utility/ref-ptr.h>
 
 #include <btBulletDynamicsCommon.h>

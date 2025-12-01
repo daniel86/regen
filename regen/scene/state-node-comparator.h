@@ -1,7 +1,7 @@
 #ifndef STATE_NODE_COMPARATOR_H_
 #define STATE_NODE_COMPARATOR_H_
 
-#include <regen/states/model-transformation.h>
+#include <regen/objects/model-transformation.h>
 #include <regen/camera/camera.h>
 #include <regen/scene/state-node.h>
 

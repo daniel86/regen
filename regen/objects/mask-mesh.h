@@ -7,7 +7,7 @@
 #include "regen/objects/primitives/rectangle.h"
 #include <regen/textures/texture.h>
 #include <regen/textures/texture-state.h>
-#include <regen/states/model-transformation.h>
+#include <regen/objects/model-transformation.h>
 
 namespace regen {
 	/**

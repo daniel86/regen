@@ -2,7 +2,7 @@
 #define REGEN_GRASS_PATCH_H_
 
 #include <regen/objects/mask-mesh.h>
-#include <regen/states/model-transformation.h>
+#include <regen/objects/model-transformation.h>
 #include "regen/objects/silhouette-mesh.h"
 
 namespace regen {

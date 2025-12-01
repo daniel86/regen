@@ -4,7 +4,7 @@
 #include <regen/objects/primitives/skirt-quad.h>
 
 #include "regen/objects/primitives/blanket.h"
-#include "regen/states/material-state.h"
+#include "../../textures/material-state.h"
 #include "regen/textures/texture.h"
 #include "regen/textures/fbo-state.h"
 #include "regen/states/fullscreen-pass.h"

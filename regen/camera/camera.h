@@ -7,7 +7,7 @@
 #include <regen/math/matrix.h>
 #include <regen/shapes/frustum.h>
 #include <regen/objects/mesh.h>
-#include <regen/states/model-transformation.h>
+#include <regen/objects/model-transformation.h>
 #include "regen/buffer/ubo.h"
 #include "regen/objects/lod/lod-level.h"
 #include "regen/scene/screen.h"
