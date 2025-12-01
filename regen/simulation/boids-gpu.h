@@ -4,7 +4,7 @@
 #include "boid-simulation.h"
 #include "../animation/animation.h"
 #include "regen/buffer/bbox-buffer.h"
-#include "regen/states/compute-pass.h"
+#include "../compute/compute-pass.h"
 #include "regen/gl-types/queries/elapsed-time.h"
 
 namespace regen {

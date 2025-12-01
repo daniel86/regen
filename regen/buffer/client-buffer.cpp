@@ -1,5 +1,5 @@
 #include "client-buffer.h"
-#include "regen/utility/threading.h"
+#include "../compute/threading.h"
 #include "regen/utility/logging.h"
 #include "buffer-enums.h"
 #include <cstring>

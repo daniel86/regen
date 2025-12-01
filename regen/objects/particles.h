@@ -6,7 +6,7 @@
 #include "regen/buffer/bbox-buffer.h"
 #include "regen/shader/shader-state.h"
 #include "regen/gl-types/atomic-counter.h"
-#include "regen/states/compute-pass.h"
+#include "../compute/compute-pass.h"
 
 namespace regen {
 	/**

@@ -3,7 +3,7 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-#include <regen/utility/threading.h>
+#include <regen/compute/threading.h>
 #include "video-encoder.h"
 #include "regen/utility/logging.h"
 

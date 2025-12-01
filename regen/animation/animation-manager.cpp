@@ -2,7 +2,7 @@
 #include <time.h>
 #include <boost/thread.hpp>
 
-#include <regen/utility/threading.h>
+#include <regen/compute/threading.h>
 #include <regen/utility/logging.h>
 #include "animation-manager.h"
 

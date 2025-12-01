@@ -3,8 +3,9 @@
 
 #include <regen/scene/state.h>
 #include <regen/scene/state-node.h>
+
+#include "compute-state.h"
 #include "regen/shader/shader-state.h"
-#include <regen/states/compute-state.h>
 
 #include "regen/scene/state-configurer.h"
 

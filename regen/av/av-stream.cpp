@@ -6,7 +6,7 @@
  */
 
 #include <regen/config.h>
-#include <regen/utility/threading.h>
+#include <regen/compute/threading.h>
 
 #include "av-stream.h"
 

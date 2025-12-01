@@ -7,8 +7,8 @@
 #include "regen/buffer/ssbo.h"
 #include "regen/buffer/pbo.h"
 #include "regen/buffer/staging-buffer.h"
-#include "regen/states/compute-pass.h"
-#include "regen/states/radix-sort.h"
+#include "../compute/compute-pass.h"
+#include "../compute/radix-sort.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl-types/draw-command.h"
 

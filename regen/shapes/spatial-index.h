@@ -6,7 +6,7 @@
 #include <regen/shapes/hit-buffer.h>
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
-#include "regen/utility/radix-sort-cpu.h"
+#include "../compute/radix-sort-cpu.h"
 #include <regen/scene/loading-context.h>
 
 #include "regen/utility/aligned-array.h"

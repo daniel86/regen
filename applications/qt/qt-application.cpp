@@ -10,7 +10,7 @@
 
 #include <regen/config.h>
 #include <regen/animation/animation-manager.h>
-#include <regen/utility/threading.h>
+#include <../../regen/compute/threading.h>
 #include <regen/objects/text/font.h>
 
 #include "qt-application.h"

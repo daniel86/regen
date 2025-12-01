@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <regen/utility/logging.h>
-#include "threading.h"
+#include "../compute/threading.h"
 
 namespace regen {
 	/**
