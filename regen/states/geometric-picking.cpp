@@ -1,6 +1,6 @@
 #include "geometric-picking.h"
 #include "../gl-types/atomic-states.h"
-#include "feedback-state.h"
+#include "../gl-types/feedback-state.h"
 #include "regen/scene/node-processor.h"
 
 using namespace regen;

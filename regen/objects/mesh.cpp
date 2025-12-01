@@ -1,5 +1,5 @@
 #include <regen/utility/string-util.h>
-#include <regen/states/feedback-state.h>
+#include <../gl-types/feedback-state.h>
 
 #include "mesh.h"
 #include "regen/shapes/bounding-sphere.h"
