@@ -676,6 +676,12 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 	} else if (camType == "cube") {
 		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
 		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
+		// Set perspective parameters
+		cam->setPerspective(
+			1.0f, // aspect ratio is always 1 for cube map faces
+			90.0f, // fov is always 90 for cube map faces
+			input.getValue<float>("near", 0.1f),
+			input.getValue<float>("far", 100.0f));
 		if (tf.get()) {
 			cam->attachToPosition(tf);
 		}

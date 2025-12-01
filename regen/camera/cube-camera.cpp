@@ -42,9 +42,6 @@ CubeCamera::CubeCamera(int hiddenFacesMask)
 			shaderDefine(REGEN_STRING("SKIP_LAYER" << i), "1");
 		}
 	}
-
-	// TODO: make this configurable
-	setPerspective(1.0f, 90.0f, 0.1f, 100.0f);
 }
 
 bool CubeCamera::isCubeFaceVisible(int face) const {
