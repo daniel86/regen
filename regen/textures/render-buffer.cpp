@@ -7,18 +7,23 @@ RenderBuffer::RenderBuffer(uint32_t numBuffers)
 		  format_(GL_RGBA) {
 }
 
-void RenderBuffer::set_format(GLenum format) { format_ = format; }
-
-void RenderBuffer::begin(RenderState *rs) { rs->renderBuffer().push(id()); }
-
-void RenderBuffer::end(RenderState *rs) { rs->renderBuffer().pop(); }
+RenderBuffer::RenderBuffer(
+		GLenum format,
+		uint32_t width,
+		uint32_t height,
+		uint32_t numBuffers)
+		: GLRectangle(glCreateRenderbuffers, glDeleteRenderbuffers, numBuffers),
+		  format_(format) {
+	set_rectangleSize(width, height);
+	RenderState::get()->renderBuffer().push(id());
+	storage();
+	RenderState::get()->renderBuffer().pop();
+}
 
 void RenderBuffer::storageMS(uint32_t numSamples) const {
-	glNamedRenderbufferStorageMultisample(
-			id(), numSamples, format_, width(), height());
+	glNamedRenderbufferStorageMultisample(id(), numSamples, format_, width(), height());
 }
 
 void RenderBuffer::storage() const {
-	glNamedRenderbufferStorage(
-			id(), format_, width(), height());
+	glNamedRenderbufferStorage(id(), format_, width(), height());
 }

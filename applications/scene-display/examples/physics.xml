@@ -32,7 +32,8 @@
     <fbo id="emission-fbo" size-mode="rel" size="0.25, 0.25"
          pixel-type="FLOAT" pixel-size="24">
         <texture id="color" pixel-components="4"/>
-        <depth id="depth"/>
+        <!-- Note: We can use render buffer for depth since we do not sample it. -->
+        <depth render-buffer="1" id="depth"/>
     </fbo>
     <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}">
         <depth id="depth" pixel-size="24" pixel-type="FLOAT"

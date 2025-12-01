@@ -108,6 +108,7 @@ void FBO::set_depthAttachment(const ref_ptr<Texture> &tex) {
 void FBO::set_depthAttachment(const ref_ptr<RenderBuffer> &rbo) {
 	attachRenderBuffer(rbo, GL_DEPTH_ATTACHMENT);
 	depthTexture_ = ref_ptr<Texture>();
+	renderBuffers_.push_back(rbo);
 }
 
 void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil, uint32_t numSamples) {
@@ -168,6 +169,7 @@ void FBO::set_stencilTexture(const ref_ptr<Texture> &tex) {
 void FBO::set_stencilTexture(const ref_ptr<RenderBuffer> &rbo) {
 	attachRenderBuffer(rbo, GL_STENCIL_ATTACHMENT);
 	stencilTexture_ = ref_ptr<Texture>();
+	renderBuffers_.push_back(rbo);
 }
 
 void FBO::set_depthStencilTexture(const ref_ptr<Texture> &tex) {
@@ -178,6 +180,7 @@ void FBO::set_depthStencilTexture(const ref_ptr<Texture> &tex) {
 void FBO::set_depthStencilTexture(const ref_ptr<RenderBuffer> &rbo) {
 	attachRenderBuffer(rbo, GL_DEPTH_STENCIL_ATTACHMENT);
 	depthStencilTexture_ = ref_ptr<Texture>();
+	renderBuffers_.push_back(rbo);
 }
 
 GLenum FBO::addTexture(const ref_ptr<Texture> &tex) {
@@ -296,9 +299,9 @@ ref_ptr<RenderBuffer> FBO::addRenderBuffer(uint32_t count) {
 
 	rbo->set_rectangleSize(width(), height());
 	for (uint32_t j = 0; j < count; ++j) {
-		rbo->begin(rs);
+		rs->renderBuffer().push(rbo->id());
 		rbo->storage();
-		rbo->end(rs);
+		rs->renderBuffer().pop();
 		addRenderBuffer(rbo);
 		rbo->nextObject();
 	}
@@ -494,16 +497,15 @@ void FBO::resize(uint32_t w, uint32_t h, uint32_t depth) {
 		}
 	}
 
-	// resize rbo attachments
+	// Resize rbo attachments.
+	// Note: RBOs are always mutable, so we do not need to re-create them,
+	//       nor re-attach them, just calling storage() is enough.
 	for (auto & rbo : renderBuffers_) {
-		// TODO: implement RBO resize.
-		//  - use attachmentIdx to avoid conflicts with color attachments
-		REGEN_WARN("RBO attachment resizing not implemented. ");
 		rbo->set_rectangleSize(w, h);
 		for (uint32_t i = 0; i < rbo->numObjects(); ++i) {
-			rbo->begin(rs);
+			rs->renderBuffer().push(rbo->id());
 			rbo->storage();
-			rbo->end(rs);
+			rs->renderBuffer().pop();
 			rbo->nextObject();
 		}
 	}
@@ -573,6 +575,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	bool hasStencilAttachment = false;
 
 	for (auto &n: input.getChildren()) {
+		bool isRenderBuffer = n->getValue<bool>("render-buffer", false);
 		if (n->getCategory() == "texture") {
 			LoadingContext texCfg(ctx.scene(), ctx.parent());
 			ref_ptr<Texture> tex = Texture::load(texCfg, *n.get());
@@ -601,10 +604,15 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				else if (depthSize <= 24) depthFormat = GL_DEPTH_COMPONENT24;
 				else depthFormat = GL_DEPTH_COMPONENT32;
 
-				fbo->createDepthTexture(textureTarget, depthFormat, depthType, numSamples);
-
-				ref_ptr<Texture> tex = fbo->depthTexture();
-				Texture::configure(tex, *n.get());
+				if (isRenderBuffer) {
+					auto rbo = ref_ptr<RenderBuffer>::alloc(
+						depthFormat, fbo->width(), fbo->height());
+					fbo->set_depthAttachment(rbo);
+				} else {
+					fbo->createDepthTexture(textureTarget, depthFormat, depthType, numSamples);
+					ref_ptr<Texture> tex = fbo->depthTexture();
+					Texture::configure(tex, *n.get());
+				}
 			}
 		} else if (n->getCategory() == "depth-stencil") {
 			if (hasStencilAttachment) {
@@ -633,11 +641,17 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				GLenum depthFormat = GL_DEPTH24_STENCIL8;
 				GLenum depthType = GL_UNSIGNED_INT_24_8;
 
-				auto tex = fbo->createTexture(
-					fbo->width(), fbo->height(), fbo->depth(),
-					1, textureTarget,
-					GL_DEPTH_STENCIL, depthFormat, depthType);
-				fbo->set_depthStencilTexture(tex);
+				if (isRenderBuffer) {
+					auto rbo = ref_ptr<RenderBuffer>::alloc(
+						depthFormat, fbo->width(), fbo->height());
+					fbo->set_depthStencilTexture(rbo);
+				} else {
+					auto tex = fbo->createTexture(
+						fbo->width(), fbo->height(), fbo->depth(),
+						1, textureTarget,
+						GL_DEPTH_STENCIL, depthFormat, depthType);
+					fbo->set_depthStencilTexture(tex);
+				}
 			}
 		} else if (n->getCategory() == "stencil") {
 			if (hasStencilAttachment) {
@@ -659,13 +673,19 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				else if (stencilSize < 16) stencilFormat = GL_STENCIL_INDEX4;
 				else stencilFormat = GL_STENCIL_INDEX8;
 
-				auto stencilTexture = FBO::createTexture(
-						fbo->width(), fbo->height(), fbo->depth(),
-						1, textureTarget,
-						GL_STENCIL_INDEX,
-						stencilFormat,
-						pixelType);
-				fbo->set_stencilTexture(stencilTexture);
+				if (isRenderBuffer) {
+					auto rbo = ref_ptr<RenderBuffer>::alloc(
+							stencilFormat, fbo->width(), fbo->height());
+					fbo->set_stencilTexture(rbo);
+				} else {
+					auto stencilTexture = FBO::createTexture(
+							fbo->width(), fbo->height(), fbo->depth(),
+							1, textureTarget,
+							GL_STENCIL_INDEX,
+							stencilFormat,
+							pixelType);
+					fbo->set_stencilTexture(stencilTexture);
+				}
 			}
 		} else {
 			REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");

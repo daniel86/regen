@@ -7,9 +7,10 @@ namespace regen {
 	/**
 	 * \brief OpenGL Objects that contain images.
 	 *
-	 * RenderBuffer's are created and used specifically with Framebuffer Objects.
-	 * RenderBuffer's are optimized for being used as render targets,
-	 * while Textures may not be.
+	 * RenderBuffer's are created and used specifically with Framebuffer Objects, and
+	 * are optimized for being used as render targets, while Textures may not be.
+	 * RBOs cannot be directly accessed from shaders, and they do not support mipmapping
+	 * or texture filtering.
 	 */
 	class RenderBuffer : public GLRectangle {
 	public:
@@ -19,22 +20,22 @@ namespace regen {
 		explicit RenderBuffer(uint32_t numObjects = 1);
 
 		/**
-		 * Binds this RenderBuffer.
-		 * Call end when you are done.
+		 * @param format internal format of the renderbuffer.
+		 * @param width width of the renderbuffer.
+		 * @param height height of the renderbuffer.
+		 * @param numObjects number of GL buffers.
 		 */
-		void begin(RenderState *rs);
-
-		/**
-		 * Complete previous call to begin.
-		 */
-		void end(RenderState *rs);
+		RenderBuffer(GLenum format,
+					 uint32_t width,
+					 uint32_t height,
+					 uint32_t numObjects = 1);
 
 		/**
 		 * Specifies the internal format to use for the renderbuffer object's image.
 		 * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
 		 * GL_SRGB*, GL_COMPRESSED_*.
 		 */
-		void set_format(GLenum format);
+		void set_format(GLenum format) { format_ = format; }
 
 		/**
 		 * Establish data storage, format and dimensions
