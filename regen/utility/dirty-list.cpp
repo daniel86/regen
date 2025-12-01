@@ -1,8 +1,6 @@
 #include "dirty-list.h"
 #include <algorithm>
 
-#include "logging.h"
-
 using namespace regen;
 
 DirtyList::DirtyList() : ranges_(16) {}
