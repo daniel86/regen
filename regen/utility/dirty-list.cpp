@@ -1,9 +1,11 @@
 #include "dirty-list.h"
 #include <algorithm>
 
+#include "logging.h"
+
 using namespace regen;
 
-DirtyList::DirtyList() = default;
+DirtyList::DirtyList() : ranges_(16) {}
 
 void DirtyList::Range::merge(const Range& other) {
 	uint32_t new_start = std::min(offset, other.offset);
@@ -13,25 +15,77 @@ void DirtyList::Range::merge(const Range& other) {
 }
 
 void DirtyList::insert(uint32_t offset, uint32_t size) {
-	if (size == 0) return;
-	Range newRange{offset, size};
+    const Range newRange{offset, size};
 
-	// first check if we can merge with another range
-	// assuming we do not have too many dirt ranges, it should be fine to do a linear search here.
-	// Note that there still can be some fragmentation, as the new range may overlap with another range.
-    for (uint32_t rangeIdx = 0; rangeIdx < count_; ++rangeIdx) {
-		auto &range = ranges_[rangeIdx];
-		if (range.overlaps(newRange)) {
-			range.merge(newRange);
-			return;  // merged, no need to add
-		}
-	}
+    // Fast path: empty list
+    if (count_ == 0) {
+        ranges_[0] = newRange;
+        count_ = 1;
+        return;
+    }
 
-	// Unable to merge, add as a new range.
-	if (count_ == ranges_.size()) {
-		ranges_.resize(count_ + 16);  // grow by chunk
-	}
-	ranges_[count_++] = newRange;
+    // Reference to last range
+    Range& last = ranges_[count_ - 1];
+
+    // Fast path: strictly after last -> append
+    if (offset >= last.end()) {
+        if (offset == last.end()) {
+            // Direct extension
+            last.size += size;
+        } else {
+            // Append new range
+            if (count_ == ranges_.size())
+                ranges_.resize(ranges_.size() + 16);
+            ranges_[count_++] = newRange;
+        }
+        return;
+    }
+
+    // Fast path: merge with last if overlapping
+    if (last.overlaps(newRange)) {
+        last.merge(newRange);
+        return;
+    }
+
+    // -----------------------------------------
+    // GENERAL CASE: Insert into a sorted list, then merge neighbors
+    // -----------------------------------------
+
+    // Ensure capacity before shifting
+    if (count_ == ranges_.size()) {
+        ranges_.resize(ranges_.size() + 16);
+    }
+
+    // Find insertion position (sorted insert)
+    uint32_t pos = count_;
+    while (pos > 0 && ranges_[pos - 1].offset > offset) {
+    	// Make room for insertion by shifting right:
+        ranges_[pos] = ranges_[pos - 1];
+        --pos;
+    }
+    ranges_[pos] = newRange;
+    ++count_;
+
+    // Merge left neighbor if overlap
+    if (pos > 0 && ranges_[pos - 1].overlaps(ranges_[pos])) {
+        ranges_[pos - 1].merge(ranges_[pos]);
+        // shift everything after pos one left
+        for (uint32_t i = pos + 1; i < count_; ++i) {
+            ranges_[i - 1] = ranges_[i];
+        }
+        --count_;
+        pos -= 1;  // merged into left neighbor
+    }
+
+    // Merge right neighbor(s) (can be multiple)
+    while (pos + 1 < count_ && ranges_[pos].overlaps(ranges_[pos + 1])) {
+        ranges_[pos].merge(ranges_[pos + 1]);
+        // shift down
+        for (uint32_t i = pos + 2; i < count_; ++i) {
+            ranges_[i - 1] = ranges_[i];
+        }
+        --count_;
+    }
 }
 
 void DirtyList::append(uint32_t offset, uint32_t size) {
@@ -43,9 +97,8 @@ void DirtyList::append(uint32_t offset, uint32_t size) {
 		return;
 	}
 
-	Range newRange{offset, size};
-	auto &lastRange = ranges_[count_ - 1];
-	if (lastRange.overlaps(newRange)) {
+	const Range newRange{offset, size};
+	if (auto &lastRange = ranges_[count_ - 1]; lastRange.overlaps(newRange)) {
 		lastRange.merge(newRange);
 	} else {
 		if (count_ == ranges_.size()) {
@@ -53,43 +106,6 @@ void DirtyList::append(uint32_t offset, uint32_t size) {
 		}
 		ranges_[count_++] = newRange;
 	}
-}
-
-void DirtyList::coalesce() {
-	if (count_ <= 1) return;
-
-	if (count_ <= 16) {
-		// Use insertion sort for small count_
-		for (uint32_t i = 1u; i < count_; ++i) {
-			Range key = ranges_[i];
-			uint32_t j = i;
-			while (j > 0 && ranges_[j - 1].offset > key.offset) {
-				ranges_[j] = ranges_[j - 1];
-				--j;
-			}
-			ranges_[j] = key;
-		}
-	} else {
-		std::sort(ranges_.begin(), ranges_.begin() + count_,
-			[](const Range& a, const Range& b) {
-				return a.offset < b.offset;
-			});
-	}
-
-	uint32_t write = 0u;
-	for (uint32_t i = 1u; i < count_; ++i) {
-		auto &leftRange = ranges_[write];
-		auto &rightRange = ranges_[i];
-		if (leftRange.end() >= rightRange.offset) {
-			// overlap
-			leftRange.size = rightRange.end() - leftRange.offset;
-		} else {
-			// no overlap, move to next write idx
-			ranges_[++write] = rightRange;
-		}
-	}
-
-	count_ = write + 1;
 }
 
 void DirtyList::subtract(const DirtyList& other) {

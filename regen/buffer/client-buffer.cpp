@@ -124,8 +124,7 @@ uint32_t ClientBuffer::swapData() {
 		// Merge overlapping segments, and sort along offsets.
 		// NOTE: This is done also across padded regions, as dataSize_ is used for dirty tracking,
 		//       and it includes the padded bytes too.
-		dirtyThisFrame.coalesce();
-		// Delete all dirty ranges from the last read slot that have been written to this frame.
+		// First, delete all dirty ranges from the last read slot that have been written to this frame.
 		// It is certain that both dirty lists are coalesced, so calling subtract is safe.
 		dirtyLastFrame.subtract(dirtyThisFrame);
 

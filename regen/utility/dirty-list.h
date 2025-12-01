@@ -108,13 +108,6 @@ namespace regen {
 		 */
 		void subtract(const DirtyList &other);
 
-		/**
-		 * Coalesce the dirty ranges in the list.
-		 * This will merge overlapping ranges and sort them by offset.
-		 * After calling this method, the dirty ranges will be non-overlapping.
-		 */
-		void coalesce();
-
 	protected:
 		std::vector<Range> ranges_;
 		uint32_t count_ = 0;
