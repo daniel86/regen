@@ -1,4 +1,4 @@
-#include <regen/math/simd.h>
+#include <regen/compute/simd.h>
 #include "aabb.h"
 #include "bounding-sphere.h"
 #include "frustum.h"

@@ -1,12 +1,11 @@
 #include <regen/utility/string-util.h>
-#include <../gl-types/feedback-state.h>
 
 #include "mesh.h"
 #include "regen/shapes/bounding-sphere.h"
 #include "regen/shapes/frustum.h"
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"
-#include "../scene/state-configurer.h"
+#include "regen/scene/state-configurer.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl-types/draw-command.h"
 #include "regen/buffer/dibo.h"

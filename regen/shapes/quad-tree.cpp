@@ -4,7 +4,7 @@
 #include <unordered_set>
 
 #include "quad-tree.h"
-#include "regen/math/simd.h"
+#include "regen/compute/simd.h"
 
 #define QUAD_TREE_DEBUG_TIME
 //#define QUAD_TREE_DISABLE_SIMD

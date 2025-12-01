@@ -1,4 +1,4 @@
-#include <regen/math/simd.h>
+#include <regen/compute/simd.h>
 #include <regen/utility/logging.h>
 #include "obb.h"
 #include "aabb.h"

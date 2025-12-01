@@ -2,8 +2,8 @@
 #define REGEN_GROUND_PATH_H__
 
 #include <regen/objects/mesh.h>
-#include <regen/math/vector.h>
-#include "regen/math/bezier.h"
+#include <regen/compute/vector.h>
+#include "regen/compute/bezier.h"
 
 namespace regen {
 	class GroundPath : public Mesh {

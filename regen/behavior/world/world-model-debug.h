@@ -6,7 +6,7 @@
 #include "../../scene/state-configurer.h"
 #include "regen/utility/debug-interface.h"
 #include "world-model.h"
-#include "regen/math/bezier.h"
+#include "regen/compute/bezier.h"
 
 namespace regen {
 	class WorldModelDebug : public StateNode, public HasShader, public DebugInterface {

@@ -24,7 +24,7 @@ extern "C" {
 #include <map>
 
 #include <regen/textures/texture.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <regen/utility/ref-ptr.h>
 #include "regen/scene/loading-context.h"
 

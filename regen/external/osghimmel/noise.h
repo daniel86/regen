@@ -30,7 +30,7 @@
 #ifndef __NOISE_H__
 #define __NOISE_H__
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <string>
 
 

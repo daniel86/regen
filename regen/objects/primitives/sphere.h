@@ -10,7 +10,7 @@
 
 #include "regen/shader/shader-state.h"
 #include <regen/objects/mesh.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**

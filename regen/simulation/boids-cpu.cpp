@@ -1,5 +1,5 @@
 #include "boids-cpu.h"
-#include "regen/math/simd.h"
+#include "regen/compute/simd.h"
 #include "regen/utility/aligned-array.h"
 
 //#define REGEN_BOID_DEBUG_TIME

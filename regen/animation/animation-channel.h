@@ -4,8 +4,8 @@
 #include <string>
 #include <regen/utility/stamped.h>
 #include "regen/utility/ref-ptr.h"
-#include <regen/math/vector.h>
-#include <regen/math/quaternion.h>
+#include <regen/compute/vector.h>
+#include <regen/compute/quaternion.h>
 
 namespace regen {
 	/**

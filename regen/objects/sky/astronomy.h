@@ -6,8 +6,8 @@
 #ifndef REGEN_ASTRONOMY_H_
 #define REGEN_ASTRONOMY_H_
 
-#include "regen/math/vector.h"
-#include "regen/math/matrix.h"
+#include "regen/compute/vector.h"
+#include "regen/compute/matrix.h"
 
 #include "regen/external/osghimmel/atime.h"
 #include "regen/external/osghimmel/julianday.h"

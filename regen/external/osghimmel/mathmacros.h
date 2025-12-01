@@ -31,7 +31,7 @@
 #define __MATHMACROS_H__
 
 #include <cmath>
-#include <regen/math/math.h>
+#include <regen/compute/math.h>
 
 namespace osgHimmel
 {

@@ -7,7 +7,7 @@
 #ifndef REGEN_QUATERNION_H_
 #define REGEN_QUATERNION_H_
 
-#include <regen/math/matrix.h>
+#include <regen/compute/matrix.h>
 
 namespace regen {
 	/**

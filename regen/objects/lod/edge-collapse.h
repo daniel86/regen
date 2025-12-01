@@ -4,7 +4,7 @@
 #include <queue>
 #include <vector>
 #include <cstdint>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**

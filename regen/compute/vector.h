@@ -6,7 +6,7 @@
 #include <list>
 
 #include <regen/utility/string-util.h>
-#include <regen/math/math.h>
+#include <regen/compute/math.h>
 
 namespace regen {
 	/** \brief Traits to get base type of vector types. */

@@ -1,7 +1,7 @@
 #ifndef REGEN_PLANE_H_
 #define REGEN_PLANE_H_
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**

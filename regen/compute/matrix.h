@@ -1,7 +1,7 @@
 #ifndef REGEN_MATRIX_H_
 #define REGEN_MATRIX_H_
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**

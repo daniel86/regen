@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <map>
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	// introduce a template function to get the value of a GL parameter

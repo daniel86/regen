@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <cstdint>
-#include "regen/math/simd.h"
+#include "regen/compute/simd.h"
 
 #define REGEN_RADIX_SORT_CPU_USE_SIMD
 

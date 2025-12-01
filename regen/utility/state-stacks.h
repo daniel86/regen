@@ -5,7 +5,7 @@
 
 #include <regen/config.h>
 #include <regen/utility/stack.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**

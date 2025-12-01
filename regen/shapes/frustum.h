@@ -2,8 +2,8 @@
 #define REGEN_FRUSTUM_H_
 
 #include <vector>
-#include <regen/math/vector.h>
-#include <regen/math/plane.h>
+#include <regen/compute/vector.h>
+#include <regen/compute/plane.h>
 #include <regen/shapes/bounding-shape.h>
 #include <regen/shapes/bounding-box.h>
 #include <regen/shapes/bounding-sphere.h>

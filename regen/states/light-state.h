@@ -2,7 +2,7 @@
 #define REGEN_LIGHT_STATE_H
 
 #include <regen/camera/camera.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <regen/objects/model-transformation.h>
 #include <regen/animation/bone-tree.h>
 #include <regen/animation/animation.h>

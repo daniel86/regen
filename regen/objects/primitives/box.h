@@ -9,7 +9,7 @@
 #define REGEN_BOX_H_
 
 #include <regen/objects/mesh.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <regen/objects/lod/tessellation.h>
 
 namespace regen {

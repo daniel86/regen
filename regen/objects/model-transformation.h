@@ -2,7 +2,7 @@
 #define REGEN_MODEL_TRANSFORMATION_H_
 
 #include <regen/av/audio.h>
-#include <regen/math/quaternion.h>
+#include <regen/compute/quaternion.h>
 #include <regen/scene/state.h>
 #include "regen/buffer/buffer-container.h"
 #include "regen/buffer/position-reader.h"

@@ -31,7 +31,7 @@
 #define __COORDS_H__
 
 #include "julianday.h"
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace osgHimmel
 {

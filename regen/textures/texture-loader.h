@@ -5,7 +5,7 @@
 
 #include <regen/textures/texture.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include "texture-config.h"
 #include "image-data.h"
 

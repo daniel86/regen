@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**

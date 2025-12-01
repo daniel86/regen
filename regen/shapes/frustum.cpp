@@ -1,5 +1,5 @@
 #include "frustum.h"
-#include <regen/math/simd.h>
+#include <regen/compute/simd.h>
 
 using namespace regen;
 

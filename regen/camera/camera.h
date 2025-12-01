@@ -4,7 +4,7 @@
 #include <span>
 #include <regen/scene/state.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/math/matrix.h>
+#include <regen/compute/matrix.h>
 #include <regen/shapes/frustum.h>
 #include <regen/objects/mesh.h>
 #include <regen/objects/model-transformation.h>

@@ -1,8 +1,8 @@
 #ifndef REGEN_QUADRIC_H
 #define REGEN_QUADRIC_H
 
-#include <regen/math/vector.h>
-#include <regen/math/matrix.h>
+#include <regen/compute/vector.h>
+#include <regen/compute/matrix.h>
 
 namespace regen {
 	/**

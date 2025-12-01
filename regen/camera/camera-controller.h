@@ -1,7 +1,7 @@
 #ifndef CAMERA_MANIPULATOR_H_
 #define CAMERA_MANIPULATOR_H_
 
-#include <regen/math/quaternion.h>
+#include <regen/compute/quaternion.h>
 #include <regen/camera/camera.h>
 #include <regen/camera/camera-controller-base.h>
 #include <regen/animation/animation.h>

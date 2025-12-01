@@ -5,7 +5,7 @@
 #include <queue>
 #include <utility>
 #include <unordered_set>
-#include "regen/math/Quadric.h"
+#include "regen/compute/Quadric.h"
 #include "lod-attribute.h"
 #include "attribute-semantic.h"
 #include "triangle.h"

@@ -9,7 +9,7 @@
 #define REGEN_MESH_CONE_H_
 
 #include <regen/objects/mesh.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	class Cone : public Mesh {

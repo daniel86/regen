@@ -3,7 +3,7 @@
 
 #include <map>
 #include <vector>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <regen/utility/ref-ptr.h>
 #include "../world/world-model.h"
 

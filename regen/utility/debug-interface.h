@@ -1,7 +1,7 @@
 #ifndef REGEN_DEBUG_INTERFACE_H
 #define REGEN_DEBUG_INTERFACE_H
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	class DebugInterface {

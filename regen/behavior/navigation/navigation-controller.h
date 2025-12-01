@@ -3,7 +3,7 @@
 
 #include "../../animation/transform-animation.h"
 #include "regen/behavior/perception/collision-monitor.h"
-#include "regen/math/bezier.h"
+#include "regen/compute/bezier.h"
 #include "../../objects/model-transformation.h"
 #include "regen/textures/height-map.h"
 #include "regen/utility/indexed.h"

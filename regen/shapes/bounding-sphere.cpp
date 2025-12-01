@@ -1,6 +1,6 @@
 #include "bounding-sphere.h"
 #include "regen/objects/primitives/sphere.h"
-#include <regen/math/simd.h>
+#include <regen/compute/simd.h>
 
 using namespace regen;
 

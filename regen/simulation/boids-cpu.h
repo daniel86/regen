@@ -3,7 +3,7 @@
 
 #include "boid-simulation.h"
 #include "../animation/animation.h"
-#include "regen/math/simd.h"
+#include "regen/compute/simd.h"
 
 namespace regen {
 	/**

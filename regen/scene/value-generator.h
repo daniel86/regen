@@ -7,7 +7,7 @@
 
 #ifndef REGEN_SCENE_VALUE_GENERATOR_H_
 #define REGEN_SCENE_VALUE_GENERATOR_H_
-#include "regen/math/vector.h"
+#include "regen/compute/vector.h"
 
 namespace regen {
 	namespace scene {

@@ -4,7 +4,7 @@
 
 #include <ranges>
 
-#include "regen/math/bezier.h"
+#include "regen/compute/bezier.h"
 
 using namespace regen;
 

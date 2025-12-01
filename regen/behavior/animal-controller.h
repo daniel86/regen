@@ -1,7 +1,7 @@
 #ifndef REGEN_ANIMAL_CONTROLLER_H_
 #define REGEN_ANIMAL_CONTROLLER_H_
 
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <regen/textures/texture.h>
 #include <regen/behavior/npc-controller.h>
 #include "regen/shapes/bounds.h"

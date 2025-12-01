@@ -23,7 +23,7 @@ extern "C" {
 #include <AL/alc.h>
 
 #include <regen/av/av-stream.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
 

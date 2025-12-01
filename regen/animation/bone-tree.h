@@ -2,8 +2,8 @@
 #define REGEN_BONE_TREE_H_
 
 #include <regen/utility/ref-ptr.h>
-#include <regen/math/matrix.h>
-#include <regen/math/quaternion.h>
+#include <regen/compute/matrix.h>
+#include <regen/compute/quaternion.h>
 #include <regen/animation/animation.h>
 #include <regen/animation/animation-range.h>
 

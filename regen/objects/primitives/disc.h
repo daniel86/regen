@@ -2,7 +2,7 @@
 #define REGEN_Disc_H__
 
 #include <regen/objects/mesh.h>
-#include <regen/math/vector.h>
+#include <regen/compute/vector.h>
 
 namespace regen {
 	/**
