@@ -9,7 +9,7 @@
 #include "../compute/radix-sort-cpu.h"
 #include <regen/scene/loading-context.h>
 
-#include "regen/utility/aligned-array.h"
+#include "../memory/aligned-array.h"
 
 namespace regen {
 	/**

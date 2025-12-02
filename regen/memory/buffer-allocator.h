@@ -1,7 +1,7 @@
 #ifndef REGEN_BUFFER_POOL_H_
 #define REGEN_BUFFER_POOL_H_
 
-#include "regen/utility/memory-allocator.h"
+#include "memory-allocator.h"
 
 namespace regen {
 	/**

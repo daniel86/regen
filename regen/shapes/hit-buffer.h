@@ -1,7 +1,7 @@
 #ifndef REGEN_HIT_BUFFER_H
 #define REGEN_HIT_BUFFER_H
 
-#include <regen/utility/aligned-array.h>
+#include <regen/memory/aligned-array.h>
 
 namespace regen {
 	/**

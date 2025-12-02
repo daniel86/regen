@@ -3,7 +3,7 @@
 
 #include "staged-buffer.h"
 #include "regen/gl/queries/elapsed-time.h"
-#include "regen/utility/free-list.h"
+#include "free-list.h"
 
 // Note: We need to swap client buffers after each copy from
 //   client buffer into staging. We can either do it directly in the staging

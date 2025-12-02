@@ -2,7 +2,7 @@
 #define REGEN_AABB_H_
 
 #include <regen/shapes/bounding-box.h>
-#include <regen/utility/aligned-array.h>
+#include <regen/memory/aligned-array.h>
 #include "batch-of-shapes.h"
 #include "batched-intersection.h"
 

@@ -1,7 +1,7 @@
 #ifndef REGEN_CLIENT_ALLOCATOR_H_
 #define REGEN_CLIENT_ALLOCATOR_H_
 
-#include "regen/utility/memory-allocator.h"
+#include "memory-allocator.h"
 
 namespace regen {
 	/**

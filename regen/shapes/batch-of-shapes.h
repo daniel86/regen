@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <cstdint>
-#include <regen/utility/aligned-array.h>
+#include <regen/memory/aligned-array.h>
 #include <regen/shapes/bounding-shape.h>
 
 namespace regen {

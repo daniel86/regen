@@ -2,7 +2,7 @@
 #define REGEN_SIMD_H_
 
 #include <regen/compute/vector.h>
-#include <regen/utility/aligned-allocator.h>
+#include <regen/memory/aligned-allocator.h>
 
 // NOTE: Check for REGEN_HAS_SIMD, if it is not defined, the SIMD operations will be disabled
 //       and the code here will fall back to scalar operations.

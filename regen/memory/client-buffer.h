@@ -9,7 +9,7 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/memory/client-data-base.h>
 #include <regen/memory/client-allocator.h>
-#include <regen/utility/dirty-list.h>
+#include "dirty-list.h"
 #include "buffer-enums.h"
 
 namespace regen {
