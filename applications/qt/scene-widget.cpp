@@ -9,7 +9,7 @@
 #include <QtGui/QWindow>
 #include <QVBoxLayout>
 
-#include <../../regen/compute/threading.h>
+#include <regen/compute/threading.h>
 #include "scene-widget.h"
 #include "qt-application.h"
 #include "regen/animation/animation-manager.h"

@@ -13,7 +13,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtCore/QString>
 
-#include <../../regen/simulation/bullet-physics.h>
+#include <regen/simulation/bullet-physics.h>
 #include <regen/camera/camera-controller.h>
 #include <regen/camera/key-frame-controller.h>
 #include <regen/camera/camera-anchor.h>
