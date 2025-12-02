@@ -1,4 +1,4 @@
-#include "../behavior/npc-controller.h"
+#include "regen/behavior/npc-controller.h"
 
 using namespace regen;
 

@@ -3,7 +3,7 @@
 
 #include <regen/scene/state.h>
 #include "regen/memory/ssbo.h"
-#include "../objects/model-transformation.h"
+#include "regen/objects/model-transformation.h"
 #include "spatial-index.h"
 
 namespace regen {

@@ -4,7 +4,7 @@
 #include "regen/shader/shader-input.h"
 #include "regen/shapes/bounds.h"
 #include "regen/textures/texture.h"
-#include "../objects/model-transformation.h"
+#include "regen/objects/model-transformation.h"
 #include "regen/textures/collision-map.h"
 
 namespace regen {

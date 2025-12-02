@@ -6,7 +6,7 @@
 #include "regen/passes/motion-blur.h"
 #include "regen/shading/light-pass.h"
 #include "shader-input-processor.h"
-#include "../passes/geometric-picking.h"
+#include "regen/passes/geometric-picking.h"
 #include "regen/passes/bloom-pass.h"
 #include "regen/scene/node-processor.h"
 #include "regen/shading/direct-shading.h"
@@ -16,10 +16,10 @@
 
 #include "regen/behavior/skeleton/bone-controller.h"
 #include "regen/behavior/world/body-part.h"
-#include "../gl/states/alpha-state.h"
-#include "../gl/states/blit-state.h"
-#include "../gl/states/stencil-state.h"
-#include "../gl/states/tesselation-state.h"
+#include "regen/gl/states/alpha-state.h"
+#include "regen/gl/states/blit-state.h"
+#include "regen/gl/states/stencil-state.h"
+#include "regen/gl/states/tesselation-state.h"
 #include "horizon-divider.h"
 
 using namespace regen::scene;

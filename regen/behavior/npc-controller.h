@@ -2,8 +2,8 @@
 #define REGEN_NPC_CONTROLLER_H_
 
 #include "behavior-tree.h"
-#include "../animation/bone-tree.h"
-#include "../objects/model-transformation.h"
+#include "regen/animation/bone-tree.h"
+#include "regen/objects/model-transformation.h"
 #include "regen/utility/indexed.h"
 #include "navigation/navigation-controller.h"
 #include "navigation/path-planner.h"

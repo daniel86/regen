@@ -2,7 +2,7 @@
 #define REGEN_CAMERA_ANCHOR_H
 
 #include "regen/compute/vector.h"
-#include "../objects/model-transformation.h"
+#include "regen/objects/model-transformation.h"
 
 namespace regen {
 	/**

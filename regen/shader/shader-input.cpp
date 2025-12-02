@@ -1,6 +1,6 @@
 #include "regen/utility/string-util.h"
 #include "regen/utility/logging.h"
-#include "../animation/animation.h"
+#include "regen/animation/animation.h"
 #include "regen/memory/ssbo.h"
 #include <stack>
 

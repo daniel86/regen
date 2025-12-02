@@ -1,6 +1,6 @@
 #include "logging.h"
 #include "event-object.h"
-#include "../compute/threading.h"
+#include "regen/compute/threading.h"
 #include <ranges>
 
 using namespace regen;

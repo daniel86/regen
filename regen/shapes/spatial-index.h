@@ -6,10 +6,10 @@
 #include <regen/shapes/hit-buffer.h>
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
-#include "../compute/radix-sort-cpu.h"
+#include "regen/compute/radix-sort-cpu.h"
 #include <regen/scene/loading-context.h>
 
-#include "../memory/aligned-array.h"
+#include "regen/memory/aligned-array.h"
 
 namespace regen {
 	/**

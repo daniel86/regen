@@ -4,7 +4,7 @@
 #include "regen/textures/fbo-state.h"
 #include "regen/textures/texture-state.h"
 #include "regen/shader/shader-state.h"
-#include "../../regen/scene/state-configurer.h"
+#include "regen/scene/state-configurer.h"
 #include "regen/objects/primitives/rectangle.h"
 #include "regen/textures/texture-loader.h"
 #include <QLabel>

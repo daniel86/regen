@@ -9,12 +9,12 @@
 #include <regen/memory/ssbo.h>
 #include "regen/shader/shader.h"
 #include <regen/animation/animation.h>
-#include "../simulation/physical-object.h"
+#include "regen/simulation/physical-object.h"
 #include "regen/scene/state-node.h"
 #include "regen/camera/sorting.h"
 #include "regen/memory/element-buffer.h"
 #include "regen/scene/state-config.h"
-#include "../textures/material-state.h"
+#include "regen/textures/material-state.h"
 #include "regen/shapes/bounding-shape.h"
 
 namespace regen {

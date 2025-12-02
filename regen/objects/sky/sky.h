@@ -11,7 +11,7 @@
 #include <regen/external/osghimmel/timef.h>
 #include "regen/utility/time.h"
 #include "astronomy.h"
-#include "../../gl/states/depth-state.h"
+#include "regen/gl/states/depth-state.h"
 
 namespace regen {
 	class Sky : public StateNode, public Animation, public Resource {

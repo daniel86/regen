@@ -3,7 +3,7 @@
 
 #include <regen/scene/state-node.h>
 #include "regen/shader/shader-state.h"
-#include "../../scene/state-configurer.h"
+#include "regen/scene/state-configurer.h"
 #include "regen/utility/debug-interface.h"
 #include "world-model.h"
 #include "regen/compute/bezier.h"

@@ -6,7 +6,7 @@
 #include "aabb.h"
 #include "obb.h"
 #include "regen/shader/shader-state.h"
-#include "../scene/state-configurer.h"
+#include "regen/scene/state-configurer.h"
 #include "spatial-index.h"
 #include "regen/utility/debug-interface.h"
 

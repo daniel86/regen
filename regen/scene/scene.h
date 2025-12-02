@@ -6,12 +6,12 @@
 #include <regen/utility/event-object.h>
 #include <regen/utility/time.h>
 #include <regen/scene/state-node.h>
-#include "../passes/pick-data.h"
+#include "regen/passes/pick-data.h"
 #include "regen/scene/scene-interaction.h"
 #include "regen/animation/animation.h"
 #include "regen/memory/staging-system.h"
 #include "screen.h"
-#include "../behavior/world/world-model.h"
+#include "regen/behavior/world/world-model.h"
 
 // Defeat evil windows defines...
 #ifdef KEY_EVENT

@@ -1,5 +1,5 @@
 #include "light-state.h"
-#include "../simulation/boids-cpu.h"
+#include "regen/simulation/boids-cpu.h"
 #include "regen/scene/shader-input-processor.h"
 
 using namespace regen;

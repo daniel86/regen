@@ -6,13 +6,13 @@
  */
 
 #include "regen/utility/string-util.h"
-#include "../shading/light-state.h"
-#include "../textures/material-state.h"
+#include "regen/shading/light-state.h"
+#include "regen/textures/material-state.h"
 #include "regen/shader/directive-processor.h"
 #include "regen/shader/includer.h"
 
 #include "shader-state.h"
-#include "../scene/state-configurer.h"
+#include "regen/scene/state-configurer.h"
 
 using namespace regen;
 

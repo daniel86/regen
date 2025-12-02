@@ -3,7 +3,7 @@
 
 #include "buffer-object.h"
 #include "regen/scene/scene-input.h"
-#include "../compute/threading.h"
+#include "regen/compute/threading.h"
 #include "staging-buffer.h"
 
 namespace regen {

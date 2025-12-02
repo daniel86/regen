@@ -8,7 +8,7 @@
 #include <regen/shapes/orthogonal-projection.h>
 
 #include "batched-intersection.h"
-#include "../memory/aligned-array.h"
+#include "regen/memory/aligned-array.h"
 
 namespace regen {
 	/**

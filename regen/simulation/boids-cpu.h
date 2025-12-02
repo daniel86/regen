@@ -2,7 +2,7 @@
 #define REGEN_BOIDS_CPU_H
 
 #include "boid-simulation.h"
-#include "../animation/animation.h"
+#include "regen/animation/animation.h"
 #include "regen/compute/simd.h"
 
 namespace regen {

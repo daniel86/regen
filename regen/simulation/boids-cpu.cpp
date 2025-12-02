@@ -1,6 +1,6 @@
 #include "boids-cpu.h"
 #include "regen/compute/simd.h"
-#include "../memory/aligned-array.h"
+#include "regen/memory/aligned-array.h"
 
 //#define REGEN_BOID_DEBUG_TIME
 

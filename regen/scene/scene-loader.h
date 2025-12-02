@@ -12,7 +12,7 @@
 #include "scene-input.h"
 #include "regen/scene/state-node.h"
 #include "scene-processors.h"
-#include "../simulation/bullet-physics.h"
+#include "regen/simulation/bullet-physics.h"
 #include "regen/scene/scene.h"
 #include "screen.h"
 #include "regen/animation/bone-tree.h"

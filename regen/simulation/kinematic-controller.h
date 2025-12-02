@@ -2,7 +2,7 @@
 #define REGEN_KINEMATIC_PLAYER_CONTROLLER_H
 
 #include <BulletDynamics/Character/btKinematicCharacterController.h>
-#include "../behavior/user-controller.h"
+#include "regen/behavior/user-controller.h"
 #include "bullet-physics.h"
 
 namespace regen {

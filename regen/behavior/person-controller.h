@@ -5,7 +5,7 @@
 #include "world/world-model.h"
 #include "behavior-tree.h"
 #include "perception/perception-system.h"
-#include "../objects/model-transformation.h"
+#include "regen/objects/model-transformation.h"
 #include "regen/objects/terrain/blanket-trail.h"
 #include "skeleton/bone-controller.h"
 

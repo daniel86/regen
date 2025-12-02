@@ -1,5 +1,5 @@
 #include "boids-gpu.h"
-#include "../compute/radix-sort.h"
+#include "regen/compute/radix-sort.h"
 
 using namespace regen;
 

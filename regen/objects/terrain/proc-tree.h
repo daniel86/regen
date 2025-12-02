@@ -3,7 +3,7 @@
 
 #include "regen/external/proctree/proctree.h"
 #include "regen/objects/mesh.h"
-#include "../../textures/material-state.h"
+#include "regen/textures/material-state.h"
 #include "regen/scene/scene-input.h"
 #include "regen/objects/silhouette-mesh.h"
 

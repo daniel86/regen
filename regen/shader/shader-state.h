@@ -3,7 +3,7 @@
 
 #include "regen/scene/state.h"
 #include "regen/textures/texture-state.h"
-#include "../shading/light-state.h"
+#include "regen/shading/light-state.h"
 #include "shader.h"
 
 namespace regen {

@@ -5,7 +5,7 @@
 #include <regen/textures/texture.h>
 #include <regen/behavior/npc-controller.h>
 #include "regen/shapes/bounds.h"
-#include "../objects/model-transformation.h"
+#include "regen/objects/model-transformation.h"
 
 namespace regen {
 	class AnimalController : public NonPlayerCharacterController {

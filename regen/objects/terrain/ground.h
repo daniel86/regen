@@ -4,10 +4,10 @@
 #include <regen/objects/primitives/skirt-quad.h>
 
 #include "regen/objects/primitives/blanket.h"
-#include "../../textures/material-state.h"
+#include "regen/textures/material-state.h"
 #include "regen/textures/texture.h"
 #include "regen/textures/fbo-state.h"
-#include "../../passes/fullscreen-pass.h"
+#include "regen/passes/fullscreen-pass.h"
 
 namespace regen {
 	/**

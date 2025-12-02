@@ -1,8 +1,8 @@
 #include <stack>
 #include "model-transformation.h"
 #include "regen/objects/composite-mesh.h"
-#include "../simulation/boids-cpu.h"
-#include "../simulation/boids-gpu.h"
+#include "regen/simulation/boids-cpu.h"
+#include "regen/simulation/boids-gpu.h"
 #include "regen/animation/transform-animation.h"
 #include "regen/scene/resource-manager.h"
 #include "regen/scene/value-generator.h"

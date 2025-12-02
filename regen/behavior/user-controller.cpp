@@ -1,6 +1,6 @@
 #include "user-controller.h"
 
-#include "../simulation/kinematic-controller.h"
+#include "regen/simulation/kinematic-controller.h"
 #include "applications/scene-display/animation-events.h"
 #include "regen/scene/resource-manager.h"
 #include "regen/simulation/impulse-controller.h"

@@ -11,8 +11,8 @@
 #include "regen/utility/ref-ptr.h"
 #include "regen/utility/stack.h"
 #include "regen/utility/string-util.h"
-#include "../compute/matrix.h"
-#include "../compute/vector.h"
+#include "regen/compute/matrix.h"
+#include "regen/compute/vector.h"
 #include <condition_variable>
 #include "regen/scene/input-schema.h"
 #include "regen/memory/client-buffer.h"
