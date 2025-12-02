@@ -511,7 +511,10 @@ static uint32_t transformMatrixPlane(
 		return numInstances;
 	} else {
 		numInstances = generator.instanceData.size();
-		// TODO: apply previous transform instead of overwriting
+		// Apply previous transform to all instance matrices.
+		Mat4f m0 = tf->modelMat()->getVertex(0).r;
+		for (auto &mat : generator.instanceData) { mat = m0 * mat; }
+		// Set instance data
 		tf->modelMat()->setInstanceData(numInstances, 1,
 				(byte*)generator.instanceData.data());
 		tf->set_numInstances(numInstances);
