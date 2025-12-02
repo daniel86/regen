@@ -1,17 +1,10 @@
-/*
- * texture-node.h
- *
- *  Created on: 03.08.2012
- *      Author: daniel
- */
-
 #ifndef TEXTURE_NODE_H_
 #define TEXTURE_NODE_H_
 
 #include <regen/scene/state.h>
 #include <regen/textures/texture.h>
 
-#include "regen/gl/blend-state.h"
+#include "regen/gl/states/blend-state.h"
 #include "regen/scene/scene-loader.h"
 #include "regen/shader/shader-function.h"
 

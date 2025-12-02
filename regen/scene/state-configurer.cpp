@@ -4,7 +4,7 @@
 
 #include "state-configurer.h"
 
-#include "regen/gl/feedback-state.h"
+#include "../gl/states/feedback-state.h"
 #include "regen/textures/fbo-state.h"
 
 using namespace regen;

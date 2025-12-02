@@ -1,10 +1,3 @@
-/*
- * blit-to-screen.cpp
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
 #include <regen/utility/string-util.h>
 
 #include "depth-state.h"

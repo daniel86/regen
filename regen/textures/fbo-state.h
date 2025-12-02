@@ -2,7 +2,7 @@
 #define REGEN_FBO_STATE_H_
 
 #include "regen/scene/state.h"
-#include "regen/gl/atomic-states.h"
+#include "regen/gl/states/atomic-states.h"
 #include "fbo.h"
 
 namespace regen {

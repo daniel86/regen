@@ -9,7 +9,7 @@
 
 #include <regen/objects/primitives/rectangle.h>
 #include "sky-box.h"
-#include "regen/gl/depth-state.h"
+#include "../gl/states/depth-state.h"
 
 using namespace regen;
 

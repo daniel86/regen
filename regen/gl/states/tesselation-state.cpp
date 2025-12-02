@@ -1,10 +1,3 @@
-/*
- * tesselation-state.cpp
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
 #include <regen/gl/gl-util.h>
 #include <regen/utility/string-util.h>
 #include "atomic-states.h"

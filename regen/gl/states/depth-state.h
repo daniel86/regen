@@ -1,10 +1,3 @@
-/*
- * depth-screen.h
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
 #ifndef REGEN_DEPTH_STATE_H_
 #define REGEN_DEPTH_STATE_H_
 

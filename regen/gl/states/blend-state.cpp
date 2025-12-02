@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/gl/atomic-states.h>
+#include <regen/gl/states/atomic-states.h>
 
 #include "blend-state.h"
 

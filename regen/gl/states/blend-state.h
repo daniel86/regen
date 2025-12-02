@@ -1,10 +1,3 @@
-/*
- * blend-state.h
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
 #ifndef __BLEND_STATE_H_
 #define __BLEND_STATE_H_
 
