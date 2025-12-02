@@ -4,7 +4,7 @@
 #include <QtCore/QList>
 #include <QtCore/QMimeData>
 
-#include "regen/gl-types/blit-state.h"
+#include "regen/gl/states/blit-state.h"
 #include "regen/scene/state-configurer.h"
 #include "regen/textures/fbo-state.h"
 #include "regen/passes/fullscreen-pass.h"

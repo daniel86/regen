@@ -10,7 +10,7 @@
 
 #include "regen/shader/shader-state.h"
 #include "regen/textures/fbo-state.h"
-#include <../../regen/gl-types/blit-state.h>
+#include <regen/gl/states/blit-state.h>
 #include <regen/utility/filesystem.h>
 #include <regen/animation/animation-manager.h>
 #include <regen/objects/lod/mesh-simplifier.h>
