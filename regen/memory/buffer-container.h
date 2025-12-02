@@ -5,7 +5,7 @@
 #include "ubo.h"
 #include "tbo.h"
 #include "regen/textures/texture-buffer.h"
-#include "regen/buffer/ssbo.h"
+#include "regen/memory/ssbo.h"
 
 namespace regen {
 	/**

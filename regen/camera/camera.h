@@ -8,7 +8,7 @@
 #include <regen/shapes/frustum.h>
 #include <regen/objects/mesh.h>
 #include <regen/objects/model-transformation.h>
-#include "regen/buffer/ubo.h"
+#include "regen/memory/ubo.h"
 #include "regen/objects/lod/lod-level.h"
 #include "regen/scene/screen.h"
 

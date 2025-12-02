@@ -5,8 +5,8 @@
 #include <map>
 #include <atomic>
 
-#include "regen/buffer/buffer-reference.h"
-#include "regen/buffer/client-data.h"
+#include "regen/memory/buffer-reference.h"
+#include "regen/memory/client-data.h"
 #include "regen/gl/gl-enum.h"
 #include "regen/utility/ref-ptr.h"
 #include "regen/utility/stack.h"
@@ -15,8 +15,8 @@
 #include "../compute/vector.h"
 #include <condition_variable>
 #include "regen/scene/input-schema.h"
-#include "regen/buffer/client-buffer.h"
-#include "regen/buffer/buffer-enums.h"
+#include "regen/memory/client-buffer.h"
+#include "regen/memory/buffer-enums.h"
 
 namespace regen {
 	// default attribute names

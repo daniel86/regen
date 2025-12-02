@@ -2,7 +2,7 @@
 #define REGEN_CLIENT_DATA_H_
 
 #include <regen/regen.h>
-#include <regen/buffer/client-buffer.h>
+#include <regen/memory/client-buffer.h>
 
 namespace regen {
 	/**

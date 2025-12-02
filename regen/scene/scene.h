@@ -9,7 +9,7 @@
 #include "regen/states/pick-data.h"
 #include "regen/scene/scene-interaction.h"
 #include "regen/animation/animation.h"
-#include "regen/buffer/staging-system.h"
+#include "regen/memory/staging-system.h"
 #include "screen.h"
 #include "../behavior/world/world-model.h"
 

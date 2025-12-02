@@ -4,8 +4,8 @@
 #include <regen/av/audio.h>
 #include <regen/compute/quaternion.h>
 #include <regen/scene/state.h>
-#include "regen/buffer/buffer-container.h"
-#include "regen/buffer/position-reader.h"
+#include "regen/memory/buffer-container.h"
+#include "regen/memory/position-reader.h"
 
 namespace regen {
 	/**

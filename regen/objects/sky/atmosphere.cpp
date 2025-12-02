@@ -1,6 +1,6 @@
 #include "atmosphere.h"
 #include <regen/objects/primitives/rectangle.h>
-#include "regen/buffer/dibo.h"
+#include "regen/memory/dibo.h"
 #include "regen/gl/draw-command.h"
 #include "regen/scene/state-configurer.h"
 

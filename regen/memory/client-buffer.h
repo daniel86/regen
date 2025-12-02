@@ -7,8 +7,8 @@
 #include <thread>
 #include <regen/regen.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/buffer/client-data-base.h>
-#include <regen/buffer/client-allocator.h>
+#include <regen/memory/client-data-base.h>
+#include <regen/memory/client-allocator.h>
 #include <regen/utility/dirty-list.h>
 #include "buffer-enums.h"
 

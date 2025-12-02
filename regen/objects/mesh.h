@@ -4,15 +4,15 @@
 #include <vector>
 
 #include <regen/scene/state.h>
-#include <regen/buffer/vbo.h>
+#include <regen/memory/vbo.h>
 #include <regen/gl/vao.h>
-#include <regen/buffer/ssbo.h>
+#include <regen/memory/ssbo.h>
 #include "regen/shader/shader.h"
 #include <regen/animation/animation.h>
 #include "../simulation/physical-object.h"
 #include "regen/scene/state-node.h"
 #include "regen/camera/sorting.h"
-#include "regen/buffer/element-buffer.h"
+#include "regen/memory/element-buffer.h"
 #include "regen/scene/state-config.h"
 #include "../textures/material-state.h"
 #include "regen/shapes/bounding-shape.h"

@@ -1,6 +1,6 @@
 #include "client-data.h"
 #include "client-buffer.h"
-#include <regen/buffer/buffer-enums.h>
+#include <regen/memory/buffer-enums.h>
 
 using namespace regen;
 

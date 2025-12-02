@@ -2,7 +2,7 @@
 #define FEEDBACK_STATE_H_
 
 #include <regen/scene/state.h>
-#include <regen/buffer/vbo.h>
+#include <regen/memory/vbo.h>
 
 namespace regen {
 	class FeedbackSpecification : public State {

@@ -11,7 +11,7 @@ extern "C" {
 #include "regen/textures/fbo.h"
 #include <regen/animation/animation.h>
 #include "video-encoder.h"
-#include "regen/buffer/pbo.h"
+#include "regen/memory/pbo.h"
 
 namespace regen {
 	/**

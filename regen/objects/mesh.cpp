@@ -8,7 +8,7 @@
 #include "regen/scene/state-configurer.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl/draw-command.h"
-#include "regen/buffer/dibo.h"
+#include "regen/memory/dibo.h"
 
 //#define REGEN_MESH_DISABLE_MULTI_DRAW
 

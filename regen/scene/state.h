@@ -7,7 +7,7 @@
 #include <regen/utility/ref-ptr.h>
 #include "regen/shader/shader-input.h"
 #include <regen/gl/render-state.h>
-#include "regen/buffer/ubo.h"
+#include "regen/memory/ubo.h"
 
 namespace regen {
 	struct StateInput {

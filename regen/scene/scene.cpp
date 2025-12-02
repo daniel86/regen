@@ -2,7 +2,7 @@
 #include "regen/shader/includer.h"
 #include <regen/config.h>
 #include <regen/gl/gl-param.h>
-#include <regen/buffer/binding-manager.h>
+#include <regen/memory/binding-manager.h>
 #include <regen/textures/texture-binder.h>
 #include "scene.h"
 #include "regen/animation/animation-manager.h"

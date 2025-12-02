@@ -1,7 +1,7 @@
 #include "regen/utility/string-util.h"
 #include "regen/utility/logging.h"
 #include "../animation/animation.h"
-#include "regen/buffer/ssbo.h"
+#include "regen/memory/ssbo.h"
 #include <stack>
 
 #include "shader-input.h"

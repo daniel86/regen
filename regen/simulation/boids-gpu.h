@@ -3,7 +3,7 @@
 
 #include "boid-simulation.h"
 #include "../animation/animation.h"
-#include "regen/buffer/bbox-buffer.h"
+#include "regen/memory/bbox-buffer.h"
 #include "../compute/compute-pass.h"
 #include "regen/gl/queries/elapsed-time.h"
 

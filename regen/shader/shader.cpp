@@ -5,7 +5,7 @@
 #include "regen/shader/directive-processor.h"
 #include "regen/shader/io-processor.h"
 #include "regen/shader/comment-processor.h"
-#include "regen/buffer/binding-manager.h"
+#include "regen/memory/binding-manager.h"
 #include "shader.h"
 
 using namespace regen;

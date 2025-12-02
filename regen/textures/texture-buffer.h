@@ -2,7 +2,7 @@
 #define REGEN_TEXTURE_BUFFER_H_
 
 #include "texture.h"
-#include "regen/buffer/vbo.h"
+#include "regen/memory/vbo.h"
 
 namespace regen {
 	/**

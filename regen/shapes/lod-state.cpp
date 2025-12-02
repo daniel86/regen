@@ -8,7 +8,7 @@
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
 #include "regen/gl/queries/elapsed-time.h"
-#include "regen/buffer/dibo.h"
+#include "regen/memory/dibo.h"
 
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256

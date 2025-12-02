@@ -7,8 +7,8 @@
 #include "regen/textures/fbo.h"
 #include "regen/camera/camera.h"
 #include "pick-data.h"
-#include "regen/buffer/pbo.h"
-#include "regen/buffer/staging-buffer.h"
+#include "regen/memory/pbo.h"
+#include "regen/memory/staging-buffer.h"
 
 namespace regen {
 	/**

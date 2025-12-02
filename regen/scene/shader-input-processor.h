@@ -41,7 +41,7 @@ namespace regen {
 
 #include "regen/shader/shader-input.h"
 #include <stack>
-#include "regen/buffer/ssbo.h"
+#include "regen/memory/ssbo.h"
 
 namespace regen {
 	namespace scene {

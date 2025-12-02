@@ -11,7 +11,7 @@ set(SOURCE_DIRS
     av
     gl
     shader
-    buffer
+    memory
     utility
     shapes
     animation

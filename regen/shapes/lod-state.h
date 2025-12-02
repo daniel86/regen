@@ -4,9 +4,9 @@
 #include <regen/scene/state-node.h>
 #include <regen/shapes/spatial-index.h>
 #include "regen/camera/sorting.h"
-#include "regen/buffer/ssbo.h"
-#include "regen/buffer/pbo.h"
-#include "regen/buffer/staging-buffer.h"
+#include "regen/memory/ssbo.h"
+#include "regen/memory/pbo.h"
+#include "regen/memory/staging-buffer.h"
 #include "../compute/compute-pass.h"
 #include "../compute/radix-sort.h"
 #include "regen/shapes/cull-shape.h"
