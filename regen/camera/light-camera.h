@@ -1,7 +1,7 @@
 #ifndef REGEN_LIGHT_CAMERA_H
 #define REGEN_LIGHT_CAMERA_H
 
-#include <regen/states/light-state.h>
+#include <regen/shading/light-state.h>
 #include <regen/camera/camera.h>
 
 namespace regen {

@@ -20,7 +20,7 @@
 #include <regen/scene/scene-loader.h>
 #include <regen/scene/scene-input.h>
 #include <regen/shapes/spatial-index.h>
-#include <regen/states/light-state.h>
+#include <regen/shading/light-state.h>
 #include <applications/qt/qt-application.h>
 #include <applications/qt/shader-input-widget.h>
 #include "ui_scene-display-gui.h"

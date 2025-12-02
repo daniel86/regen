@@ -4,12 +4,12 @@
 #include "regen/scene/debug-node-processor.h"
 #include "regen/passes/filter.h"
 #include "regen/passes/motion-blur.h"
-#include "regen/states/light-pass.h"
+#include "regen/shading/light-pass.h"
 #include "shader-input-processor.h"
 #include "../passes/geometric-picking.h"
 #include "regen/passes/bloom-pass.h"
 #include "regen/scene/node-processor.h"
-#include "regen/states/direct-shading.h"
+#include "regen/shading/direct-shading.h"
 #include <regen/scene/mesh-processor.h>
 #include <regen/scene/loadable-input.h>
 #include <regen/scene/shader-define-processor.h>

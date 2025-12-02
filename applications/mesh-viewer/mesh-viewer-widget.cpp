@@ -15,7 +15,7 @@
 #include <regen/animation/animation-manager.h>
 #include <regen/objects/lod/mesh-simplifier.h>
 #include <regen/objects/lod/impostor-billboard.h>
-#include <regen/states/direct-shading.h>
+#include <regen/shading/direct-shading.h>
 #include <applications/qt/qt-events.h>
 #include <applications/qt/ColorWidget.h>
 #include <applications/scene-display/animation-events.h>

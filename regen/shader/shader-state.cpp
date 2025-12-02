@@ -6,7 +6,7 @@
  */
 
 #include "regen/utility/string-util.h"
-#include "regen/states/light-state.h"
+#include "../shading/light-state.h"
 #include "../textures/material-state.h"
 #include "regen/shader/directive-processor.h"
 #include "regen/shader/includer.h"

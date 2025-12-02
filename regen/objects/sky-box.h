@@ -4,7 +4,7 @@
 #include <regen/objects/primitives/box.h>
 #include <regen/camera/camera.h>
 #include <regen/textures/texture-state.h>
-#include <regen/states/light-state.h>
+#include <regen/shading/light-state.h>
 #include "regen/shader/shader-state.h"
 #include "regen/textures/fbo.h"
 

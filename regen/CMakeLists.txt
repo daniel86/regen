@@ -18,7 +18,7 @@ set(SOURCE_DIRS
     simulation
     behavior
     textures
-    states
+    shading
     camera
     objects
     passes

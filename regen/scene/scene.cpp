@@ -6,7 +6,7 @@
 #include <regen/textures/texture-binder.h>
 #include "scene.h"
 #include "regen/animation/animation-manager.h"
-#include "regen/states/light-pass.h"
+#include "regen/shading/light-pass.h"
 #include "regen/textures/texture-loader.h"
 #include "regen/textures/devil-loader.h"
 #include "regen/textures/stb-loader.h"

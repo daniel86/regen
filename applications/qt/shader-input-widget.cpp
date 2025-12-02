@@ -5,7 +5,7 @@
 #include <regen/utility/logging.h>
 #include "regen/textures/fbo-state.h"
 #include "regen/shader/shader-state.h"
-#include <regen/states/light-pass.h>
+#include <regen/shading/light-pass.h>
 #include <stack>
 #include <QPropertyAnimation>
 

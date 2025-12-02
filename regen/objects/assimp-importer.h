@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 #include <regen/objects/mesh.h>
-#include <regen/states/light-state.h>
+#include <regen/shading/light-state.h>
 #include <regen/animation/animation.h>
 #include <regen/animation/bones.h>
 #include <regen/camera/camera.h>
