@@ -2,7 +2,7 @@
 #ifndef REGEN_MOTION_BLUR_H_
 #define REGEN_MOTION_BLUR_H_
 
-#include <regen/states/fullscreen-pass.h>
+#include "fullscreen-pass.h"
 
 namespace regen {
 	class MotionBlur : public FullscreenPass {

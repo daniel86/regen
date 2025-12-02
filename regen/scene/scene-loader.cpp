@@ -6,7 +6,7 @@
 #include "regen/effects/motion-blur.h"
 #include "regen/states/light-pass.h"
 #include "shader-input-processor.h"
-#include "regen/states/geometric-picking.h"
+#include "../effects/geometric-picking.h"
 #include "regen/effects/bloom-pass.h"
 #include "regen/scene/node-processor.h"
 #include "regen/states/direct-shading.h"
@@ -20,7 +20,7 @@
 #include "../gl/states/blit-state.h"
 #include "../gl/states/stencil-state.h"
 #include "../gl/states/tesselation-state.h"
-#include "regen/states/horizon-divider.h"
+#include "horizon-divider.h"
 
 using namespace regen::scene;
 using namespace regen;

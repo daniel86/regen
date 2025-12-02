@@ -1,7 +1,7 @@
 #ifndef REGEN_FILTER_H_
 #define REGEN_FILTER_H_
 
-#include <regen/states/fullscreen-pass.h>
+#include "fullscreen-pass.h"
 #include <regen/textures/texture-state.h>
 #include "regen/textures/fbo-state.h"
 #include <regen/scene/loading-context.h>

@@ -3,7 +3,7 @@
 
 #include <regen/scene/state.h>
 
-#include "../gl/states/feedback-state.h"
+#include "regen/gl/states/feedback-state.h"
 #include "regen/textures/fbo.h"
 #include "regen/camera/camera.h"
 #include "pick-data.h"
