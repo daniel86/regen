@@ -15,7 +15,7 @@ using namespace regen;
 #include "regen/av/video-texture.h"
 #include "noise-texture.h"
 #include "ramp-texture.h"
-#include "regen/effects/bloom-texture.h"
+#include "regen/passes/bloom-texture.h"
 #include "regen/scene/scene.h"
 #include "regen/scene/loading-context.h"
 #include "fbo.h"

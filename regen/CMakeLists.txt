@@ -21,7 +21,7 @@ set(SOURCE_DIRS
     states
     camera
     objects
-    effects
+    passes
     scene
     external)
 

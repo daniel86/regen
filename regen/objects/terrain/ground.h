@@ -7,7 +7,7 @@
 #include "../../textures/material-state.h"
 #include "regen/textures/texture.h"
 #include "regen/textures/fbo-state.h"
-#include "../../effects/fullscreen-pass.h"
+#include "../../passes/fullscreen-pass.h"
 
 namespace regen {
 	/**

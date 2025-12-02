@@ -6,7 +6,7 @@
 #include <regen/utility/event-object.h>
 #include <regen/utility/time.h>
 #include <regen/scene/state-node.h>
-#include "../effects/pick-data.h"
+#include "../passes/pick-data.h"
 #include "regen/scene/scene-interaction.h"
 #include "regen/animation/animation.h"
 #include "regen/memory/staging-system.h"
