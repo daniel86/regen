@@ -56,7 +56,6 @@ void Material::set_emission(const Vec3f &emission) {
 		materialEmission_ = ref_ptr<ShaderInput3f>::alloc("matEmission");
 		materialEmission_->setUniformData(emission);
 		materialEmission_->setSchema(InputSchema::color());
-		// TODO: better always include emission term in material UBO?
 		materialUniforms_->addStagedInput(materialEmission_);
 	} else {
 		materialEmission_->setUniformData(emission);

@@ -16,7 +16,11 @@ BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf)
 	initBoidSimulation0();
 }
 
-BoidSimulation::BoidSimulation(const ref_ptr<ShaderInput4f> &modelOffset) : modelOffset_(modelOffset) {
+BoidSimulation::BoidSimulation(
+		const ref_ptr<ShaderInput4f> &modelOffset,
+		const ref_ptr<ShaderInput3f> &modelDirection) :
+		modelOffset_(modelOffset),
+		modelDirection_(modelDirection){
 	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
 	boidsScale_->setUniformData(Vec3f::one());
 	numBoids_ = modelOffset->numInstances();

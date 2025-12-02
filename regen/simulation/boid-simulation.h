@@ -21,7 +21,9 @@ namespace regen {
 
 		explicit BoidSimulation(const ref_ptr<ModelTransformation> &tf);
 
-		explicit BoidSimulation(const ref_ptr<ShaderInput4f> &modelOffset);
+		explicit BoidSimulation(
+			const ref_ptr<ShaderInput4f> &modelOffset,
+			const ref_ptr<ShaderInput3f> &modelDirection = {});
 
 		/**
 		 * Load the boids settings from a scene input node.
@@ -171,6 +173,7 @@ namespace regen {
 		uint32_t numBoids_;
 		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<ShaderInput4f> modelOffset_;
+		ref_ptr<ShaderInput3f> modelDirection_;
 		// The bounding box of the boids.
 		Bounds<Vec3f> boidBounds_ = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::one());
 

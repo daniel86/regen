@@ -23,8 +23,10 @@ namespace regen {
 		/**
 		 * Model offset constructor.
 		 * @param modelOffset A shader input with model offsets, each instance of the model will be a boid.
+		 * @param modelDirection Optional shader input with model directions.
 		 */
-		explicit BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset);
+		explicit BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset,
+			const ref_ptr<ShaderInput3f> &modelDirection = {});
 
 		~BoidsCPU() override;
 

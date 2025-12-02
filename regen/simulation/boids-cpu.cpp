@@ -181,8 +181,8 @@ BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 	}
 }
 
-BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset)
-		: BoidSimulation(modelOffset),
+BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset, const ref_ptr<ShaderInput3f> &modelDirection)
+		: BoidSimulation(modelOffset, modelDirection),
 		  Animation(false, true),
 		  priv_(new Private(numBoids_)) {
 	priv_->boidVelocityX_.setToZero();
@@ -429,6 +429,28 @@ void BoidsCPU::updateTransforms() {
 					priv_->boidPositionsZ_[i],
 					1.0f);
 			}
+		}
+	} else if (modelOffset_.get() && modelDirection_.get()) {
+		// output is model offset and a world space direction vector
+		auto offsetData = modelOffset_->mapClientData<Vec4f>(
+				BUFFER_GPU_WRITE, 0, numBoids_ * sizeof(Vec4f));
+		auto directionData = modelDirection_->mapClientData<Vec3f>(
+				BUFFER_GPU_WRITE, 0, numBoids_ * sizeof(Vec3f));
+		for (uint32_t i = 0; i < numBoids_; ++i) {
+			offsetData.w[i] = Vec4f(
+					priv_->boidPositionsX_[i],
+					priv_->boidPositionsY_[i],
+					priv_->boidPositionsZ_[i],
+					1.0f);
+			// compute the direction vector from the orientation quaternion
+			const Quaternion orientation(
+					priv_->boidOrientW_[i],
+					priv_->boidOrientX_[i],
+					priv_->boidOrientY_[i],
+					priv_->boidOrientZ_[i]);
+			Vec3f forward = orientation.rotate(Vec3f::front());
+			forward.normalize();
+			directionData.w[i] = Vec3f{ forward.x, forward.y, forward.z };
 		}
 	} else if (modelOffset_.get()) {
 		// update the model offset data
