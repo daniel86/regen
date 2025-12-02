@@ -127,6 +127,10 @@ void Sky::set_latitude(const float latitude) {
 	astro_->setLatitude(latitude);
 }
 
+void Sky::set_surfaceHeight(const float surfaceHeight) {
+	surfaceHeight_ = surfaceHeight;
+}
+
 void Sky::updateSeed() {
 	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
 	v_cmnUniform.w = Vec4f(
@@ -175,10 +179,8 @@ float Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, flo
 }
 
 float Sky::computeEyeExtinction(const Vec3f &eyeDir) {
-	// TODO: Read surface height from scene file. But it is currently not well accessible...
-	static constexpr float surfaceHeight = 0.99f;
-	static const Vec3f eyePosition(0.0, surfaceHeight, 0.0);
-	return computeHorizonExtinction(eyePosition, eyeDir, surfaceHeight - 0.15f);
+	const Vec3f eyePosition(0.0, surfaceHeight_, 0.0);
+	return computeHorizonExtinction(eyePosition, eyeDir, surfaceHeight_ - 0.15f);
 }
 
 static Vec3f computeColor(const Vec3f &color, float ext) {
@@ -549,6 +551,8 @@ ref_ptr<Sky> Sky::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	sky->set_altitude(input.getValue<float>("altitude", 0.043));
 	sky->set_longitude(input.getValue<float>("longitude", 13.3611));
 	sky->set_latitude(input.getValue<float>("latitude", 52.5491));
+	if (input.hasAttribute("surface-height"))
+		sky->set_surfaceHeight(input.getValue<float>("surface-height", 0.99f));
 
 	for (auto &n: input.getChildren()) {
 		ref_ptr<SkyLayer> layer;
