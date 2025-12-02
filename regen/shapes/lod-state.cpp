@@ -4,10 +4,10 @@
 #include "aabb.h"
 #include "obb.h"
 #include "regen/objects/composite-mesh.h"
-#include "regen/gl-types/gl-param.h"
+#include "regen/gl/gl-param.h"
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
-#include "regen/gl-types/queries/elapsed-time.h"
+#include "regen/gl/queries/elapsed-time.h"
 #include "regen/buffer/dibo.h"
 
 #define RADIX_BITS_PER_PASS 4u

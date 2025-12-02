@@ -2,7 +2,7 @@
 #define REGEN_ELAPSED_TIME_H_
 
 #include <chrono>
-#include <regen/gl-types/gl-query.h>
+#include <regen/gl/gl-query.h>
 
 namespace regen {
 	class TimeElapsedQuery : public GLQuery<float> {

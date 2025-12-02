@@ -1,5 +1,5 @@
 #include "prefix-scan.h"
-#include "regen/gl-types/gl-param.h"
+#include "regen/gl/gl-param.h"
 
 using namespace regen;
 

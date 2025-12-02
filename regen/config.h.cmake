@@ -48,4 +48,4 @@ namespace regen {
 };
 #endif // REGEN_CONFIG_H_
 
-#include <regen/gl-types/gl-util.h>
+#include <regen/gl/gl-util.h>

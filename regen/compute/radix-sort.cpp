@@ -1,5 +1,5 @@
 #include "radix-sort.h"
-#include "regen/gl-types/gl-param.h"
+#include "regen/gl/gl-param.h"
 #include "regen/utility/conversion.h"
 #include "prefix-scan.h"
 

@@ -1,7 +1,7 @@
 #ifndef REGEN_RENDER_BUFFER_H_
 #define REGEN_RENDER_BUFFER_H_
 
-#include "regen/gl-types/gl-rectangle.h"
+#include "regen/gl/gl-rectangle.h"
 
 namespace regen {
 	/**

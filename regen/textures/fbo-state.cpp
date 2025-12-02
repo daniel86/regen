@@ -1,5 +1,5 @@
 #include "regen/utility/string-util.h"
-#include "../gl-types/atomic-states.h"
+#include "regen/gl/atomic-states.h"
 
 #include "fbo-state.h"
 #include "screen-state.h"

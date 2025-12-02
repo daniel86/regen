@@ -16,10 +16,10 @@
 
 #include "regen/behavior/skeleton/bone-controller.h"
 #include "regen/behavior/world/body-part.h"
-#include "regen/gl-types/alpha-state.h"
-#include "regen/gl-types/blit-state.h"
-#include "regen/gl-types/stencil-state.h"
-#include "regen/gl-types/tesselation-state.h"
+#include "regen/gl/alpha-state.h"
+#include "regen/gl/blit-state.h"
+#include "regen/gl/stencil-state.h"
+#include "regen/gl/tesselation-state.h"
 #include "regen/states/horizon-divider.h"
 
 using namespace regen::scene;

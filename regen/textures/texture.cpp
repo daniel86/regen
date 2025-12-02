@@ -2,9 +2,9 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/utility/filesystem.h>
-#include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/gl-enum.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/gl-util.h>
+#include <regen/gl/gl-enum.h>
+#include <regen/gl/render-state.h>
 
 #include "height-map.h"
 

@@ -1,6 +1,6 @@
 #include <regen/external/libnoise/src/noise/noise.h>
 #include <regen/compute/vector.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/render-state.h>
 
 #include "noise-texture.h"
 

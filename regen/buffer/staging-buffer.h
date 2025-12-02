@@ -1,12 +1,12 @@
 #ifndef REGEN_STAGING_BUFFER_H_
 #define REGEN_STAGING_BUFFER_H_
 
-#include "regen/gl-types/gl-object.h"
+#include "regen/gl/gl-object.h"
 #include "buffer-reference.h"
 #include "buffer-enums.h"
 #include "buffer-object.h"
 #include "regen/shader/shader-input.h"
-#include "regen/gl-types/gpu-fence.h"
+#include "regen/gl/gpu-fence.h"
 
 namespace regen {
 	/**

@@ -3,10 +3,8 @@
 
 #include <regen/objects/mesh.h>
 
-#include "regen/buffer/bbox-buffer.h"
 #include "regen/shader/shader-state.h"
-#include "regen/gl-types/atomic-counter.h"
-#include "../compute/compute-pass.h"
+#include "regen/gl/atomic-counter.h"
 
 namespace regen {
 	/**

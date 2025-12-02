@@ -11,8 +11,8 @@
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
 #include <regen/external/spectrum.h>
-#include <regen/gl-types/gl-enum.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/gl-enum.h>
+#include <regen/gl/render-state.h>
 
 #include "texture-loader.h"
 #include "devil-loader.h"

@@ -1,5 +1,5 @@
 #include "staging-buffer.h"
-#include "regen/gl-types/gl-param.h"
+#include "regen/gl/gl-param.h"
 #include "staging-system.h"
 
 #define REGEN_USE_STAGING_ALLOCATOR

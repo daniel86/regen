@@ -1,5 +1,5 @@
 #include "texture-buffer.h"
-#include "regen/gl-types/gl-util.h"
+#include "regen/gl/gl-util.h"
 
 using namespace regen;
 

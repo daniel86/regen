@@ -7,7 +7,7 @@
 #include <regen/scene/value-generator.h>
 #include <regen/scene/resource-manager.h>
 #include <regen/animation/input-animation.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/render-state.h>
 
 #define REGEN_INPUT_STATE_CATEGORY "input"
 

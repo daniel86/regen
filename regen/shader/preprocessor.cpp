@@ -8,7 +8,7 @@
 #include <list>
 
 #include "regen/utility/string-util.h"
-#include "regen/gl-types/gl-enum.h"
+#include "regen/gl/gl-enum.h"
 #include "includer.h"
 #include "directive-processor.h"
 #include "preprocessor.h"

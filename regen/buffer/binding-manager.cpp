@@ -1,6 +1,6 @@
 #include <GL/glew.h>
 #include "binding-manager.h"
-#include <regen/gl-types/gl-param.h>
+#include <regen/gl/gl-param.h>
 #include <regen/utility/logging.h>
 
 using namespace regen;

@@ -2,7 +2,7 @@
 #define REGEN_GL_OBJECT_H_
 
 #include <regen/config.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/render-state.h>
 #include <regen/utility/ref-ptr.h>
 
 #include <GL/glew.h>

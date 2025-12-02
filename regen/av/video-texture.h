@@ -5,7 +5,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include <regen/textures/texture.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/render-state.h>
 #include <regen/av/demuxer.h>
 #include <regen/animation/animation.h>
 

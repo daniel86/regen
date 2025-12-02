@@ -2,7 +2,7 @@
 #define REGEN_STAGING_SYSTEM_H_
 
 #include "staged-buffer.h"
-#include "regen/gl-types/queries/elapsed-time.h"
+#include "regen/gl/queries/elapsed-time.h"
 #include "regen/utility/free-list.h"
 
 // Note: We need to swap client buffers after each copy from

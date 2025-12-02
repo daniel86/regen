@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/gl-types/gl-util.h>
+#include <regen/gl/gl-util.h>
 #include <regen/utility/string-util.h>
 #include "atomic-states.h"
 

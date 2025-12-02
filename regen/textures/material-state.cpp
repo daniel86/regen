@@ -1,6 +1,6 @@
 #include <boost/filesystem.hpp>
 #include <regen/textures/texture-state.h>
-#include "../gl-types/atomic-states.h"
+#include "regen/gl/atomic-states.h"
 
 #include "material-state.h"
 #include "regen/utility/filesystem.h"

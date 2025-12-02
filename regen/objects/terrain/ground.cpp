@@ -1,6 +1,6 @@
 #include "ground.h"
 #include "regen/textures/texture-loader.h"
-#include "../../gl-types/depth-state.h"
+#include "regen/gl/depth-state.h"
 #include "regen/objects/composite-mesh.h"
 #include "regen/objects/primitives/blanket.h"
 

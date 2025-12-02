@@ -2,8 +2,8 @@
 #define REGEN_TEXTURE_H_
 
 #include <string>
-#include <regen/gl-types/gl-rectangle.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/gl-rectangle.h>
+#include <regen/gl/render-state.h>
 #include "regen/shader/shader-input.h"
 #include "regen/shapes/bounds.h"
 #include "regen/scene/scene-input.h"

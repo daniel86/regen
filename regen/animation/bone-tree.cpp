@@ -1,7 +1,7 @@
 #include <regen/utility/logging.h>
 #include "bone-tree.h"
 #include <ranges>
-#include "regen/gl-types/queries/elapsed-time.h"
+#include "regen/gl/queries/elapsed-time.h"
 #include "regen/scene/scene.h"
 
 using namespace regen;

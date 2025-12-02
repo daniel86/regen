@@ -11,7 +11,7 @@
 #include <regen/scene/state.h>
 #include <regen/textures/texture.h>
 
-#include "regen/gl-types/blend-state.h"
+#include "regen/gl/blend-state.h"
 #include "regen/scene/scene-loader.h"
 #include "regen/shader/shader-function.h"
 

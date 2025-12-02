@@ -1,6 +1,6 @@
 #include "staging-system.h"
-#include "regen/gl-types/queries/elapsed-time.h"
-#include <regen/gl-types/gl-param.h>
+#include "regen/gl/queries/elapsed-time.h"
+#include <regen/gl/gl-param.h>
 
 using namespace regen;
 

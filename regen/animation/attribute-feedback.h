@@ -4,7 +4,7 @@
 #include <regen/animation/animation.h>
 #include "regen/scene/state-node.h"
 #include "regen/shader/shader-state.h"
-#include "../gl-types/feedback-state.h"
+#include "regen/gl/feedback-state.h"
 
 namespace regen {
 	/**

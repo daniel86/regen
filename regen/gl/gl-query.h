@@ -1,7 +1,7 @@
 #ifndef REGEN_GL_QUERY_H_
 #define REGEN_GL_QUERY_H_
 
-#include <regen/gl-types/gl-object.h>
+#include <regen/gl/gl-object.h>
 
 namespace regen {
 	/**

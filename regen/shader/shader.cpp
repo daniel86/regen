@@ -1,7 +1,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "regen/utility/logging.h"
-#include "regen/gl-types/gl-enum.h"
+#include "regen/gl/gl-enum.h"
 #include "regen/shader/directive-processor.h"
 #include "regen/shader/io-processor.h"
 #include "regen/shader/comment-processor.h"

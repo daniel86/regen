@@ -29,10 +29,10 @@ using namespace std;
 #include "interaction-manager.h"
 #include "interactions/video-toggle.h"
 #include "interactions/node-activation.h"
-#include "../../regen/simulation/impulse-controller.h"
-#include "../../regen/behavior/animal-controller.h"
+#include "regen/simulation/impulse-controller.h"
+#include "regen/behavior/animal-controller.h"
 #include "regen/av/video-recorder.h"
-#include "../../regen/gl-types/blit-state.h"
+#include "regen/gl/blit-state.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 

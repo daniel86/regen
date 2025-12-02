@@ -1,6 +1,6 @@
 #include <regen/utility/string-util.h>
-#include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/gl-enum.h>
+#include <regen/gl/gl-util.h>
+#include <regen/gl/gl-enum.h>
 
 #include "mesh-animation.h"
 

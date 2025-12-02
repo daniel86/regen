@@ -1,7 +1,7 @@
 #ifndef REGEN_VAO_H_
 #define REGEN_VAO_H_
 
-#include <regen/gl-types/gl-object.h>
+#include <regen/gl/gl-object.h>
 
 namespace regen {
 	/**

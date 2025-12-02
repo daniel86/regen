@@ -10,7 +10,7 @@
 
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/logging.h>
-#include <regen/gl-types/gl-enum.h>
+#include <regen/gl/gl-enum.h>
 #include <string>
 #include <list>
 #include <optional>

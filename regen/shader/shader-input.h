@@ -7,7 +7,7 @@
 
 #include "regen/buffer/buffer-reference.h"
 #include "regen/buffer/client-data.h"
-#include "regen/gl-types/gl-enum.h"
+#include "regen/gl/gl-enum.h"
 #include "regen/utility/ref-ptr.h"
 #include "regen/utility/stack.h"
 #include "regen/utility/string-util.h"

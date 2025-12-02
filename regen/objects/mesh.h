@@ -5,7 +5,7 @@
 
 #include <regen/scene/state.h>
 #include <regen/buffer/vbo.h>
-#include <regen/gl-types/vao.h>
+#include <regen/gl/vao.h>
 #include <regen/buffer/ssbo.h>
 #include "regen/shader/shader.h"
 #include <regen/animation/animation.h>

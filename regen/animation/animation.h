@@ -2,7 +2,7 @@
 #define REGEN_ANIMATION_H_
 
 #include <regen/utility/event-object.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/render-state.h>
 #include <regen/scene/state.h>
 
 namespace regen {

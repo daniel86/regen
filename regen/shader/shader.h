@@ -4,8 +4,8 @@
 #include <map>
 #include <set>
 
-#include "regen/gl-types/render-state.h"
-#include "regen/gl-types/input-location.h"
+#include "regen/gl/render-state.h"
+#include "regen/gl/input-location.h"
 #include "regen/textures/texture-location.h"
 #include "regen/shader/preprocessor.h"
 #include "regen/shader/preprocessor-config.h"

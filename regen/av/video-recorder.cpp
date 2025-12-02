@@ -4,7 +4,7 @@ extern "C" {
 }
 
 #include <regen/utility/logging.h>
-#include <regen/gl-types/gl-util.h>
+#include <regen/gl/gl-util.h>
 #include "video-recorder.h"
 
 #define REGEN_VIDEO_RECORDER_FILE "/tmp/regen.mp4"

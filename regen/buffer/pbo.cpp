@@ -1,4 +1,4 @@
-#include "regen/gl-types/render-state.h"
+#include "regen/gl/render-state.h"
 #include "regen/shader/shader-input.h"
 #include <optional>
 

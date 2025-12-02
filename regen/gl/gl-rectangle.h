@@ -1,7 +1,7 @@
 #ifndef GL_RECTANGLE_H_
 #define GL_RECTANGLE_H_
 
-#include <regen/gl-types/gl-object.h>
+#include <regen/gl/gl-object.h>
 #include "regen/shader/shader-input.h"
 
 namespace regen {

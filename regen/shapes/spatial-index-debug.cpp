@@ -1,6 +1,6 @@
 #include "spatial-index-debug.h"
 #include "orthogonal-projection.h"
-#include <regen/gl-types/gl-util.h>
+#include <regen/gl/gl-util.h>
 #include "regen/camera/reflection-camera.h"
 
 using namespace regen;

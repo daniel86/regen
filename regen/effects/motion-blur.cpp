@@ -2,7 +2,7 @@
 #include <regen/utility/string-util.h>
 #include "motion-blur.h"
 
-#include "regen/gl-types/depth-state.h"
+#include "regen/gl/depth-state.h"
 
 using namespace regen;
 

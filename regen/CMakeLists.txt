@@ -9,7 +9,7 @@ message(STATUS "Installing config.h to ${CMAKE_BINARY_DIR}/regen/config.h")
 set(SOURCE_DIRS
     compute
     av
-    gl-types
+    gl
     shader
     buffer
     utility

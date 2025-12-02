@@ -13,7 +13,7 @@
 #include "scene-widget.h"
 #include "qt-application.h"
 #include "regen/animation/animation-manager.h"
-#include "regen/gl-types/queries/elapsed-time.h"
+#include "regen/gl/queries/elapsed-time.h"
 
 using namespace regen;
 

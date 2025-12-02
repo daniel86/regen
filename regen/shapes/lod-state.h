@@ -10,7 +10,7 @@
 #include "../compute/compute-pass.h"
 #include "../compute/radix-sort.h"
 #include "regen/shapes/cull-shape.h"
-#include "regen/gl-types/draw-command.h"
+#include "regen/gl/draw-command.h"
 
 namespace regen {
 	/**

@@ -2,8 +2,8 @@
 #include <boost/filesystem.hpp>
 
 #include <regen/utility/string-util.h>
-#include <regen/gl-types/gl-util.h>
-#include <regen/gl-types/render-state.h>
+#include <regen/gl/gl-util.h>
+#include <regen/gl/render-state.h>
 
 #include "font.h"
 #include "regen/utility/filesystem.h"

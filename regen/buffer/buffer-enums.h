@@ -1,7 +1,7 @@
 #ifndef REGEN_BUFFER_ENUMS_H_
 #define REGEN_BUFFER_ENUMS_H_
 
-#include "regen/gl-types/gl-object.h"
+#include "regen/gl/gl-object.h"
 
 namespace regen {
 	/**
