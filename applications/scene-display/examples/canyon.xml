@@ -883,6 +883,8 @@
                   dst-fbo="g-buffer" dst-attachment="0"/>
         </node>
         <node import="Water-Rendering">
+            <!-- Ensure all texture writes are finished before reading them in post-processing -->
+            <barrier bit="TEXTURE_FETCH"/>
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>
         <!-- Render water surface depth into G-buffer depth. -->

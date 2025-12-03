@@ -521,6 +521,27 @@ namespace regen {
 	protected:
 		ColorMask mask_;
 	};
+
+	/**
+	 * \brief Defines a memory barrier.
+	 */
+	class BarrierState : public ServerSideState {
+	public:
+		/**
+		 * @param barriers the barriers to set.
+		 */
+		explicit BarrierState(GLbitfield barriers)
+				: ServerSideState(), barriers_(barriers) {}
+
+		void enable(RenderState *rs) override {
+			glMemoryBarrier(barriers_);
+		}
+
+		static ref_ptr<State> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
+	protected:
+		const GLbitfield barriers_;
+	};
 } // namespace
 
 #endif /* ATOMIC_STATES_H_ */

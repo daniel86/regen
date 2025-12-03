@@ -54,3 +54,18 @@ ref_ptr<State> ColorMaskState::load(LoadingContext &ctx, scene::SceneInputNode &
 	return ref_ptr<ColorMaskState>::alloc(ColorMask(
 			input.getValue<ColorMask>("mask", ColorMask::create(true))));
 }
+
+ref_ptr<State> BarrierState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	if (input.hasAttribute("bit")) {
+		auto barrierBit = glenum::barrierBit(input.getValue("bit"));
+		return ref_ptr<BarrierState>::alloc(barrierBit);
+	} else if (input.hasAttribute("bits")) {
+		auto bits = input.getArray<std::string>("bits");
+		GLbitfield barriers = 0;
+		for (const auto &b : bits) {
+			barriers |= glenum::barrierBit(b);
+		}
+		return ref_ptr<BarrierState>::alloc(barriers);
+	}
+	return {};
+}

@@ -38,6 +38,13 @@ namespace regen {
 		GLenum blendFunction(const std::string &val_);
 
 		/**
+		 * Specifies the buffers whose contents are to be synchronized.
+		 * @param val input string.
+		 * @return one of the GL_*_BARRIER_BIT constants.
+		 */
+		GLenum barrierBit(const std::string &val);
+
+		/**
 		 * The cull face specifies whether front- or back-facing facets are candidates for culling.
 		 * @param val input string.
 		 * @return GL_FRONT, GL_BACK, or GL_FRONT_AND_BACK.
