@@ -1,17 +1,9 @@
 
 # list of all source files in this directory
 file(GLOB SOURCES *.cpp)
+file(GLOB HEADER_FILES *.h)
 
 install(
-    FILES
-        event-object.h
-        logging.h
-        ref-ptr.h
-        stack.h
-        state-stacks.h
-        string-util.h
-        filesystem.h
-        threading.h
-        memory-allocator.h
+    FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/utility
 )
