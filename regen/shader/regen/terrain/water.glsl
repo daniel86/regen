@@ -332,11 +332,8 @@ vec3 computeOverWaterColor(vec3 position, float sceneDepth, vec3 sceneColor, vec
     vec3 eyeNormYInv = eyeNorm / eyeNorm.y;
     vec2 uv;
 
-    #ifdef IS_WATER_PLANE
-    vec3 surfacePoint = in_posWorld;
-    #else
+    //vec3 surfacePoint = in_posWorld;
     vec3 surfacePoint = cam + eyeNormYInv * (level - cam.y);
-    #endif
 
     // Sample height map a few times to find wave amplitude
     vec2 heightOffset = in_heightBiasWave * eyeNorm.xz + in_heightBiasWind;

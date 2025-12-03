@@ -345,6 +345,38 @@ GLenum glenum::blendFunction(const std::string &val_) {
 	return GL_FUNC_ADD;
 }
 
+GLenum glenum::barrierBit(const std::string &v) {
+	std::string val = getValue(v);
+	if (val == "VERTEX_ATTRIB_ARRAY")
+		return GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+	else if (val == "ELEMENT_ARRAY")
+		return GL_ELEMENT_ARRAY_BARRIER_BIT;
+	else if (val == "UNIFORM")
+		return GL_UNIFORM_BARRIER_BIT;
+	else if (val == "TEXTURE_FETCH")
+		return GL_TEXTURE_FETCH_BARRIER_BIT;
+	else if (val == "SHADER_IMAGE_ACCESS")
+		return GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+	else if (val == "COMMAND")
+		return GL_COMMAND_BARRIER_BIT;
+	else if (val == "PIXEL_BUFFER")
+		return GL_PIXEL_BUFFER_BARRIER_BIT;
+	else if (val == "TEXTURE_UPDATE")
+		return GL_TEXTURE_UPDATE_BARRIER_BIT;
+	else if (val == "BUFFER_UPDATE")
+		return GL_BUFFER_UPDATE_BARRIER_BIT;
+	else if (val == "FRAMEBUFFER")
+		return GL_FRAMEBUFFER_BARRIER_BIT;
+	else if (val == "TRANSFORM_FEEDBACK")
+		return GL_TRANSFORM_FEEDBACK_BARRIER_BIT;
+	else if (val == "ATOMIC_COUNTER")
+		return GL_ATOMIC_COUNTER_BARRIER_BIT;
+	else if (val == "ALL_BARRIER")
+		return GL_ALL_BARRIER_BITS;
+	REGEN_WARN("Unknown barrier bit '" << v << "'. Using default NONE.");
+	return GL_NONE;
+}
+
 GLenum glenum::filterMode(const std::string &val_) {
 	std::string val = getValue(val_);
 	if (val == "NEAREST") return GL_NEAREST;
