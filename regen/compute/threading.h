@@ -263,7 +263,10 @@ namespace regen {
 		 * @param numLocalJobs The number of local jobs to be executed by the owner thread.
 		 */
 		void beginFrame(JobFrame &jobFrame, uint32_t numLocalJobs) {
-			jobFrame.numJobsRemaining.store(jobFrame.numPushed+numLocalJobs, std::memory_order_relaxed);
+			// ensure the written value is visible to threads that later acquire the semaphore
+			jobFrame.numJobsRemaining.store(
+				jobFrame.numPushed+numLocalJobs,
+				std::memory_order_release);
 			workSem_.release(jobFrame.numPushed);
 		}
 
@@ -274,7 +277,8 @@ namespace regen {
 		 */
 		static void performJob(FramedJob &job) {
 			job.fn(job.arg);
-			job.frame->numJobsRemaining.fetch_sub(1u, std::memory_order_acq_rel);
+			job.frame->numJobsRemaining.fetch_sub(1u,
+				std::memory_order_acq_rel);
 		}
 
 		/**
