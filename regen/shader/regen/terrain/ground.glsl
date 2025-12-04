@@ -164,13 +164,6 @@ void computeMaterialWeights(float heightNorm, vec3 nor, float slope) {
     weight_${MAT_I} /= weightSum;
 #endfor
 
-#ifdef HAS_stone_MATERIAL && HAS_dirt_MATERIAL
-    #define2 STONE_I ${stone_MATERIAL_IDX}
-    #define2 DIRT_I ${dirt_MATERIAL_IDX}
-    // Remove dirt where rock is strong
-    // TODO: can we make this configurable?
-    weight_${DIRT_I} *= (1.0 - weight_${STONE_I});
-#endif
 #ifdef HAS_fallback_MATERIAL
     #define2 FALLBACK_I ${fallback_MATERIAL_IDX}
     weight_${FALLBACK_I} += 0.66 * step(weightSum, 0.001);
