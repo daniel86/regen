@@ -205,9 +205,16 @@ void Ground::updateAttributes() {
 	minPos.z -= patchSize_.y * 0.5f;
 	maxPos.x += patchSize_.x * 0.5f;
 	maxPos.z += patchSize_.y * 0.5f;
-	minPos.y -= skirtSize_;
-	maxPos.y += 0.1f*mapSize_.y;
-	minPos.y -= 0.1f*mapSize_.y;
+	// extend bounds in y direction by half the map size.
+	// This is exessive, and usually far too much, but e.g. if we have a patch
+	// with a steep cliff, we want to make sure the entire patch is always
+	// contained in the bounds.
+	// Note: we could compute tight bounds on per-patch basis, but
+	// that would require quite some changes. For CPU path, we have a shape
+	// per patch (per instance), so we can give them tight bounds at least
+	// based on heightmap min/max.
+	maxPos.y += 0.5f*mapSize_.y;
+	minPos.y -= 0.5f*mapSize_.y;
 
 	set_bounds(minPos, maxPos);
 	if(skirtMesh_.get()) {

@@ -486,10 +486,8 @@ void ShapeProcessor::processInput(
 					shape->setTransform(transform, transform->numInstances() > 1 ? i : 0);
 				}
 				if (heightMap.get()) {
-					// apply per-instance height offset from height map
-					auto &initialPos = shape->translation();
-					float height = heightMap->sampleHeight(Vec2f(initialPos.x, initialPos.z));
-					shape->setBaseOffset(Vec3f(0.0f, height + 0.5f*heightMap->mapFactor(), 0.0f));
+					// translate to half height of height map
+					shape->setBaseOffset(Vec3f(0.0f, 0.5f*heightMap->mapFactor(), 0.0f));
 				}
 				spatialIndex->insert(shape);
 			}
