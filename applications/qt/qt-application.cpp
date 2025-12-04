@@ -76,9 +76,16 @@ int QtApplication::mainLoopGUI() {
 	auto *sceneWidget = static_cast<SceneWidget *>(glWidget_);
 
 	sceneWidget->sceneWindow()->create();
+
+	uint32_t waitCount = 0;
 	while (!sceneWidget->sceneWindow()->isExposed()) {
 		app_->processEvents();
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		if (waitCount++ > 5000) {
+			// throw error after 5 seconds
+			qFatal("Timeout waiting for window to become exposed.");
+			return -1;
+		}
 	}
 
 	sceneWidget->startRendering();
