@@ -4,8 +4,7 @@
 #define2 REGEN_SM_FILTER_VSM_included__
 #include regen.math.linstep
 
-float chebyshevUpperBound(float dist, vec2 moments)
-{
+float chebyshevUpperBound(float dist, vec2 moments) {
     float variance = max(moments.y - moments.x*moments.x, 0.01);
     float d = dist - moments.x;
     float p = float(dist < moments.x);
@@ -13,18 +12,15 @@ float chebyshevUpperBound(float dist, vec2 moments)
     return clamp(max(p, p_max), 0.0, 1.0);
 }
 
-float shadowVSM(sampler2DShadow tex, vec4 shadowCoord, float linearDepth)
-{
+float shadowVSM(sampler2DShadow tex, vec4 shadowCoord, float linearDepth) {
     float shadow = textureProj(tex, shadowCoord);
     return chebyshevUpperBound(linearDepth, vec2(shadow));
 }
-float shadowVSM(samplerCubeShadow tex, vec4 shadowCoord, float linearDepth)
-{
+float shadowVSM(samplerCubeShadow tex, vec4 shadowCoord, float linearDepth) {
     float shadow = texture(tex, shadowCoord);
     return chebyshevUpperBound(linearDepth, vec2(shadow));
 }
-float shadowVSM(sampler2DArrayShadow tex, vec4 shadowCoord)
-{
+float shadowVSM(sampler2DArrayShadow tex, vec4 shadowCoord) {
     float shadow = texture(tex, shadowCoord);
     // Ortho matrix projects linear depth
     // FIXME: but not all 2d array correspond to ortho matrix! Better check for that..
@@ -39,8 +35,7 @@ float shadowVSM(sampler2DArrayShadow tex, vec4 shadowCoord)
 #include regen.math.computeCubeOffset
 
 // Gaussian 3x3 filter
-float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord)
-{
+float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord) {
     float ret = textureProj(tex, shadowCoord) * 0.25;
     ret += textureProjOffset(tex, shadowCoord, ivec2( -1, -1)) * 0.0625;
     ret += textureProjOffset(tex, shadowCoord, ivec2( -1, 0)) * 0.125;
@@ -52,8 +47,7 @@ float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord)
     ret += textureProjOffset(tex, shadowCoord, ivec2( 1, 1)) * 0.0625;
     return ret;
 }
-float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
-{
+float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord) {
     float ret = texture(tex, shadowCoord) * 0.25;
     ret += textureOffset(tex, shadowCoord, ivec2( -1, -1)) * 0.0625;
     ret += textureOffset(tex, shadowCoord, ivec2( -1, 0)) * 0.125;
@@ -65,8 +59,7 @@ float shadowGaussian(sampler2DArrayShadow tex, vec4 shadowCoord)
     ret += textureOffset(tex, shadowCoord, ivec2( 1, 1)) * 0.0625;
     return ret;
 }
-float shadowGaussian(samplerCubeShadow tex, vec4 coord, float texelSize)
-{
+float shadowGaussian(samplerCubeShadow tex, vec4 coord, float texelSize) {
     vec3 dx, dy;
     computeCubeOffset(coord.xyz, texelSize, dx, dy);
     
@@ -116,8 +109,7 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 lightMatrix) {
 #include regen.shading.shadow-mapping.filtering.all
 #include regen.math.linstep
 
-vec4 parabolicShadowCoord(int textureLayer, vec3 posWorld, mat4 lightMatrix, float near, float far)
-{
+vec4 parabolicShadowCoord(int textureLayer, vec3 posWorld, mat4 lightMatrix, float near, float far) {
     // Transform the world space position to light eye space, i.e. as seen from the light perspective
     vec4 lightSpacePos = lightMatrix * vec4(posWorld, 1.0);
     vec4 shadowCoord = vec4(normalize(lightSpacePos.xyz), 0.0);

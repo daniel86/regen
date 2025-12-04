@@ -653,19 +653,10 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 #include regen.models.mesh.clipAlpha
 #endif
-#ifdef USE_EYESPACE_NORMAL
-#include regen.states.camera.transformWorldToEye
-#endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #ifdef HAS_ATTACHMENT_normal
     // map to [0,1] for rgba buffer
-        #ifdef USE_EYESPACE_NORMAL
-    // TODO: rather transform in VS/GS
-    vec3 norEye = transformWorldToEye(vec4(norWorld,0),in_layer).xyz;
-    out_normal.xyz = normalize(norEye)*0.5 + vec3(0.5);
-        #else
     out_normal.xyz = normalize(norWorld)*0.5 + vec3(0.5);
-        #endif
     out_normal.w = 1.0;
     #endif
 

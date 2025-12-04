@@ -13,8 +13,7 @@
 #define2 REGEN_metricSreenDistance_defined_
 const float in_lodMinScreenDistance = 0.03;
 const float in_lodMaxScreenDistance = 0.1;
-float metricSreenDistance(vec2 v0, vec2 v1)
-{
+float metricSreenDistance(vec2 v0, vec2 v1) {
     float max = in_viewport.x*in_lodMaxScreenDistance;
     float min = in_viewport.x*in_lodMinScreenDistance;
     // get the distance clamped to the min and max distance range
@@ -30,8 +29,7 @@ float metricSreenDistance(vec2 v0, vec2 v1)
 #define2 REGEN_metricDeviceDistance_defined_
 const float in_lodMinDeviceDistance = 0.025;
 const float in_lodMaxDeviceDistance = 0.05;
-float metricDeviceDistance(vec2 v0, vec2 v1)
-{
+float metricDeviceDistance(vec2 v0, vec2 v1) {
     // get the distance clamped to the min and max distance range
     float d = clamp(distance(v0,v1), in_lodMinDeviceDistance, in_lodMaxDeviceDistance);
     // normalize the distance to the range [0,1]
@@ -43,8 +41,7 @@ float metricDeviceDistance(vec2 v0, vec2 v1)
 #ifndef REGEN_metricCameraDistance_defined_
 #define2 REGEN_metricCameraDistance_defined_
 const float in_lodMaxCameraDistance = 300.0;
-float metricCameraDistance(vec3 v)
-{
+float metricCameraDistance(vec3 v) {
     return clamp(distance(v,in_cameraPosition.xyz)/in_lodMaxCameraDistance, 0.0, 1.0);
 }
 #endif
@@ -54,22 +51,19 @@ float metricCameraDistance(vec3 v)
 uniform float in_lodFactor;
 
 // convert a world space vector to device space
-vec4 worldToDeviceSpace(vec4 vertexWS)
-{
+vec4 worldToDeviceSpace(vec4 vertexWS) {
 // TODO: not accurate for cubes! need another metric for cube render targets.
     vec4 vertexNDS = transformWorldToScreen(vertexWS,0);
     vertexNDS /= vertexNDS.w;
     return vertexNDS;
 }
 // convert a device space vector to screen space
-vec2 deviceToScreenSpace(vec2 vertexDS, vec2 screen)
-{
+vec2 deviceToScreenSpace(vec2 vertexDS, vec2 screen) {
     return (vertexDS*0.5 + vec2(0.5))*screen;
 }
 
 // test a vertex in device normal space against the view frustum
-void offscreenNDC(vec4 v, inout ivec3 offscreen)
-{
+void offscreenNDC(vec4 v, inout ivec3 offscreen) {
     offscreen.x += int(v.x > 1.0) - int(v.x < -1.0);
     offscreen.y += int(v.y > 1.0) - int(v.y < -1.0);
     offscreen.z += int(v.z > 1.0) - int(v.z < -1.0);
@@ -92,17 +86,14 @@ void offscreenNDC(vec4 v, inout ivec3 offscreen)
 const float in_minTessLevel = 1.0;
 const float in_maxTessLevel = 64.0;
 
-float tessLevel(float d0, float d1, float maxTessLevel)
-{
+float tessLevel(float d0, float d1, float maxTessLevel) {
     return mix( maxTessLevel, in_minTessLevel, min(d0, d1) );
 }
-float tessLevel(float d0, float maxTessLevel)
-{
+float tessLevel(float d0, float maxTessLevel) {
     return mix( maxTessLevel, in_minTessLevel, d0 );
 }
 
-void tesselationControl()
-{
+void tesselationControl() {
     if(gl_InvocationID != 0) return;
 #for INDEX to TESS_NUM_VERTICES
     vec4 ws${INDEX} = gl_in[${INDEX}].gl_Position;
