@@ -2,14 +2,11 @@
 #define REGEN_FBO_H_
 
 #include <vector>
-#include <list>
 
-#include "regen/gl/gl-object.h"
 #include "regen/gl/render-state.h"
 #include "regen/textures/texture.h"
 #include "regen/shader/shader-input.h"
 #include "regen/utility/ref-ptr.h"
-#include "regen/memory/ubo.h"
 #include "regen/scene/loading-context.h"
 #include "regen/textures/render-buffer.h"
 
@@ -371,7 +368,7 @@ namespace regen {
 		GLenum readBuffer_ = GL_NONE;
 
 		DrawBuffers colorAttachments_;
-		uint32_t depth_;
+		uint32_t depth_ = 1;
 
 		GLenum depthAttachmentTarget_;
 		GLenum depthAttachmentFormat_;

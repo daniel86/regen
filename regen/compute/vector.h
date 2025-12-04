@@ -221,8 +221,8 @@ namespace regen {
 	// reading vector from input stream
 	template<typename T>
 	std::istream &operator>>(std::istream &in, Vec2<T> &v) {
-		readValue(in, v.x);
-		readValue(in, v.y);
+		readValue(in, v.x, T(0));
+		readValue(in, v.y, T(0));
 		return in;
 	}
 
@@ -700,9 +700,9 @@ namespace regen {
 	// reading vector from input stream
 	template<typename T>
 	std::istream &operator>>(std::istream &in, Vec3<T> &v) {
-		readValue(in, v.x);
-		readValue(in, v.y);
-		readValue(in, v.z);
+		readValue(in, v.x, T(0));
+		readValue(in, v.y, T(0));
+		readValue(in, v.z, T(0));
 		return in;
 	}
 
@@ -998,10 +998,10 @@ namespace regen {
 	// reading vector from input stream
 	template<typename T>
 	std::istream &operator>>(std::istream &in, Vec4<T> &v) {
-		readValue(in, v.x);
-		readValue(in, v.y);
-		readValue(in, v.z);
-		readValue(in, v.w);
+		readValue(in, v.x, T(0));
+		readValue(in, v.y, T(0));
+		readValue(in, v.z, T(0));
+		readValue(in, v.w, T(0));
 		return in;
 	}
 

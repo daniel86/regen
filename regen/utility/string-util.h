@@ -1,12 +1,5 @@
-/*
- * string-util.h
- *
- *  Created on: 06.08.2012
- *      Author: daniel
- */
-
-#ifndef STRING_UTIL_H_
-#define STRING_UTIL_H_
+#ifndef REGEN_STRING_UTIL_H_
+#define REGEN_STRING_UTIL_H_
 
 #include <boost/algorithm/string.hpp>
 #include <sstream>
@@ -54,16 +47,23 @@ namespace regen {
 	 * The value type must implement >> operator.
 	 * @param in the input stream
 	 * @param v the value output
+	 * @param fallbackValue the fallback value if reading fails
+	 * @param separator the value separator character
 	 */
 	template<typename T>
-	void readValue(std::istream &in, T &v, const char separator = ',') {
-		if (!in.good()) return;
-		std::string val;
-		std::getline(in, val, separator);
-		boost::algorithm::trim(val);
-		std::stringstream ss(val);
-		ss >> v;
+	void readValue(std::istream &in, T &v,
+			const T fallbackValue,
+			const char separator = ',') {
+		if (in.good()) {
+			std::string val;
+			std::getline(in, val, separator);
+			boost::algorithm::trim(val);
+			std::stringstream ss(val);
+			ss >> v;
+		} else {
+			v = fallbackValue;
+		}
 	}
 } // namespace
 
-#endif /* STRING_UTIL_H_ */
+#endif /* REGEN_STRING_UTIL_H_ */

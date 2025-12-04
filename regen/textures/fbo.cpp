@@ -559,6 +559,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 	auto relSize = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
 	auto absSize = Texture::getSize(ctx.scene()->screen()->viewport().r, sizeMode, relSize);
+	absSize.z = std::max(absSize.z, 1);
 
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x, absSize.y, absSize.z);
 	if (sizeMode == "rel") {
