@@ -207,14 +207,15 @@ void main() {
     // compute texture lookup coordinate
     vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_lightMatrix[shadowLayer]);
     // compute filtered shadow
-    float attenuation = dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
+    // Note: we multiply by N.w which contains the SSAO occlusion factor.
+    float attenuation = dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord) * N.w;
 #ifdef USE_SHADOW_COLOR
     vec4 shadowColor = shadow2DArray(in_shadowColorTexture,shadowCoord);
     attenuation += (1.0-shadow)*(1.0-shadowColor.a);
     diff.rgb += mix(diff.rgb, shadowColor.rgb, shadowColor.a);
 #endif
 #else
-    float attenuation = 1.0;
+    float attenuation = N.w;
 #endif
 
     // Note: shininess stored in specular buffer in the range [0,1].
@@ -343,8 +344,9 @@ void main() {
     vec3 lightColor = vec3(0.0);
 #endif
     
-    // calculate attenuation
-    float attenuation = radiusAttenuation(lightDist, in_lightRadius.x, in_lightRadius.y);
+    // calculate attenuation.
+    // Note: we multiply by N.w which contains the SSAO occlusion factor.
+    float attenuation = radiusAttenuation(lightDist, in_lightRadius.x, in_lightRadius.y) * N.w;
 #ifdef IS_SPOT_LIGHT
     attenuation *= spotConeAttenuation(L,in_lightDirection.xyz,in_lightConeAngles);
 #endif

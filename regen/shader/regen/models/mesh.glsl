@@ -715,9 +715,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     out_emission = vec3(0,0,0);
     #endif
 #endif
-    // TODO: Handle the occlusion value. It might be best to encode it in the g-buffer,
-    //       then use this info in deferred shading. Currently this will only be non-zero
-    //       if a light map is used.
-    //out_normal.w = mat.occlusion;
+#ifdef HAS_LIGHT_MAP
+    out_normal.w = mat.occlusion;
+#endif
 }
 #endif // SHADING!=NONE
