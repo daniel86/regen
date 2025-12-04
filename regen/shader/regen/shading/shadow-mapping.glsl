@@ -20,10 +20,9 @@ float shadowVSM(samplerCubeShadow tex, vec4 shadowCoord, float linearDepth) {
     float shadow = texture(tex, shadowCoord);
     return chebyshevUpperBound(linearDepth, vec2(shadow));
 }
-float shadowVSM(sampler2DArrayShadow tex, vec4 shadowCoord) {
+float shadowVSM_ortho(sampler2DArrayShadow tex, vec4 shadowCoord) {
     float shadow = texture(tex, shadowCoord);
     // Ortho matrix projects linear depth
-    // FIXME: but not all 2d array correspond to ortho matrix! Better check for that..
     float depth = shadowCoord.w;
     return chebyshevUpperBound(depth, vec2(shadow));
 }
@@ -103,7 +102,7 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 lightMatrix) {
 
 #define dirShadowSingle(tex,x)   float(texture(tex, x))
 #define dirShadowGaussian(tex,x) shadowGaussian(tex, x)
-#define dirShadowVSM(tex,x)      shadowVSM(tex, coord)
+#define dirShadowVSM(tex,x)      shadowVSM_ortho(tex, coord)
 
 -- sampling.point.parabolic
 #include regen.shading.shadow-mapping.filtering.all
@@ -133,7 +132,7 @@ vec4 parabolicShadowCoord(int textureLayer, vec3 posWorld, mat4 lightMatrix, flo
 
 #define parabolicShadowSingle(tex,x)   float(texture(tex, x))
 #define parabolicShadowGaussian(tex,x) shadowGaussian(tex, x)
-#define parabolicShadowVSM(tex,x)      shadowVSM(tex, coord)
+#define parabolicShadowVSM(tex,x)      shadowVSM_ortho(tex, coord)
 
 -- sampling.point
 #include regen.shading.shadow-mapping.filtering.all
