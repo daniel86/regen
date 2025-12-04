@@ -67,5 +67,6 @@ ref_ptr<State> BarrierState::load(LoadingContext &ctx, scene::SceneInputNode &in
 		}
 		return ref_ptr<BarrierState>::alloc(barriers);
 	}
+	REGEN_WARN("Ignoring " << input.getDescription() << " without bit(s) attribute.");
 	return {};
 }
