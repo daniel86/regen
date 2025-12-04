@@ -71,10 +71,14 @@ void Ground::setMapTextures(
 		const ref_ptr<Texture2D> &normalMap) {
 	heightMap_ = heightMap;
 	normalMap_ = normalMap;
+	// Note: We use regular additive blending for the height map, including
+	// for the skirt part. Skirt vertices are just translated downwards along y-axis,
+	// so blending still works as expected.
+	// However, this approach does not work well for walls that are nearly vertical,
+	// as the skirt area then doesn't cover a large area in horizontal direction.
 	auto heightMapState = groundMaterial_->set_texture(
 			heightMap_, TextureState::MAP_TO_HEIGHT, "heightMap");
 	heightMapState->set_mapping(ShaderFunction::createImport("regen.terrain.ground.groundUV"));
-	heightMapState->set_blendMode(ShaderFunction::createImport("regen.terrain.ground.groundHeightBlend"));
 	groundMaterial_->set_texture(normalMap_, TextureState::MAP_TO_CUSTOM, "normalMap");
 }
 
