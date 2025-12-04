@@ -102,7 +102,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 	ui_.setupUi(this);
 	app_->glWidget()->setEnabled(false);
 	app_->glWidget()->setFocusPolicy(Qt::NoFocus);
-	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
+	ui_.glWidgetLayout->addWidget(app_->glContainer(), 0, 0, 1, 1);
 	ui_.repeatButton->click();
 
 	fullscreenLayout_ = new QVBoxLayout();

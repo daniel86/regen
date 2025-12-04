@@ -4,8 +4,6 @@
 #pragma GCC diagnostic ignored "-Wcpp"
 #include <QOpenGLContext>
 #pragma GCC diagnostic pop
-
-#include <QDesktopWidget>
 #include <QtWidgets/QHBoxLayout>
 
 #include <regen/config.h>
@@ -18,9 +16,9 @@
 
 using namespace regen;
 
-#ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
-#define EVENT_PROCESSING_INTERVAL 20000
-#endif
+namespace regen {
+	static constexpr uint32_t GUI_EVENT_INTERVAL = 20000; // microseconds
+}
 
 // strange QT argc/argv handling
 static const char *appArgs[] = {"dummy"};
@@ -29,9 +27,8 @@ static int appArgCount = 1;
 QtApplication::QtApplication(
 		const int &argc, const char **argv,
 		const QSurfaceFormat &glFormat,
-		uint32_t width, uint32_t height,
-		QWidget *parent)
-		: Scene(argc, argv), isMainloopRunning_(false), exitCode_(0) {
+		uint32_t width, uint32_t height)
+		: Scene(argc, argv), exitCode_(0) {
 	QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 	app_ = new QApplication(appArgCount, (char **) appArgs);
 
@@ -64,10 +61,10 @@ void QtApplication::show() {
 
 void QtApplication::exitMainLoop(int errorCode) {
 	exitCode_ = errorCode;
-	isMainloopRunning_ = false;
+	isMainloopRunning_.store(false, std::memory_order_release);
 }
 
-int QtApplication::mainLoop() {
+int QtApplication::mainLoopGUI() {
 	// Make sure the window is exposed before starting rendering
 	app_->processEvents();
 
@@ -76,16 +73,21 @@ int QtApplication::mainLoop() {
 
 	toplevelWidget()->installEventFilter(glWidget_);
 
-#ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
-	glWidget_->run();
-#else
-	((SceneWidget*)glWidget_)->startRendering();
-	while (isMainloopRunning_) {
+	auto *sceneWidget = static_cast<SceneWidget *>(glWidget_);
+
+	sceneWidget->sceneWindow()->create();
+	while (!sceneWidget->sceneWindow()->isExposed()) {
 		app_->processEvents();
-		usleepRegen(EVENT_PROCESSING_INTERVAL);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
-	((SceneWidget*)glWidget_)->stopRendering();
-#endif
+
+	sceneWidget->startRendering();
+	while (isMainloopRunning_.load(std::memory_order_acquire)) {
+		app_->processEvents();
+		usleepRegen(GUI_EVENT_INTERVAL);
+	}
+	sceneWidget->stopRendering();
+
 	AnimationManager::get().shutdown();
 	BufferObject::destroyMemoryPools();
 	Font::closeLibrary();
@@ -96,6 +98,6 @@ int QtApplication::mainLoop() {
 
 QWidget *QtApplication::toplevelWidget() {
 	QWidget *p = glWidget_;
-	while (p->parentWidget() != NULL) { p = p->parentWidget(); }
+	while (p->parentWidget() != nullptr) { p = p->parentWidget(); }
 	return p;
 }

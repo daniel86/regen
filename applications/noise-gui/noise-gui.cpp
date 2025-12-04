@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 	app->show();
 	widget->startAnimation();
 
-	int exitCode = app->mainLoop();
+	int exitCode = app->mainLoopGUI();
 
 	return exitCode;
 }

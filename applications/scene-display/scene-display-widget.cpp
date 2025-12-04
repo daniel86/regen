@@ -150,7 +150,7 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 	REGEN_INFO("Initial window size: " << width << "x" << height);
 
 	ui_.setupUi(this);
-	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
+	ui_.glWidgetLayout->addWidget(app_->glContainer(), 0, 0, 1, 1);
 	ui_.worldTimeFactor->setValue(app_->worldTime().scale);
 	resize(width, height);
 	readConfig();

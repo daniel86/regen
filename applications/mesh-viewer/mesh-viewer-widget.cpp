@@ -150,7 +150,7 @@ MeshViewerWidget::MeshViewerWidget(QtApplication *app)
 		ui_.assetNameEdit->setText(QString::fromStdString(assetFilename));
 		ui_.loadMeshButton->setEnabled(true);
 	}
-	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
+	ui_.glWidgetLayout->addWidget(app_->glContainer(), 0, 0, 1, 1);
 
 	fullscreenLayout_ = new QVBoxLayout();
 	fullscreenLayout_->setObjectName(QString::fromUtf8("fullscreenLayout"));

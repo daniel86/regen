@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 	widget->show();
 	app->show();
 
-	int exitCode = app->mainLoop();
+	int exitCode = app->mainLoopGUI();
 
 	return exitCode;
 }

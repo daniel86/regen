@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
 	widget->setWindowTitle("Scene Viewer");
 
-	auto exitCode = app->mainLoop();
+	auto exitCode = app->mainLoopGUI();
 	REGEN_INFO("Shutting down application");
 	//delete widget;
 	Logging::shutdown();

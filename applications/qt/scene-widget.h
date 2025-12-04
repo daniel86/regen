@@ -36,6 +36,8 @@ namespace regen {
 
 		auto surfaceFormat() const -> QSurfaceFormat const & { return surfaceFormat_; }
 
+		const ref_ptr<QOpenGLWindow>& sceneWindow() const { return sceneWindow_; }
+
 		/**
 		 * @param interval update interval in milliseconds.
 		 */
