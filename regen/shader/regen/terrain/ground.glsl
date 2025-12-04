@@ -14,30 +14,6 @@ vec2 groundUV(vec3 posWorld, vec3 normal) {
 }
 #endif // ground_uv_included
 
--- groundHeightBlend
-#ifndef ground_heightBlend_included
-#define2 ground_heightBlend_included
-#include regen.terrain.ground.groundUV
-void groundHeightBlend(in vec3 offset, inout vec3 P, float one) {
-#ifdef IS_SKIRT_MESH
-    // TODO: Reconsider the skirt handling.
-    //      - Push along normal instead?
-    //      - Scale model y position based on slope --> make skirt larger on sloped areas?
-    /**
-    vec3 nor = normalize((texture(in_normalMap, groundUV(P)).xzy * 2.0) - 1.0);
-    if (in_pos.y < -0.25) {
-        float slope = smoothstep(0.1, 0.6, 1.0 - nor.y);
-        P.y += in_skirtSize;
-        P.y -= mix(in_skirtSize, 4.0f*in_skirtSize, slope);
-    }
-    **/
-    P += offset;
-#else
-    P += offset;
-#endif
-}
-#endif // ground_heightBlend_included
-
 ------------
 ----- Maps a world position to uv coordinate that spans a local area of the ground.
 ------------
