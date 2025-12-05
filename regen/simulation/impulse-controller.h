@@ -29,8 +29,8 @@ namespace regen {
 		 */
 		auto physicsSpeedFactor() { return physicsSpeedFactor_; }
 
-		// override CameraController
-		void applyStep(float dt, const Vec3f &offset) override;
+		// override Animation
+		void cpuUpdate(double dt) override;
 
 	protected:
 		ref_ptr<PhysicalObject> physicalObject_;

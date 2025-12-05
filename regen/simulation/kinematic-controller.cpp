@@ -165,10 +165,9 @@ void KinematicPlayerController::jump() {
 	}
 }
 
-void KinematicPlayerController::applyStep(float dt, const Vec3f &offset) {
-	// Make a step. This is called each frame.
-
-	if (dt <= std::numeric_limits<float>::epsilon()) {
+void KinematicPlayerController::cpuUpdate(double dt) {
+	updateStep(dt);
+	if (dt <= std::numeric_limits<double>::epsilon()) {
 		return;
 	}
 
@@ -192,7 +191,7 @@ void KinematicPlayerController::applyStep(float dt, const Vec3f &offset) {
 	bool isMoving = isMoving_;
 
 	// Apply the platform velocity to the character controller
-    if (btPlatform_) {
+	if (btPlatform_) {
 		btVector3 currentPlatformPos = btPlatform_->getWorldTransform().getOrigin();
 		btVector3 platformVelocity = currentPlatformPos - previousPlatformPos_;
 		if (platformVelocity.length() > 0.0001) {
@@ -202,7 +201,7 @@ void KinematicPlayerController::applyStep(float dt, const Vec3f &offset) {
 			isMoving = true;
 		}
 		previousPlatformPos_ = currentPlatformPos;
-   }
+	}
 
 	if (!isMoving_) {
 		if (btIsMoving_ || isMoving) {
@@ -212,9 +211,15 @@ void KinematicPlayerController::applyStep(float dt, const Vec3f &offset) {
 		}
 	} else {
 		// Apply the step to the character controller
-		btVelocity += btVector3(offset.x, offset.y, offset.z)/dt;
+		btVelocity += btVector3(step_.x, step_.y, step_.z)/dt;
 		btVelocity.setY(btController_->getLinearVelocity().getY());
 		btController_->setLinearVelocity(btVelocity);
 		btIsMoving_ = true;
 	}
+
+	// update the camera position and direction
+	updateCameraPose();
+	computeMatrices(camPos_, camDir_);
+	updateCamera(camPos_, camDir_, dt);
+	updateBoneController(dt);
 }

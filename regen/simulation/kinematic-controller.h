@@ -65,8 +65,8 @@ namespace regen {
 		 */
 		void setStepHeight(float height) { btStepHeight_ = height; }
 
-		// override CameraController
-		void applyStep(float dt, const Vec3f &offset) override;
+		// override Animation
+		void cpuUpdate(double dt) override;
 
 		// override CameraController
 		void jump() override;

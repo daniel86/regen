@@ -5,7 +5,6 @@
 #include <regen/camera/camera.h>
 #include <regen/camera/camera-controller-base.h>
 #include <regen/animation/animation.h>
-#include <regen/animation/bones.h>
 
 namespace regen {
 	/**
@@ -214,12 +213,6 @@ namespace regen {
 		void setMeshHorizontalOrientation(double orientation) { meshHorizontalOrientation_ = orientation; }
 
 		/**
-		 * Move a step in the direction of the given offset.
-		 * @param offset the offset.
-		 */
-		virtual void applyStep(float dt, const Vec3f &offset);
-
-		/**
 		 * Jump.
 		 */
 		virtual void jump();
@@ -256,15 +249,16 @@ namespace regen {
 		bool moveUp_ = false;
 		bool moveDown_ = false;
 		bool isMoving_ = false;
+		bool isRotating_ = false;
 		double lastOrientation_;
 
 		Vec3f meshEyeOffset_;
 		double meshHorizontalOrientation_;
 		bool hasUpdated_ = false;
 
-		void updateCameraPosition();
-		void updateCameraOrientation();
-		void updateModel();
+		void updateStep(double dt);
+
+		void updateCameraPose();
 	};
 } // namespace
 

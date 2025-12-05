@@ -21,7 +21,9 @@ ImpulseController::ImpulseController(
 	physicalObject->rigidBody()->setLinearVelocity(btVector3(0, 0, 0));
 }
 
-void ImpulseController::applyStep(float dt, const Vec3f &offset) {
+void ImpulseController::cpuUpdate(double dt) {
+	updateStep(dt);
+
 	// update orientation of the physical object: set it to the camera orientation
 	btTransform transform;
 	btQuaternion rotation;
@@ -32,15 +34,19 @@ void ImpulseController::applyStep(float dt, const Vec3f &offset) {
 
 	transform.getOpenGLMatrix((btScalar *) &matVal_);
 
-	if (!isMoving_) return;
+	if (isMoving_) {
+		// apply impulse to the physical object
+		btVector3 impulse(
+			step_.x * physicsSpeedFactor_,
+			step_.y * physicsSpeedFactor_,
+			step_.z * physicsSpeedFactor_);
+		physicalObject_->rigidBody()->activate(true);
+		physicalObject_->rigidBody()->applyCentralImpulse(impulse);
+	}
 
-	// apply impulse to the physical object
-	btVector3 impulse(
-		step_.x * physicsSpeedFactor_,
-		step_.y * physicsSpeedFactor_,
-		step_.z * physicsSpeedFactor_);
-	physicalObject_->rigidBody()->activate(true);
-	physicalObject_->rigidBody()->applyCentralImpulse(impulse);
+	updateCameraPose();
+	computeMatrices(camPos_, camDir_);
+	updateCamera(camPos_, camDir_, dt);
 }
 
 ref_ptr<ImpulseController> ImpulseController::load(

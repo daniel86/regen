@@ -81,6 +81,8 @@ namespace regen {
 		// from the motionState_ array.
 		std::vector<MotionType> activeMotions_;
 		size_t numActiveMotions_ = 0;
+
+		void updateBoneController(double dt);
 	};
 } // namespace
 

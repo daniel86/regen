@@ -46,24 +46,28 @@ bool UserController::isMotionActive(MotionType type) const {
 
 void UserController::cpuUpdate(double dt) {
 	CameraController::cpuUpdate(dt);
-	if (boneController_.get()) {
-		float dt_s = dt / 1000.0f;
-		// Update the list of active motions from the motion state array.
-		numActiveMotions_ = 0;
-		for (uint32_t motionIdx = 0; motionIdx < motionTypes_.size(); ++motionIdx) {
-			auto &motionFlag = motionState_[motionIdx];
-			if (motionFlag.load()) {
-				activeMotions_[numActiveMotions_++] = motionTypes_[motionIdx];
-			}
+	updateBoneController(dt);
+}
+
+void UserController::updateBoneController(double dt) {
+	if (!boneController_) return;
+
+	float dt_s = dt / 1000.0f;
+	// Update the list of active motions from the motion state array.
+	numActiveMotions_ = 0;
+	for (uint32_t motionIdx = 0; motionIdx < motionTypes_.size(); ++motionIdx) {
+		auto &motionFlag = motionState_[motionIdx];
+		if (motionFlag.load()) {
+			activeMotions_[numActiveMotions_++] = motionTypes_[motionIdx];
 		}
-		if (numActiveMotions_ == 0) {
-			// Ensure at least idle motion is active.
-			activeMotions_[numActiveMotions_++] = MotionType::IDLE;
-		}
-		// Update the bone controller with the desired motions.
-		boneController_->updateBoneController(dt_s,
-			activeMotions_.data(), numActiveMotions_);
 	}
+	if (numActiveMotions_ == 0) {
+		// Ensure at least idle motion is active.
+		activeMotions_[numActiveMotions_++] = MotionType::IDLE;
+	}
+	// Update the bone controller with the desired motions.
+	boneController_->updateBoneController(dt_s,
+		activeMotions_.data(), numActiveMotions_);
 }
 
 ref_ptr<UserController> UserController::load(
