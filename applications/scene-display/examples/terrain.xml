@@ -7,7 +7,7 @@
     <constant name="water-level" value="-4.0"/>
     <constant name="sea-level" value="0.0"/>
     <constant name="far-plane" value="200.0"/>
-    <constant name="far-plane*0.5" value="100.0"/>
+    <constant name="far-plane*2.0" value="400.0"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -233,10 +233,10 @@
     <mesh id="water-mesh" type="rectangle" lod="0" center="1"
           use-normal="0" use-texco="0" use-tangent="0"
           rotation="0.0,0.0,3.1415"
-          scaling="{{far-plane}},1.0,{{far-plane}}"
+          scaling="{{far-plane*2.0}},1.0,{{far-plane*2.0}}"
           update-frequency="NEVER">
         <transform update-frequency="NEVER">
-            <translate value="0.0,{{water-level}},-{{far-plane*0.5}}"/>
+            <translate value="0.0,{{water-level}},0.0"/>
         </transform>
     </mesh>
 
