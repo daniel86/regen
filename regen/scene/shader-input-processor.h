@@ -295,41 +295,34 @@ namespace regen {
 					REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
 					return;
 				}
-				ref_ptr<State> s = state;
-				if (parent.get()) {
-					parent->state();
-				}
 
 				const uint32_t dataType = in->baseType();
 				const uint32_t numComponents = in->valsPerElement();
 				if (dataType == GL_INT) {
-					if (numComponents == 1) processTyped<ShaderInput1i,int,int>(input, s, in);
-					else if (numComponents == 2) processTyped<ShaderInput2i,Vec2i,int>(input, s, in);
-					else if (numComponents == 3) processTyped<ShaderInput3i,Vec3i,int>(input, s, in);
-					else if (numComponents == 4) processTyped<ShaderInput4i,Vec4i,int>(input, s, in);
+					if (numComponents == 1) processTyped<ShaderInput1i,int,int>(input, state, in);
+					else if (numComponents == 2) processTyped<ShaderInput2i,Vec2i,int>(input, state, in);
+					else if (numComponents == 3) processTyped<ShaderInput3i,Vec3i,int>(input, state, in);
+					else if (numComponents == 4) processTyped<ShaderInput4i,Vec4i,int>(input, state, in);
 				} else if (dataType == GL_UNSIGNED_INT) {
-					if (numComponents == 1) processTyped<ShaderInput1ui,uint32_t,uint32_t>(input, s, in);
-					else if (numComponents == 2) processTyped<ShaderInput2ui,Vec2ui,unsigned int>(input, s, in);
-					else if (numComponents == 3) processTyped<ShaderInput3ui,Vec3ui,unsigned int>(input, s, in);
-					else if (numComponents == 4) processTyped<ShaderInput4ui,Vec4ui,unsigned int>(input, s, in);
+					if (numComponents == 1) processTyped<ShaderInput1ui,uint32_t,uint32_t>(input, state, in);
+					else if (numComponents == 2) processTyped<ShaderInput2ui,Vec2ui,unsigned int>(input, state, in);
+					else if (numComponents == 3) processTyped<ShaderInput3ui,Vec3ui,unsigned int>(input, state, in);
+					else if (numComponents == 4) processTyped<ShaderInput4ui,Vec4ui,unsigned int>(input, state, in);
 				} else if (dataType == GL_FLOAT) {
-					if (numComponents == 1) processTyped<ShaderInput1f,float,float>(input, s, in);
-					else if (numComponents == 2) processTyped<ShaderInput2f,Vec2f,float>(input, s, in);
-					else if (numComponents == 3) processTyped<ShaderInput3f,Vec3f,float>(input, s, in);
-					else if (numComponents == 4) processTyped<ShaderInput4f,Vec4f,float>(input, s, in);
-					else if (numComponents == 9) processTyped<ShaderInputMat3,Mat3f,float>(input, s, in);
-					else if (numComponents == 16) processTyped<ShaderInputMat4,Mat4f,float>(input, s, in);
+					if (numComponents == 1) processTyped<ShaderInput1f,float,float>(input, state, in);
+					else if (numComponents == 2) processTyped<ShaderInput2f,Vec2f,float>(input, state, in);
+					else if (numComponents == 3) processTyped<ShaderInput3f,Vec3f,float>(input, state, in);
+					else if (numComponents == 4) processTyped<ShaderInput4f,Vec4f,float>(input, state, in);
+					else if (numComponents == 9) processTyped<ShaderInputMat3,Mat3f,float>(input, state, in);
+					else if (numComponents == 16) processTyped<ShaderInputMat4,Mat4f,float>(input, state, in);
 				}
 
 				if (in->name() != input.getValue("name")) {
-					// TODO: there is a problem with renaming of inputs, as state configurer
-					//   uses the name. We can avoid problems in shader generation by adding some macros here manually.
-					//   but this case of inserting inputs with different names should be handled better IMO.
-					s->shaderDefine(REGEN_STRING("HAS_" << input.getValue("name")), "TRUE");
+					state->shaderDefine(REGEN_STRING("HAS_" << input.getValue("name")), "TRUE");
 				}
 
 				if (input.getValue<bool>("join", true)) {
-					s->setInput(in,
+					state->setInput(in,
 						input.getValue("name"),
 						input.getValue<std::string>("member-suffix", ""));
 				}
