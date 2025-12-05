@@ -127,10 +127,6 @@ void Sky::set_latitude(const float latitude) {
 	astro_->setLatitude(latitude);
 }
 
-void Sky::set_surfaceHeight(const float surfaceHeight) {
-	surfaceHeight_ = surfaceHeight;
-}
-
 void Sky::updateSeed() {
 	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
 	v_cmnUniform.w = Vec4f(
@@ -552,8 +548,6 @@ ref_ptr<Sky> Sky::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	sky->set_altitude(input.getValue<float>("altitude", 0.043));
 	sky->set_longitude(input.getValue<float>("longitude", 13.3611));
 	sky->set_latitude(input.getValue<float>("latitude", 52.5491));
-	if (input.hasAttribute("surface-height"))
-		sky->set_surfaceHeight(input.getValue<float>("surface-height", 0.99f));
 
 	for (auto &n: input.getChildren()) {
 		ref_ptr<SkyLayer> layer;

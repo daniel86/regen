@@ -39,8 +39,6 @@ namespace regen {
 
 		double latitude() const;
 
-		void set_surfaceHeight(float surfaceHeight);
-
 		ref_ptr<Light> &sun() { return sun_; }
 
 		ref_ptr<Light> &moon() { return moon_; }
@@ -112,7 +110,6 @@ namespace regen {
 		Vec3f noonColor_;
 		Vec3f dawnColor_;
 		float moonSunLightReflectance_;
-		float surfaceHeight_ = 0.99f;
 
 		void updateSeed();
 	};
