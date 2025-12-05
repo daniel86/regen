@@ -60,9 +60,12 @@ namespace regen::scene {
 				const ref_ptr<SceneInputNode> &root = scene->getRoot();
 				const std::string importID = input.getValue("import");
 
-				// TODO: Use previously loaded node. It's problematic because...
-				//   - Shaders below the node are configured only for the first context.
-				//   - Uniforms above node are joined into shader
+				// Note: each import creates a copy of the node.
+				// This is not optimal for sharing of resources especially shaders.
+				// However, currently there is no good support for shader sharing.
+				// - Might be good to treat shaders as resources like textures and models.
+				//   However, currently there are tons of macros for conditional code depending
+				//   on position in the scene graph -- which makes shader sharing difficult.
 				ref_ptr<SceneInputNode> imported =
 						root->getFirstChild(REGEN_NODE_CATEGORY, importID);
 				if (imported.get() == nullptr) {
