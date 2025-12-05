@@ -161,26 +161,26 @@ void Sky::stopAnimation() {
 	Animation::stopAnimation();
 }
 
-float Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float radius) {
+float Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float planetRadius) {
 	float u = dir.dot(-position);
 	if (u < 0.0) {
 		return 1.0;
 	}
 	Vec3f near = position + dir * u;
-	if (near.length() < radius) {
+	if (near.length() < planetRadius) {
 		return 0.0;
 	} else {
 		near.normalize();
-		Vec3f v2 = near * radius - position;
+		Vec3f v2 = near * planetRadius - position;
 		v2.normalize();
 		float diff = acos(v2.dot(dir));
 		return math::smoothstep(0.0f, 1.0f, powf(diff * 2.0f, 3.0f));
 	}
 }
 
-float Sky::computeEyeExtinction(const Vec3f &eyeDir) {
-	const Vec3f eyePosition(0.0, surfaceHeight_, 0.0);
-	return computeHorizonExtinction(eyePosition, eyeDir, surfaceHeight_ - 0.15f);
+float Sky::computeEyeExtinction(const Vec3f &eyeDir, float planetRadius) {
+	const Vec3f eyePosition(0.0, planetRadius, 0.0);
+	return computeHorizonExtinction(eyePosition, eyeDir, planetRadius);
 }
 
 static Vec3f computeColor(const Vec3f &color, float ext) {
@@ -198,20 +198,21 @@ void Sky::cpuUpdate(double dt) {
 		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg_));
 	}
 
+	const float planetRadius = Earth::meanRadius();
 	// Compute sun/moon directions
 	Vec3f moon = astro_->getMoonPosition(false);
 	Vec3f sun = astro_->getSunPosition(false);
 	sun_->setDirection(0, sun);
 	moon_->setDirection(0, moon);
 	// Compute sun/moon diffuse color
-	float sunExt = computeEyeExtinction(sun);
+	float sunExt = computeEyeExtinction(sun, planetRadius);
 	Vec3f sunColor = math::mix(dawnColor_, noonColor_, abs(sunExt));
 	sun_->setDiffuse(0, computeColor(
 			sunColor,
 			sunExt));
 	moon_->setDiffuse(0, computeColor(
 			sunColor * moonSunLightReflectance_,
-			computeEyeExtinction(moon)));
+			computeEyeExtinction(moon, planetRadius)));
 	R_->setVertex(0, astro().getEquToHorTransform());
 
 	if (camStamp_ != cam_->stamp() || viewportStamp_ != screen_->stampOfWriteData()) {

@@ -63,7 +63,7 @@ namespace regen {
 
 		static float computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float radius);
 
-		float computeEyeExtinction(const Vec3f &eyedir);
+		float computeEyeExtinction(const Vec3f &eyedir, float planetRadius);
 
 		const ref_ptr<Rectangle> &skyQuad() const { return skyQuad_; }
 
