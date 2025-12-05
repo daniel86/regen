@@ -52,8 +52,9 @@ uniform float in_lodFactor;
 
 // convert a world space vector to device space
 vec4 worldToDeviceSpace(vec4 vertexWS) {
-// TODO: not accurate for cubes! need another metric for cube render targets.
-    vec4 vertexNDS = transformWorldToScreen(vertexWS,0);
+    // NOTE: in_layer will only reflect actual render layer here if
+    // extension ARB_shader_viewport_layer_array is available and used in this shader.
+    vec4 vertexNDS = transformWorldToScreen(vertexWS,in_layer);
     vertexNDS /= vertexNDS.w;
     return vertexNDS;
 }
@@ -201,6 +202,7 @@ layout(vertices=TESS_NUM_VERTICES) out;
 #define ID gl_InvocationID
 
 uniform vec2 in_viewport;
+#include regen.layered.defines
 #include regen.states.camera.input
 #include regen.stages.tesselation.tesselationControl
 
