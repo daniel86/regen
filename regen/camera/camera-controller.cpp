@@ -112,7 +112,7 @@ void CameraController::cpuUpdate(double dt) {
 
 void CameraController::updateStep(double dt) {
 	step_ = Vec3f::zero();
-	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
+	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_ || moveUp_ || moveDown_;
 	const auto orientation = horizontalOrientation_ + meshHorizontalOrientation_;
 	isRotating_ = orientation != lastOrientation_;
 	lastOrientation_ = orientation;
