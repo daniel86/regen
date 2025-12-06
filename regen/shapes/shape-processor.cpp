@@ -358,31 +358,6 @@ static ref_ptr<SpatialIndex> getSpatialIndex(scene::SceneLoader *scene, SceneInp
 	return spatialIndex;
 }
 
-static ref_ptr<ShaderInput4f> getOffset(
-		SceneInputNode &input,
-		const ref_ptr<Mesh> &mesh,
-		const std::vector<ref_ptr<Mesh>> &parts) {
-	// try to find shader inputs of mesh
-	ref_ptr<Mesh> m = mesh;
-	if (m.get() == nullptr) {
-		if (!parts.empty()) {
-			m = parts[0];
-		} else {
-			return {};
-		}
-	}
-	auto meshOffset = m->findShaderInput("modelOffset");
-	if (meshOffset.has_value()) {
-		auto upcasted = ref_ptr<ShaderInput4f>::dynamicCast(meshOffset.value().in);
-		if (upcasted.get()) {
-			return upcasted;
-		} else {
-			REGEN_WARN("Ignoring mesh offset with wrong type in node " << input.getDescription() << ".");
-		}
-	}
-	return {};
-}
-
 void ShapeProcessor::processInput(
 		scene::SceneLoader *scene,
 		SceneInputNode &input,
@@ -430,15 +405,6 @@ void ShapeProcessor::processInput(
 	}
 
 	auto transform = scene->getResource<ModelTransformation>(transformID);
-	if(!transform.get()) {
-		auto offset = getOffset(input, mesh, parts);
-		if (offset.get()) {
-			// TODO: Improve this, we should not create a new ModelTransformation.
-			//   The offset might be part of another BO, so best would be to create a "virtual" TF
-			//   in the range of the offset in its buffer.
-			transform = ref_ptr<ModelTransformation>::alloc(offset);
-		}
-	}
 	if (transform.get()) {
 		numInstances = transform->numInstances();
 	}
