@@ -10,7 +10,7 @@ ref_ptr<Mesh> MeshNodeProvider::getMeshCopy(const ref_ptr<Mesh> &originalMesh) {
 	if (originalMesh.get() == nullptr) { return originalMesh; }
 	ref_ptr<Mesh> meshCopy;
 #if 1
-	if (usedMeshes_.count(originalMesh.get()) == 0) {
+	if (!usedMeshes_.contains(originalMesh.get())) {
 		// mesh not referenced yet. Take the reference we have to keep
 		// reference on special mesh types like Sky.
 		meshCopy = originalMesh;
