@@ -131,6 +131,7 @@ namespace regen {
 	class SelectPlacePatient : public BehaviorActionNode {
 		ActionType lastDesiredAction_ = ActionType::IDLE;
 		ref_ptr<Place> lastPlace_;
+		ref_ptr<WorldObject> lastSelected_;
 	public:
 		SelectPlacePatient() : BehaviorActionNode() {}
 
