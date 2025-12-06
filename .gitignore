@@ -23,5 +23,5 @@ html/
 /regen-error.log
 /regen-info.log
 /res/
-/cmake-build-debug/
-/cmake-build-release/
+/cmake-build-*/
+/.idea/
