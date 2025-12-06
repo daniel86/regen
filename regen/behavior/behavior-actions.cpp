@@ -162,56 +162,87 @@ static bool canWalkAt(Blackboard& kb, PathwayType pathway, const ref_ptr<Place> 
 	return place->hasPathWay(pathway) && kb.canPerformAction(ActionType::PATROLLING);
 }
 
+namespace regen {
+	struct WeightedAction {
+		ActionType action;
+		float baseWeight;
+		float randomWeight;
+		float traitWeight;
+		std::vector<Trait> positiveTraits;
+		std::vector<Trait> negativeTraits;
+	};
+
+	struct WeightedNavigation {
+		PathwayType pathway;
+		ActionType action;
+		float baseWeight;
+		float randomWeight;
+		float traitWeight;
+		std::vector<Trait> positiveTraits;
+		std::vector<Trait> negativeTraits;
+	};
+}
+
 void SelectPlaceActivity::updateActionPossibilities(Blackboard& kb) {
-	// TODO: improve probability handling, make it more generic!
+	static const std::vector<WeightedAction> PossibleActions = {
+		{ ActionType::OBSERVING, 0.25f, 0.25f, 0.5f,
+			{Trait::ALERTNESS}, {Trait::SOCIALABILITY} },
+		{ ActionType::CONVERSING, 0.25f, 0.25f, 0.5f,
+			{Trait::SOCIALABILITY}, {Trait::LAZINESS} },
+		{ ActionType::PRAYING, 0.25f, 0.25f, 0.5f,
+			{Trait::SPIRITUALITY}, {Trait::LAZINESS} },
+		{ ActionType::SLEEPING, 0.1f, 0.1f, 0.5f,
+			{Trait::LAZINESS}, {Trait::ALERTNESS, Trait::SOCIALABILITY} },
+		{ ActionType::ATTACKING, 0.15f, 0.15f, 0.4f,
+			{Trait::BRAVERY}, {Trait::LAZINESS, Trait::SOCIALABILITY} },
+	};
+	static const std::vector<WeightedNavigation> PossibleNavigations = {
+		{ PathwayType::PATROL, ActionType::PATROLLING, 0.1f, 0.1f, 0.4f,
+			{Trait::ALERTNESS, Trait::BRAVERY}, {Trait::LAZINESS, Trait::SOCIALABILITY} },
+		{ PathwayType::STROLL, ActionType::STROLLING, 0.15f, 0.15f, 0.4f,
+			{Trait::LAZINESS}, {Trait::SOCIALABILITY, Trait::ALERTNESS, Trait::BRAVERY} },
+	};
+
 	actionPossibilities_.clear();
 	actionPossibilities_.emplace_back(ActionType::IDLE, (
 			0.05f +
 			0.05f * math::random<float>() +
 			0.1f * traitStrength({kb.laziness()}, {kb.alertness(), kb.sociability()})));
 
-	if (canWalkAt(kb, PathwayType::PATROL, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::PATROLLING, (
-				0.1f +
-				0.1f * math::random<float>() +
-				0.4f * traitStrength({kb.alertness(), kb.bravery()}, {kb.laziness(), kb.sociability()})));
+	// Add possible navigation actions based on pathways.
+	for (const auto &wn : PossibleNavigations) {
+		if (canWalkAt(kb, wn.pathway, lastPlace_)) {
+			std::vector<float> posTraits, negTraits;
+			for (const auto &t : wn.positiveTraits) {
+				posTraits.push_back(kb.traitStrength(t));
+			}
+			for (const auto &t : wn.negativeTraits) {
+				negTraits.push_back(kb.traitStrength(t));
+			}
+			actionPossibilities_.emplace_back(wn.action, (
+				wn.baseWeight +
+				wn.randomWeight * math::random<float>() +
+				wn.traitWeight * traitStrength(posTraits, negTraits)));
+		}
 	}
-	if (canWalkAt(kb, PathwayType::STROLL, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::STROLLING, (
-				0.15f +
-				0.15f * math::random<float>() +
-				0.4f * traitStrength({kb.laziness()}, {kb.sociability(), kb.alertness(), kb.bravery()})));
+
+	// Add other possible actions based on affordances.
+	for (const auto &wa : PossibleActions) {
+		if (canUseAt(kb, wa.action, lastPlace_)) {
+			std::vector<float> posTraits, negTraits;
+			for (const auto &t : wa.positiveTraits) {
+				posTraits.push_back(kb.traitStrength(t));
+			}
+			for (const auto &t : wa.negativeTraits) {
+				negTraits.push_back(kb.traitStrength(t));
+			}
+			actionPossibilities_.emplace_back(wa.action, (
+				wa.baseWeight +
+				wa.randomWeight * math::random<float>() +
+				wa.traitWeight * traitStrength(posTraits, negTraits)));
+		}
 	}
-	if (canUseAt(kb, ActionType::OBSERVING, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::OBSERVING, (
-				0.25f +
-				0.25f * math::random<float>() +
-				0.5f * traitStrength({kb.alertness()}, {kb.sociability()})));
-	}
-	if (canUseAt(kb, ActionType::CONVERSING, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::CONVERSING, (
-				0.25f +
-				0.25f * math::random<float>() +
-				0.5f * traitStrength({kb.sociability()}, {kb.laziness()})));
-	}
-	if (canUseAt(kb, ActionType::PRAYING, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::PRAYING, (
-				0.25f +
-				0.25f * math::random<float>() +
-				0.5f * traitStrength({kb.spirituality()}, {kb.laziness()})));
-	}
-	if (canUseAt(kb, ActionType::SLEEPING, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::SLEEPING, (
-				0.1f +
-				0.1f * math::random<float>() +
-				0.5f * traitStrength({kb.laziness()}, {kb.alertness(), kb.sociability()})));
-	}
-	if (canUseAt(kb, ActionType::ATTACKING, lastPlace_)) {
-		actionPossibilities_.emplace_back(ActionType::ATTACKING, (
-				0.15f +
-				0.15f * math::random<float>() +
-				0.4f * traitStrength({kb.bravery()}, {kb.laziness(), kb.sociability()})));
-	}
+
 	// Sum and normalize weights.
 	float totalWeight = 0.0f;
 	for (auto &p : actionPossibilities_) {
