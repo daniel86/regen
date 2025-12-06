@@ -192,11 +192,7 @@ Vec2f NonPlayerCharacterController::pickTravelPosition(const WorldObject &wp) co
 }
 
 Vec2f NonPlayerCharacterController::pickTargetPosition(const Patient &navTarget) const {
-	if (!navTarget.object) {
-		// TODO: Pick a random position at the current place.
-		REGEN_WARN("No navigation target object set.");
-		return Vec2f(currentPos_.x, currentPos_.z);
-	} else if (!navTarget.affordance) {
+	if (!navTarget.affordance) {
 		return pickTravelPosition(*navTarget.object.get());
 	} else {
 		auto &slotPos =
