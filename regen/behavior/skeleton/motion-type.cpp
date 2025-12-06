@@ -14,11 +14,11 @@ const float* regen::motionBodyPartWeights(MotionType type) {
 	static constexpr auto numBodyParts = static_cast<uint32_t>(BodyPart::LAST);
 	static constexpr std::array<std::array<float, numBodyParts + 1>, numMotions> bodyPartWeights = {{
 		// BASE, HEAD, NECK, TORSO, ARM, LEG
-		[static_cast<size_t>(MotionType::RUN)]        = { 1.0f, 0.2f, 0.2f, 0.5f, 0.6f, 1.0f },
-		[static_cast<size_t>(MotionType::WALK)]       = { 0.8f, 0.2f, 0.2f, 0.4f, 0.5f, 0.9f },
+		[static_cast<size_t>(MotionType::RUN)]        = { 1.0f, 0.2f, 0.2f, 0.25f, 0.3f, 1.0f },
+		[static_cast<size_t>(MotionType::WALK)]       = { 0.8f, 0.2f, 0.2f, 0.3f, 0.25f, 0.9f },
 		[static_cast<size_t>(MotionType::JUMP)]       = { 1.0f, 0.3f, 0.3f, 0.7f, 0.6f, 1.0f },
 		[static_cast<size_t>(MotionType::SWIM)]       = { 0.8f, 0.4f, 0.4f, 0.6f, 0.7f, 0.8f },
-		[static_cast<size_t>(MotionType::IDLE)]       = { 0.1f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f },
+		[static_cast<size_t>(MotionType::IDLE)]       = { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f },
 		[static_cast<size_t>(MotionType::SIT)]        = { 0.2f, 0.3f, 0.3f, 0.4f, 0.2f, 1.0f },
 		[static_cast<size_t>(MotionType::AGREE)]      = { 0.1f, 1.0f, 0.6f, 0.3f, 0.3f, 0.1f },
 		[static_cast<size_t>(MotionType::DISAGREE)]   = { 0.1f, 1.0f, 0.6f, 0.3f, 0.3f, 0.1f },

@@ -419,11 +419,12 @@ void BoneController::updateBoneController(float dt_s, const Blackboard &kb) {
 }
 
 void BoneController::updateBoneController(float dt_s, const MotionType *desiredMotions, uint32_t numDesiredMotions) {
-	// TODO: Delay setting IDLE as desired when a motion is active
-	//         to avoid blending before the motion completed.
+	// Note: It is best to use low weights for IDLE state to avoid blending it in too aggressively
+	//       when an active motion is set to undesired (eg. due to key release event).
 	// Unset all desired flags.
 	for (uint32_t activeIdx = 0; activeIdx < numActiveMotions_; ++activeIdx) {
-		auto &motion = motionToData_[static_cast<int>(activeMotions_[activeIdx])];
+		const auto motionType = activeMotions_[activeIdx];
+		auto &motion = motionToData_[static_cast<int>(motionType)];
 		motion.desired = false;
 	}
 	// Mark only the given motions as desired.
