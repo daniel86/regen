@@ -1,5 +1,5 @@
-#ifndef REGEN_STAMPED_TEMPLATE_H
-#define REGEN_STAMPED_TEMPLATE_H
+#ifndef REGEN_STAMPED_H
+#define REGEN_STAMPED_H
 
 namespace regen {
 	template <typename T> struct Stamped {
@@ -16,4 +16,4 @@ namespace regen {
 	};
 } // knowrob
 
-#endif //REGEN_STAMPED_TEMPLATE_H
+#endif //REGEN_STAMPED_H
