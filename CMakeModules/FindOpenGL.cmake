@@ -87,21 +87,6 @@ else()
             ${HPUX_IA_OPENGL_LIB_PATH}
     )
 
-    # On Unix OpenGL most certainly always requires X11.
-    # Feel free to tighten up these conditions if you don't
-    # think this is always true.
-    # It's not true on OSX.
-    if (OPENGL_gl_LIBRARY)
-      if(NOT X11_FOUND)
-        include(FindX11)
-      endif()
-      if (X11_FOUND)
-        if (NOT APPLE)
-          set (OPENGL_LIBRARIES ${X11_LIBRARIES})
-        endif ()
-      endif ()
-    endif ()
-
     find_library(OPENGL_glu_LIBRARY
       NAMES GLU MesaGLU
       PATHS ${OPENGL_gl_LIBRARY}
