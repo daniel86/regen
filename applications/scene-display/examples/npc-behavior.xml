@@ -3,7 +3,7 @@
 <node>
     <constant name="num-cascades" value="3"/>
     <constant name="num-dwarves" value="100"/>
-    <constant name="map-y-min" value="-2.0"/>
+    <constant name="map-y-min" value="-32.0"/>
     <constant name="map-size" value="1000.0"/>
     <constant name="map-height" value="64.0"/>
     <constant name="map-height-half" value="32.0"/>
