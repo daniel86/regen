@@ -51,7 +51,7 @@ void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
     vecTexco texco = computeTexco(texco_2D);
     
-    vec3 N = fetchNormal(in_gNorWorldTexture,texco);
+    vec3 N = fetchNormal(in_gNorWorldTexture,texco).xyz;
     float depth = texture(in_gDepthTexture, texco).r;
     vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
     depth = linearizeDepth(depth, REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));

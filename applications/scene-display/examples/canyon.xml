@@ -1047,7 +1047,6 @@
                 </view>
             </node>
 
-            <node import="Foliage-Pass"/>
             <node import="Post-Pass"/>
             <node import="Debug-Views"/>
 
