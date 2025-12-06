@@ -241,7 +241,9 @@ void BoneTree::stopBoneAnimation(uint32_t instanceIdx, AnimationHandle animHandl
 	auto currTrack = ar.trackIdx_;
 	ar.trackIdx_ = -1;
 	eventData_->instanceIdx = instanceIdx;
-	eventData_->rangeIdx = animHandle;
+	eventData_->animHandle = animHandle;
+	eventData_->trackIdx = currTrack;
+	eventData_->range = &ar;
 	emitEvent(ANIMATION_STOPPED, eventData_);
 	ar.elapsedTime_ = 0.0;
 	ar.lastTime_ = 0;

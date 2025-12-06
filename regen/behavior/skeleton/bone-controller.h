@@ -187,6 +187,8 @@ namespace regen {
 		BodyPart getBodyPartType(const std::string &startNodeName) const;
 
 		void initializeBoneWeights(MotionData &motionData, MotionType type) const;
+
+		void handleAnimationStopped(BoneTree::BoneEvent &eventData);
 	};
 } // namespace
 

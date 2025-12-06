@@ -294,7 +294,9 @@ namespace regen {
 			BoneEvent() = default;
 			~BoneEvent() override = default;
 			uint32_t instanceIdx = 0;
-			uint32_t rangeIdx = 0;
+			uint32_t animHandle = 0;
+			uint32_t trackIdx = 0;
+			ActiveBoneRange *range;
 		};
 
 	protected:
