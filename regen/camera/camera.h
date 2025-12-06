@@ -10,7 +10,7 @@
 #include <regen/objects/model-transformation.h>
 #include "regen/memory/ubo.h"
 #include "regen/objects/lod/lod-level.h"
-#include "regen/scene/screen.h"
+#include "../textures/screen.h"
 
 namespace regen {
 	/**

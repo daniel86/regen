@@ -1,8 +1,8 @@
 #include "camera.h"
-#include "light-camera-spot.h"
-#include "light-camera-parabolic.h"
-#include "light-camera-cube.h"
-#include "light-camera-csm.h"
+#include "cube-camera.h"
+#include "parabolic-camera.h"
+#include "spot-light-camera.h"
+#include "cascade-camera.h"
 #include "reflection-camera.h"
 #include "regen/objects/composite-mesh.h"
 #include <regen/shapes/spatial-index.h>
@@ -104,7 +104,7 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	setInput(cameraBlock_);
 }
 
-static inline void flushWritten(
+static inline void markWrittenTo(
 		ClientBuffer &clientBuffer,
 		uint32_t mappedIndex,
 		uint32_t endOffset,
@@ -168,7 +168,7 @@ void Camera::updateShaderData(float dt) {
 			writtenRange.size += dataSize;
 		} else {
 			offset += dataSize;
-			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		dataSize = direction_.size() * sizeof(Vec4f);
@@ -180,7 +180,7 @@ void Camera::updateShaderData(float dt) {
 			writtenRange.size += dataSize;
 		} else {
 			offset += dataSize;
-			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		if (lastPosStamp1_ != positionStamp_) {
@@ -197,7 +197,7 @@ void Camera::updateShaderData(float dt) {
 		} else {
 			offset += position_.size() * sizeof(Vec4f);
 			offset += sizeof(Vec4f);
-			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		dataSize = projParams_.size() * sizeof(ProjectionParams);
@@ -208,7 +208,7 @@ void Camera::updateShaderData(float dt) {
 			writtenRange.size += dataSize;
 		} else {
 			offset += dataSize;
-			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		dataSize = proj_.size() * sizeof(Mat4f) * 2;
@@ -221,7 +221,7 @@ void Camera::updateShaderData(float dt) {
 			writtenRange.size += dataSize;
 		} else {
 			offset += dataSize;
-			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		if (sh_clipPlane_.get()) {
@@ -235,7 +235,7 @@ void Camera::updateShaderData(float dt) {
 			}
 		}
 
-		flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+		markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
 		clientBuffer.unmapRange(BUFFER_GPU_WRITE, 0u, 0u, mapped.w_index);
 	} else {
 		// The client buffer of the UBO was not initialized.

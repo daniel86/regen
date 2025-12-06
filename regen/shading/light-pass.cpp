@@ -4,7 +4,7 @@
 #include "light-pass.h"
 
 #include "regen/objects/primitives/cone.h"
-#include "regen/scene/shader-input-processor.h"
+#include "../shader/input-processor.h"
 #include "regen/scene/state-configurer.h"
 
 using namespace regen;

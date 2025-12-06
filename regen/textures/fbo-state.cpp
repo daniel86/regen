@@ -1,4 +1,4 @@
-#include "regen/utility/string-util.h"
+#include "regen/utility/strings.h"
 #include "regen/gl/states/atomic-states.h"
 
 #include "fbo-state.h"

@@ -1,10 +1,3 @@
-/*
- * mesh.h
- *
- *  Created on: Nov 3, 2013
- *      Author: daniel
- */
-
 #ifndef REGEN_SCENE_MESH_H_
 #define REGEN_SCENE_MESH_H_
 

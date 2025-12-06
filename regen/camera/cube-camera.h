@@ -2,7 +2,7 @@
 #define REGEN_CUBE_CAMERA_H_
 
 #include <regen/camera/camera.h>
-#include "regen/gl/states/blend-state.h"
+#include <regen/camera/light-camera.h>
 
 namespace regen {
 	/**
@@ -40,6 +40,27 @@ namespace regen {
 		bool updateView() override;
 
 		void updateViewProjection1() override;
+	};
+
+	/**
+	 * A camera for a point light source represented by a cubic frustum.
+	 */
+	class LightCamera_Cube : public CubeCamera, public LightCamera {
+	public:
+		/**
+		 * @param light the light source.
+		 * @param hiddenFacesMask the mask of hidden faces.
+		 */
+		explicit LightCamera_Cube(const ref_ptr<Light> &light, int hiddenFacesMask=0);
+
+		// override
+		bool updateLight() override;
+
+	protected:
+		bool updateCubeLight();
+	private:
+		bool updateLightProjection();
+		bool updateLightView();
 	};
 
 	std::ostream &operator<<(std::ostream &out, const CubeCamera::Face &v);

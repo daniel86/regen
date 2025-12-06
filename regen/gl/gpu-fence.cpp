@@ -8,14 +8,14 @@ uint32_t GPUFence::STALL_RANGE = 60; // Default to 60 frames for stall detection
 
 GPUFence::GPUFence() :
 	stallRange_(STALL_RANGE),
-	f_stallRange_(static_cast<float>(STALL_RANGE)) {
+	f_stallRange_(1.0f / static_cast<float>(STALL_RANGE)) {
 	stalledFrames_ = new bool[STALL_RANGE];
 	std::fill(stalledFrames_, stalledFrames_ + STALL_RANGE, false);
 }
 
 GPUFence::GPUFence(const GPUFence &) :
 	stallRange_(STALL_RANGE),
-	f_stallRange_(static_cast<float>(STALL_RANGE)),
+	f_stallRange_(1.0f / static_cast<float>(STALL_RANGE)),
 	stallCount_(0),
 	stallIdx_(0) {
 	stalledFrames_ = new bool[STALL_RANGE];
@@ -108,7 +108,7 @@ bool GPUFence::isSignaled() {
 }
 
 float GPUFence::getStallRate() const {
-	return static_cast<float>(stallCount_) / f_stallRange_;
+	return static_cast<float>(stallCount_) * f_stallRange_;
 }
 
 void GPUFence::resetStallHistory() {

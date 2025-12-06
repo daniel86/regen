@@ -1,7 +1,7 @@
 
 #include <QCloseEvent>
 
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/utility/logging.h>
 #include "regen/textures/fbo-state.h"
 #include "regen/shader/shader-state.h"

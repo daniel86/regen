@@ -8,14 +8,14 @@ namespace regen {
 	/**
 	 * \brief A quadric surface defined by a symmetric 4x4 matrix.
 	 */
-	class Quadric {
+	class quadric {
 	public:
 		float a[10] = {0}; // 10 unique components of the symmetric 4x4 matrix
 
-		Quadric() = default;
+		quadric() = default;
 
 		// Construct from plane ax + by + cz + d = 0
-		Quadric(float a_, float b_, float c_, float d_) {
+		quadric(float a_, float b_, float c_, float d_) {
 			set(a_, b_, c_, d_);
 		}
 
@@ -31,14 +31,14 @@ namespace regen {
 		}
 
 		// Add two quadrics
-		Quadric operator+(const Quadric &q) const {
-			Quadric result;
+		quadric operator+(const quadric &q) const {
+			quadric result;
 			for (int i = 0; i < 10; ++i)
 				result.a[i] = a[i] + q.a[i];
 			return result;
 		}
 
-		Quadric &operator+=(const Quadric &q) {
+		quadric &operator+=(const quadric &q) {
 			for (int i = 0; i < 10; ++i)
 				a[i] += q.a[i];
 			return *this;

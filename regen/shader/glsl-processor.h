@@ -1,12 +1,5 @@
-/*
- * glsl-preprocessor.h
- *
- *  Created on: 12.05.2013
- *      Author: daniel
- */
-
-#ifndef GLSL_PROCESSOR_H_
-#define GLSL_PROCESSOR_H_
+#ifndef REGEN_SHADER_PROCESSOR_H_
+#define REGEN_SHADER_PROCESSOR_H_
 
 #include <map>
 #include <sstream>
@@ -50,9 +43,7 @@ namespace regen {
 		/** Input data configuration. */
 		const std::list<NamedShaderInput> &specifiedInput;
 	};
-}
 
-namespace regen {
 	/**
 	 * \brief The current state of pre-processing a GLSL code.
 	 */
@@ -75,9 +66,7 @@ namespace regen {
 		/** Input stream providing unprocessed GLSL code. */
 		std::stringstream inStream;
 	};
-}
 
-namespace regen {
 	/**
 	 * \brief Baseclass for GLSL pre-processors.
 	 *
@@ -145,9 +134,7 @@ namespace regen {
 			}
 		}
 	};
-}
 
-namespace regen {
 	/**
 	 * \brief Simple GLSL pre-processor that
 	 * provides the unprocessed GLSL code to child processors.
@@ -161,9 +148,7 @@ namespace regen {
 			return static_cast<bool>(std::getline(state.inStream, line));
 		}
 	};
-}
 
-namespace regen {
 	/**
 	 * \brief Removes empty lines from GLSL code.
 	 */
@@ -184,9 +169,7 @@ namespace regen {
 			}
 		}
 	};
-}
 
-namespace regen {
 	/**
 	 * \brief Simple GLSL pre-processor that
 	 * provides input from an arbitrary stringstream.
@@ -214,4 +197,4 @@ namespace regen {
 	};
 }
 
-#endif /* GLSL_PREPROCESSOR_H_ */
+#endif /* REGEN_SHADER_PROCESSOR_H_ */

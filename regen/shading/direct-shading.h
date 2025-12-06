@@ -1,12 +1,5 @@
-/*
- * direct-shading.h
- *
- *  Created on: 25.02.2013
- *      Author: daniel
- */
-
-#ifndef __SHADING_DIRECT_H_
-#define __SHADING_DIRECT_H_
+#ifndef REGEN_SHADING_DIRECT_H_
+#define REGEN_SHADING_DIRECT_H_
 
 #include <regen/scene/state.h>
 #include <regen/shading/light-state.h>
@@ -77,4 +70,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* __SHADING_DIRECT_H_ */
+#endif /* REGEN_SHADING_DIRECT_H_ */

@@ -3,12 +3,12 @@
 
 #include <regen/scene/state-node.h>
 #include <regen/shapes/spatial-index.h>
-#include "regen/camera/sorting.h"
+#include "regen/camera/sort-mode.h"
 #include "regen/memory/ssbo.h"
 #include "regen/memory/pbo.h"
 #include "regen/memory/staging-buffer.h"
 #include "regen/compute/compute-pass.h"
-#include "regen/compute/radix-sort.h"
+#include "regen/compute/radix-sort-gpu.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl/draw-command.h"
 

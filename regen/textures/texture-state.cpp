@@ -1,6 +1,6 @@
 #include <boost/algorithm/string.hpp>
 
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 
 #include "texture-state.h"
 #include "texture.h"

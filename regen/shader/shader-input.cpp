@@ -1,11 +1,11 @@
-#include "regen/utility/string-util.h"
+#include "regen/utility/strings.h"
 #include "regen/utility/logging.h"
 #include "regen/animation/animation.h"
 #include "regen/memory/ssbo.h"
 #include <stack>
 
 #include "shader-input.h"
-#include "regen/scene/mesh-processor.h"
+#include "../objects/mesh-processor.h"
 
 using namespace regen;
 

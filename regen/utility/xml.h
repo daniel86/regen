@@ -13,7 +13,7 @@
 #include <regen/external/rapidxml/rapidxml.hpp>
 #include <regen/external/rapidxml/rapidxml_utils.hpp>
 #include <regen/external/rapidxml/rapidxml_print.hpp>
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include "regen/shader/shader-state.h"
 
 

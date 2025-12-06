@@ -11,7 +11,7 @@ using namespace regen::scene;
 using namespace regen;
 using namespace std;
 
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 
 static void pushIndexToSequence(
 		uint32_t numIndices, list<IndexRange> &indices, const IndexRange &indexRange) {

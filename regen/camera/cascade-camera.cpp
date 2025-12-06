@@ -1,8 +1,10 @@
-#include "light-camera-csm.h"
+#include "cascade-camera.h"
 
 using namespace regen;
 
-#undef CSM_USE_SINGLE_VIEW
+namespace regen {
+	static constexpr bool CSM_USE_SINGLE_VIEW = false;
+}
 
 LightCamera_CSM::LightCamera_CSM(
 		const ref_ptr<Light> &light,
@@ -17,8 +19,7 @@ LightCamera_CSM::LightCamera_CSM(
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
 	shaderDefine("RENDER_TARGET_MODE", "CASCADE");
 
-#ifndef CSM_USE_SINGLE_VIEW
-	{
+	if constexpr (!CSM_USE_SINGLE_VIEW){
 		viewData_.resize(numLayer * 2, Mat4f::identity());
 		view_    = std::span<Mat4f>(viewData_).subspan(0, numLayer);
 		viewInv_ = std::span<Mat4f>(viewData_).subspan(numLayer, numLayer);
@@ -29,7 +30,6 @@ LightCamera_CSM::LightCamera_CSM(
 		sh_view_->setUniformUntyped();
 		sh_viewInv_->setUniformUntyped();
 	}
-#endif
 	{
 		viewProjData_.resize(numLayer * 2, Mat4f::identity());
 		viewProj_    = std::span<Mat4f>(viewProjData_).subspan(0, numLayer);
@@ -150,32 +150,31 @@ bool LightCamera_CSM::updateLightView() {
 	auto f = -light_->directionStaged(0).r;
 	f.normalize();
 	setDirection(0, f);
-#ifdef CSM_USE_SINGLE_VIEW
-	// NOTE: The nvidia example uses a single view matrix for all layers with position at (0,0,0).
-	// but for some reason I have some issues with this approach.
-	// Others use the centroid, and for some reason a small offset, it is not hard
-	// to compute the position such that the near plane is at 1.0 eg. but do not know
-	// if this is advantageous.
-	// Equivalent to getLookAtMatrix(pos=(0,0,0), dir=f, up=(-1,0,0))
-	Vec3f s(0.0f, -f.z, f.y);
-	s.normalize();
-	setView(0, Mat4f(
-			0.0f, s.y * f.z - s.z * f.y, -f.x, 0.0f,
-			s.y, s.z * f.x, -f.y, 0.0f,
-			s.z, -s.y * f.x, -f.z, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-	));
-	setViewInverse(0, view_[0].lookAtInverse());
-	for (int i = 0; i < numLayer_; ++i) {
-		setPosition(i, Vec3f::zero());
+	if constexpr (CSM_USE_SINGLE_VIEW) {
+		// NOTE: The nvidia example uses a single view matrix for all layers with position at (0,0,0).
+		// but for some reason I have some issues with this approach.
+		// Others use the centroid, and for some reason a small offset, it is not hard
+		// to compute the position such that the near plane is at 1.0 eg. but do not know
+		// if this is advantageous.
+		// Equivalent to getLookAtMatrix(pos=(0,0,0), dir=f, up=(-1,0,0))
+		Vec3f s(0.0f, -f.z, f.y);
+		s.normalize();
+		setView(0, Mat4f{
+				0.0f, s.y * f.z - s.z * f.y, -f.x, 0.0f,
+				s.y, s.z * f.x, -f.y, 0.0f,
+				s.z, -s.y * f.x, -f.z, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f });
+		setViewInverse(0, view_[0].lookAtInverse());
+		for (int i = 0; i < numLayer_; ++i) {
+			setPosition(i, Vec3f::zero());
+		}
+	} else {
+		for (unsigned int i = 0; i < numLayer_; ++i) {
+			setPosition(i, userFrustumCentroids_[i]);
+			setView(i, Mat4f::lookAtMatrix(position(i), f, Vec3f::up()));
+			setViewInverse(i, view(i).lookAtInverse());
+		}
 	}
-#else
-	for (unsigned int i = 0; i < numLayer_; ++i) {
-		setPosition(i, userFrustumCentroids_[i]);
-		setView(i, Mat4f::lookAtMatrix(position(i), f, Vec3f::up()));
-		setViewInverse(i, view(i).lookAtInverse());
-	}
-#endif
 	return true;
 }
 
@@ -185,7 +184,7 @@ bool LightCamera_CSM::updateLightProjection() {
 	if (stamp == viewStamp_) { return false; }
 	viewStamp_ = stamp;
 
-	Vec2f zRange = Vec2f(
+	auto zRange = Vec2f(
 		std::numeric_limits<float>::max(),
 		std::numeric_limits<float>::lowest());
 	for (unsigned int layerIndex = 0; layerIndex < numLayer_; ++layerIndex) {
@@ -194,12 +193,12 @@ bool LightCamera_CSM::updateLightProjection() {
 		bounds.min = Vec3f::posMax();
 		bounds.max = Vec3f::negMax();
 		for (int frustumIndex = 0; frustumIndex < 8; ++frustumIndex) {
-			// TODO: matrix multiplication can probably be avoided here.
-#ifdef CSM_USE_SINGLE_VIEW
-			auto point_ls = view_[0] ^ Vec4f(u_frustum.points[frustumIndex], 1.0f);
-#else
-			auto point_ls = view(layerIndex) ^ Vec4f::create(u_frustum.points[frustumIndex], 1.0f);
-#endif
+			Vec4f point_ls;
+			if constexpr (CSM_USE_SINGLE_VIEW) {
+				point_ls = view_[0] ^ Vec4f::create(u_frustum.points[frustumIndex], 1.0f);
+			} else {
+				point_ls = view(layerIndex) ^ Vec4f::create(u_frustum.points[frustumIndex], 1.0f);
+			}
 			bounds.min.setMin(point_ls.xyz());
 			bounds.max.setMax(point_ls.xyz());
 			zRange.x = std::min(zRange.x, point_ls.z);

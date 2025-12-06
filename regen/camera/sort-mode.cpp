@@ -1,5 +1,5 @@
 #include <boost/algorithm/string/case_conv.hpp>
-#include "regen/camera/sorting.h"
+#include "regen/camera/sort-mode.h"
 #include "regen/utility/logging.h"
 
 using namespace regen;

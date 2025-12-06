@@ -1,22 +1,13 @@
-/*
- * glsl-preprocessor.cpp
- *
- *  Created on: 29.10.2012
- *      Author: daniel
- */
-
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
-
-#define NO_REGEX_MATCH boost::sregex_iterator()
 
 #include <list>
 #include <string>
 #include <map>
 #include <set>
 
-#include "regen/utility/string-util.h"
+#include "regen/utility/strings.h"
 #include "regen/utility/logging.h"
 
 #include "includer.h"
@@ -25,20 +16,25 @@
 using namespace regen;
 using namespace std;
 
+#define NO_REGEX_MATCH boost::sregex_iterator()
+
 DirectiveProcessor::MacroBranch::MacroBranch()
-		: isDefined_(true),
-		  isAnyChildDefined_(false),
-		  parent_(nullptr) {}
+	: isDefined_(true),
+	  isAnyChildDefined_(false),
+	  parent_(nullptr) {
+}
 
 DirectiveProcessor::MacroBranch::MacroBranch(bool isDefined, MacroBranch *parent)
-		: isDefined_(isDefined),
-		  isAnyChildDefined_(false),
-		  parent_(parent) {}
+	: isDefined_(isDefined),
+	  isAnyChildDefined_(false),
+	  parent_(parent) {
+}
 
 DirectiveProcessor::MacroBranch::MacroBranch(const MacroBranch &other)
-		: isDefined_(other.isDefined_),
-		  isAnyChildDefined_(other.isAnyChildDefined_),
-		  parent_(other.parent_) {}
+	: isDefined_(other.isDefined_),
+	  isAnyChildDefined_(other.isAnyChildDefined_),
+	  parent_(other.parent_) {
+}
 
 DirectiveProcessor::MacroBranch &DirectiveProcessor::MacroBranch::getActive() {
 	return childs_.empty() ? *this : childs_.back().getActive();
@@ -48,7 +44,7 @@ void DirectiveProcessor::MacroBranch::open(bool isDefined) {
 	// open a new #if / #ifdef branch
 	MacroBranch &active = getActive();
 	active.childs_.push_back(MacroBranch(
-			isDefined && active.isDefined_, &active));
+		isDefined && active.isDefined_, &active));
 	if (isDefined) {
 		// remember if the argument is defined (all #else cases can be skipped then)
 		active.isAnyChildDefined_ = true;
@@ -255,10 +251,11 @@ bool DirectiveProcessor::MacroTree::isDefined() { return root_.getActive().isDef
 ////////////
 
 DirectiveProcessor::DirectiveProcessor()
-		: GLSLProcessor("Directives"),
-		  continuedLine_(""),
-		  wasEmpty_(true),
-		  lastStage_(GL_NONE) {}
+	: GLSLProcessor("Directives"),
+	  continuedLine_(""),
+	  wasEmpty_(true),
+	  lastStage_(GL_NONE) {
+}
 
 void DirectiveProcessor::parseVariables(string &line) {
 	static const char *variablePattern = "\\$\\{[ ]*([^ \\}\\{]+)[ ]*\\}";
@@ -330,7 +327,7 @@ bool DirectiveProcessor::process(PreProcessorState &state, string &line) {
 	}
 
 	// evaluate ${..}
-	if (tree_.isDefined() && forLoopCounter_==0) { parseVariables(line); }
+	if (tree_.isDefined() && forLoopCounter_ == 0) { parseVariables(line); }
 
 	string statement(line);
 	boost::trim(statement);

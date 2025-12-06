@@ -1,6 +1,6 @@
 #include "shape-processor.h"
 
-#include "resource-manager.h"
+#include "../scene/resource-manager.h"
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"
 #include "regen/objects/composite-mesh.h"

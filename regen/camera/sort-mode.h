@@ -1,6 +1,8 @@
 #ifndef REGEN_SORTING_H
 #define REGEN_SORTING_H
 
+#include <iostream>
+
 namespace regen {
 	typedef enum {
 		FRONT_TO_BACK,

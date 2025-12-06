@@ -1,12 +1,5 @@
-/*
- * includer.h
- *
- *  Created on: 19.05.2013
- *      Author: daniel
- */
-
-#ifndef INCLUDER_H_
-#define INCLUDER_H_
+#ifndef REGEN_SHADER_INCLUDER_H_
+#define REGEN_SHADER_INCLUDER_H_
 
 #include <boost/filesystem/path.hpp>
 
@@ -72,4 +65,4 @@ namespace regen {
   };
 }
 
-#endif /* INCLUDER_H_ */
+#endif /* REGEN_SHADER_INCLUDER_H_ */

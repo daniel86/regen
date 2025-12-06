@@ -1,4 +1,4 @@
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 
 #include "mesh.h"
 #include "regen/shapes/bounding-sphere.h"

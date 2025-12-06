@@ -8,7 +8,7 @@
 #include <cstring>
 #include <fstream>
 
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/utility/logging.h>
 #include <regen/external/spectrum.h>
 #include <regen/gl/gl-enum.h>

@@ -5,7 +5,7 @@
 #include <cassert>
 #include <list>
 
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/compute/math.h>
 
 namespace regen {

@@ -1,4 +1,4 @@
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 
 #include "depth-state.h"
 #include "atomic-states.h"

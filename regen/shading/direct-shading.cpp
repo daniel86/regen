@@ -1,7 +1,7 @@
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 
 #include "direct-shading.h"
-#include "regen/camera/light-camera-parabolic.h"
+#include "regen/camera/parabolic-camera.h"
 #include "regen/scene/node-processor.h"
 
 using namespace regen;

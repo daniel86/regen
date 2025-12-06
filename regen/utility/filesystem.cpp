@@ -1,18 +1,9 @@
-/*
- * filesystem.cpp
- *
- *  Created on: 08.04.2013
- *      Author: daniel
- */
-
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
 #ifndef WIN32
-
 #include <pwd.h>
-
 #endif
 
 #include <iostream>

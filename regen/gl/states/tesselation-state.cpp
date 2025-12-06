@@ -1,5 +1,5 @@
 #include <regen/gl/gl-util.h>
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include "atomic-states.h"
 
 #include "tesselation-state.h"

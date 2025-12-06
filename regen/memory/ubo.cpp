@@ -1,5 +1,5 @@
 #include "ubo.h"
-#include "regen/scene/shader-input-processor.h"
+#include "../shader/input-processor.h"
 
 using namespace regen;
 

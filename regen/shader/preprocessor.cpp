@@ -7,7 +7,7 @@
 #include <map>
 #include <list>
 
-#include "regen/utility/string-util.h"
+#include "regen/utility/strings.h"
 #include "regen/gl/gl-enum.h"
 #include "includer.h"
 #include "directive-processor.h"

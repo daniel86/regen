@@ -1,5 +1,5 @@
 
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include "motion-blur.h"
 
 #include "regen/gl/states/depth-state.h"

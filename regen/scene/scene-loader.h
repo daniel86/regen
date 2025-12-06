@@ -14,7 +14,7 @@
 #include "scene-processors.h"
 #include "regen/simulation/bullet-physics.h"
 #include "regen/scene/scene.h"
-#include "screen.h"
+#include "../textures/screen.h"
 #include "regen/animation/bone-tree.h"
 #include "regen/behavior/skeleton/bone-controller.h"
 

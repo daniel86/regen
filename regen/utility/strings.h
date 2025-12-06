@@ -1,5 +1,5 @@
-#ifndef REGEN_STRING_UTIL_H_
-#define REGEN_STRING_UTIL_H_
+#ifndef REGEN_STRINGS_H_
+#define REGEN_STRINGS_H_
 
 #include <boost/algorithm/string.hpp>
 #include <sstream>
@@ -66,4 +66,4 @@ namespace regen {
 	}
 } // namespace
 
-#endif /* REGEN_STRING_UTIL_H_ */
+#endif /* REGEN_STRINGS_H_ */

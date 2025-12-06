@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include <GL/glew.h>
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/utility/logging.h>
 #include <regen/config.h>
 

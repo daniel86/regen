@@ -1,12 +1,5 @@
-/*
- * directive-processor.h
- *
- *  Created on: 29.10.2012
- *      Author: daniel
- */
-
-#ifndef __GLSL_DIRECTOVE_PROCESSOR_H_
-#define __GLSL_DIRECTOVE_PROCESSOR_H_
+#ifndef REGEN_DIRECTIVE_PROCESSOR_H_
+#define REGEN_DIRECTIVE_PROCESSOR_H_
 
 #include <GL/glew.h>
 #include "glsl-processor.h"
@@ -116,4 +109,4 @@ namespace regen {
   };
 } // namespace
 
-#endif /* GLSL_DIRECTOVE_PROCESSOR_H_ */
+#endif /* REGEN_DIRECTIVE_PROCESSOR_H_ */

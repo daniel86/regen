@@ -1,4 +1,4 @@
-#include "light-camera-spot.h"
+#include "spot-light-camera.h"
 
 using namespace regen;
 
@@ -32,11 +32,11 @@ bool LightCamera_Spot::updateSpotLight() {
 bool LightCamera_Spot::updateLightProjection() {
 	if (lightRadiusStamp_ == light_->radius()->stampOfReadData() &&
 		lightConeStamp_ == light_->coneAngle()->stampOfReadData()) { return false; }
-	auto radius = light_->radiusStaged(0);
-	auto coneAngle = light_->coneAngleStaged(0);
+	const auto radius = light_->radiusStaged(0);
+	const auto coneAngle = light_->coneAngleStaged(0);
 	setPerspective(
 			1.0f,
-			2.0 * acos(coneAngle.r.y) * RAD_TO_DEGREE,
+			2.0f * acosf(coneAngle.r.y) * math::RAD_TO_DEG,
 			lightNear_,
 			radius.r.y);
 	lightRadiusStamp_ = light_->radius()->stampOfReadData();

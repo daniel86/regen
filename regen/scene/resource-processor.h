@@ -9,7 +9,7 @@
 #define RESOURCE_FACTORY_H_
 
 #include <regen/utility/filesystem.h>
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/config.h>
 

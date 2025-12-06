@@ -1,12 +1,5 @@
-/*
- * filesystem.h
- *
- *  Created on: 08.04.2013
- *      Author: daniel
- */
-
-#ifndef FILESYSTEM_H_
-#define FILESYSTEM_H_
+#ifndef REGEN_FILESYSTEM_H_
+#define REGEN_FILESYSTEM_H_
 
 #include <string>
 #include <list>
@@ -52,4 +45,4 @@ namespace regen {
 	std::string resourcePath(const std::string &relPath);
 } // namespace
 
-#endif /* FILESYSTEM_H_ */
+#endif /* REGEN_FILESYSTEM_H_ */

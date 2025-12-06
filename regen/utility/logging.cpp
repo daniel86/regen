@@ -1,10 +1,3 @@
-/*
- * logging.cpp
- *
- *  Created on: 29.10.2011
- *      Author: daniel
- */
-
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <iostream>
 #include <sstream>
@@ -12,11 +5,10 @@
 #include "logging.h"
 
 using namespace regen;
-using namespace std;
 
-list<Logger *> Logging::loggers_[] = {
-		list<Logger *>(), list<Logger *>(),
-		list<Logger *>(), list<Logger *>(), list<Logger *>()
+std::array<std::vector<Logger *>, Logging::LAST_LEVEL> Logging::loggers_ = {
+		std::vector<Logger *>(), std::vector<Logger *>(),
+		std::vector<Logger *>(), std::vector<Logger *>(), std::vector<Logger *>()
 };
 Logging::Verbosity Logging::verbosity_ = Logging::_;
 
@@ -40,7 +32,8 @@ void Logging::addLogger(Logger *logger) {
 }
 
 void Logging::removeLogger(Logger *logger) {
-	loggers_[logger->level()].remove(logger);
+	loggers_[logger->level()].erase(
+		std::ranges::find(loggers_[logger->level()], logger));
 }
 
 void Logging::shutdown() {
@@ -53,21 +46,18 @@ void Logging::shutdown() {
 }
 
 
-void Logging::log(Logging::LogLevel level,
-				  const string &message,
-				  const char *filePath, int line) {
+void Logging::log(LogLevel level, const std::string &message, const char *filePath, int line) {
 	if (message.empty()) { return; }
 
-	string fileName(filePath);
+	std::string fileName(filePath);
 	{
 		size_t pos = fileName.find_last_of("/");
 		if (pos != fileName.npos) {
 			fileName = fileName.substr(pos + 1);
 		}
 	}
-	for (list<Logger *>::iterator it = loggers_[level].begin();
-		 it != loggers_[level].end(); ++it) {
-		(*it)->log(message, fileName, line);
+	for (auto it : loggers_[level]) {
+		it->log(message, fileName, line);
 	}
 }
 
@@ -77,13 +67,12 @@ Logger::Logger(Logging::LogLevel level)
 		: level_(level), format_("[%t] %v: '%m' in %f(line %l)") {
 }
 
-void Logger::log(const string &message,
-				 const string file, int line) {
+void Logger::log(const std::string_view message, const std::string_view file, int line) {
 	using namespace boost::posix_time;
 	static std::locale locDate(std::cout.getloc(), new time_facet("%d.%m.%Y"));
 	static std::locale locTime(std::cout.getloc(), new time_facet("%H:%M:%S"));
 
-	ostream &os = stream();
+	std::ostream &os = stream();
 	os.flags(loggerFlags_); // format flags
 	os.precision(loggerPrecision_); // floating-point decimal precision
 	os.width(loggerWidth_); // field width
@@ -108,14 +97,14 @@ void Logger::log(const string &message,
 					os << line;
 					break;
 				case DateKey: {
-					stringstream dateStream;
+					std::stringstream dateStream;
 					dateStream.imbue(locDate);
 					dateStream << now;
 					os << dateStream.str();
 					break;
 				}
 				case TimeKey: {
-					stringstream timeStream;
+					std::stringstream timeStream;
 					timeStream.imbue(locTime);
 					timeStream << now;
 					os << timeStream.str();
@@ -147,7 +136,7 @@ void Logger::log(const string &message,
 			os << c;
 		}
 	}
-	os << endl;
+	os << std::endl;
 	os.flush();
 
 	os.flags(originalFlags_); // format flags
@@ -156,7 +145,7 @@ void Logger::log(const string &message,
 
 }
 
-void Logger::set_format(const string &format) {
+void Logger::set_format(const std::string &format) {
 	format_ = format;
 }
 
@@ -164,24 +153,24 @@ Logging::LogLevel Logger::level() const {
 	return level_;
 }
 
-void Logger::set_flag(ios_base::fmtflags flags) {
+void Logger::set_flag(std::ios_base::fmtflags flags) {
 	loggerFlags_ |= flags;
 }
 
-void Logger::set_flag(ios_base::fmtflags flags, ios_base::fmtflags mask) {
+void Logger::set_flag(std::ios_base::fmtflags flags, std::ios_base::fmtflags mask) {
 	loggerFlags_ = ((flags & mask) | (loggerFlags_ & ~mask));
 }
 
-void Logger::set_precisin(streamsize precision) {
+void Logger::set_precision(std::streamsize precision) {
 	loggerPrecision_ = precision;
 }
 
-void Logger::set_width(streamsize width) {
+void Logger::set_width(std::streamsize width) {
 	loggerWidth_ = width;
 }
 
 void Logger::updateOS() {
-	ostream &os = stream();
+	std::ostream &os = stream();
 	originalFlags_ = os.flags();
 	originalPrecision_ = os.precision();
 	originalWidth_ = os.width();
@@ -193,9 +182,9 @@ void Logger::updateOS() {
 /////////
 
 FileLogger::FileLogger(Logging::LogLevel level,
-					   const string &path, ios::openmode mode)
+					   const std::string &path, std::ios::openmode mode)
 		: Logger(level) {
-	file_ = new ofstream(path.c_str(), mode);
+	file_ = new std::ofstream(path.c_str(), mode);
 	updateOS();
 }
 
@@ -203,7 +192,7 @@ FileLogger::~FileLogger() {
 	delete file_;
 }
 
-ostream &FileLogger::stream() {
+std::ostream &FileLogger::stream() {
 	return *file_;
 }
 
@@ -212,8 +201,8 @@ CoutLogger::CoutLogger(Logging::LogLevel level)
 	updateOS();
 }
 
-ostream &CoutLogger::stream() {
-	return cout;
+std::ostream &CoutLogger::stream() {
+	return std::cout;
 }
 
 CerrLogger::CerrLogger(Logging::LogLevel level)
@@ -221,6 +210,6 @@ CerrLogger::CerrLogger(Logging::LogLevel level)
 	updateOS();
 }
 
-ostream &CerrLogger::stream() {
-	return cerr;
+std::ostream &CerrLogger::stream() {
+	return std::cerr;
 }

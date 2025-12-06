@@ -1,20 +1,6 @@
-/*
- * vector.cpp
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 #include "vector.h"
-#include "regen/utility/logging.h"
 
 namespace regen {
-
 	Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal) {
 		Vec3f tangent, binormal;
 		// calculate vertex and uv edges

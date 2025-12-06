@@ -1,12 +1,5 @@
-/*
- * preprocessor.h
- *
- *  Created on: 12.05.2013
- *      Author: daniel
- */
-
-#ifndef GLSL_PREPROCESSOR_H_
-#define GLSL_PREPROCESSOR_H_
+#ifndef REGEN_GLSL_PREPROCESSOR_H_
+#define REGEN_GLSL_PREPROCESSOR_H_
 
 #include "glsl-processor.h"
 
@@ -38,4 +31,4 @@ namespace regen {
 	};
 }
 
-#endif /* PREPROCESSOR_H_ */
+#endif /* REGEN_GLSL_PREPROCESSOR_H_ */

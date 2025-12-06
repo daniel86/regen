@@ -1,7 +1,7 @@
 #define NO_REGEX_MATCH boost::sregex_iterator()
 
 #include "regen/utility/logging.h"
-#include "regen/utility/string-util.h"
+#include "regen/utility/strings.h"
 #include "regen/gl/gl-enum.h"
 #include "regen/textures/texture.h"
 #include "io-processor.h"

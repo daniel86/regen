@@ -1,18 +1,18 @@
 #include "scene-loader.h"
-#include "regen/scene/animation-processor.h"
-#include "regen/scene/shape-processor.h"
+#include "../animation/animation-processor.h"
+#include "../shapes/shape-processor.h"
 #include "regen/scene/debug-node-processor.h"
 #include "regen/passes/filter.h"
 #include "regen/passes/motion-blur.h"
 #include "regen/shading/light-pass.h"
-#include "shader-input-processor.h"
+#include "../shader/input-processor.h"
 #include "regen/passes/geometric-picking.h"
 #include "regen/passes/bloom-pass.h"
 #include "regen/scene/node-processor.h"
 #include "regen/shading/direct-shading.h"
-#include <regen/scene/mesh-processor.h>
+#include <regen/objects/mesh-processor.h>
 #include <regen/scene/loadable-input.h>
-#include <regen/scene/shader-define-processor.h>
+#include <regen/shader/define-processor.h>
 
 #include "regen/behavior/skeleton/bone-controller.h"
 #include "regen/behavior/world/body-part.h"

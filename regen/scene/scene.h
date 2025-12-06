@@ -10,7 +10,7 @@
 #include "regen/scene/scene-interaction.h"
 #include "regen/animation/animation.h"
 #include "regen/memory/staging-system.h"
-#include "screen.h"
+#include "../textures/screen.h"
 #include "regen/behavior/world/world-model.h"
 
 // Defeat evil windows defines...

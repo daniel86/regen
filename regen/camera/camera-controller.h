@@ -57,6 +57,11 @@ namespace regen {
 		~CameraController() override = default;
 
 		/**
+		 * Initializes the camera controller.
+		 */
+		void initCameraController();
+
+		/**
 		 * Initializes the camera with a position and direction.
 		 * @param pos the position of the camera.
 		 * @param dir the direction of the camera.

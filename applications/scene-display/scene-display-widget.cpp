@@ -679,6 +679,7 @@ void SceneDisplayWidget::handleControllerConfiguration(
 				anchors_.emplace_back(anchor);
 			}
 		}
+		userController_->initCameraController();
 		userController_->startAnimation();
 	}
 	else if (controllerType == "animal") {

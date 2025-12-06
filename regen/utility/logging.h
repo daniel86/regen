@@ -1,10 +1,3 @@
-/*
- * logging.h
- *
- *  Created on: 16.04.2011
- *      Author: daniel
- */
-
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
@@ -134,7 +127,7 @@ namespace regen {
 		static void shutdown();
 
 	private:
-		static std::list<Logger *> loggers_[LAST_LEVEL];
+		static std::array<std::vector<Logger *>, LAST_LEVEL> loggers_;
 		static Verbosity verbosity_;
 	};
 } // namespace
@@ -179,15 +172,14 @@ namespace regen {
 		/**
 		 * Create a new logger with specified level.
 		 */
-		Logger(Logging::LogLevel level);
+		explicit Logger(Logging::LogLevel level);
 
 		virtual ~Logger() = default;
 
 		/**
 		 * Log a message.
 		 */
-		void log(const std::string &message,
-				 const std::string file, int line);
+		void log(std::string_view message, std::string_view file, int line);
 
 		/**
 		 * Set the format for log messages.
@@ -213,7 +205,7 @@ namespace regen {
 		/**
 		 * Sets precision of float values.
 		 */
-		void set_precisin(std::streamsize precision);
+		void set_precision(std::streamsize precision);
 
 		/**
 		 * Sets width of output.

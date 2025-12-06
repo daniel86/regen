@@ -2,7 +2,7 @@
 #include "ubo.h"
 #include "ssbo.h"
 #include "regen/scene/state.h"
-#include "regen/scene/shader-input-processor.h"
+#include "../shader/input-processor.h"
 
 using namespace regen;
 

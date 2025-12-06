@@ -1,12 +1,5 @@
-/*
- * audio-source.cpp
- *
- *  Created on: 08.04.2012
- *      Author: daniel
- */
-
 #include <AL/alut.h>
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/utility/logging.h>
 #include "audio.h"
 

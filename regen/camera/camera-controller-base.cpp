@@ -7,13 +7,14 @@ CameraControllerBase::CameraControllerBase(const ref_ptr<Camera> &cam)
 }
 
 void CameraControllerBase::computeMatrices(const Vec3f &pos, const Vec3f &dir) {
-	cam_->setView(0, Mat4f::lookAtMatrix(pos, dir, Vec3f::up()));
-	auto &view = cam_->view(0);
-	cam_->setViewInverse(0, view.lookAtInverse());
-	auto &viewInv = cam_->viewInverse(0);
-
+	const auto view = Mat4f::lookAtMatrix(pos, dir, Vec3f::up());
+	cam_->setView(0, view);
 	cam_->setViewProjection(0, view * cam_->projection(0));
+
+	const auto viewInv = view.lookAtInverse();
+	cam_->setViewInverse(0, viewInv);
 	cam_->setViewProjectionInverse(0, cam_->projectionInverse(0) * viewInv);
+
 	cam_->frustum()[0].update(pos, dir);
 	cam_->updateFrustumBuffer();
 }

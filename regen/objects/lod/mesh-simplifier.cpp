@@ -190,7 +190,7 @@ void MeshSimplifier::computeQuadrics(const std::vector<Triangle> &faces, const V
 		auto &p2 = posData[face.v2];
 		auto faceNormal = (p1 - p0).cross(p2 - p0);
 		faceNormal.normalize();
-		Quadric faceQuadric(
+		quadric faceQuadric(
 				faceNormal.x,
 				faceNormal.y,
 				faceNormal.z,
@@ -209,7 +209,7 @@ void MeshSimplifier::computeQuadrics(const std::vector<Triangle> &faces, const V
 	}
 }
 
-bool MeshSimplifier::solve(const Quadric &Q, Vec3f &outPos) {
+bool MeshSimplifier::solve(const quadric &Q, Vec3f &outPos) {
 	// Build the system from the quadric: A * v = -b
 	Mat3f inv;
 	if (!Q.toMatrix().inverse(inv)) {
@@ -223,7 +223,7 @@ bool MeshSimplifier::solve(const Quadric &Q, Vec3f &outPos) {
 	return true;
 }
 
-void MeshSimplifier::pushEdge(uint32_t idx0, uint32_t idx1, const Quadric &Q, const LODLevel &lod) {
+void MeshSimplifier::pushEdge(uint32_t idx0, uint32_t idx1, const quadric &Q, const LODLevel &lod) {
 	auto posData = lod.pos.data();
 
 	// Compute cost based on quadric error
@@ -535,7 +535,7 @@ uint32_t MeshSimplifier::collapseEdge(uint32_t i1, uint32_t i2, const Vec3f &opt
 void MeshSimplifier::updateEdgeCosts(uint32_t vNew,
 									 const LODLevel &levelData,
 									 std::vector<uint32_t> &mapping) {
-	const Quadric &Qv = quadrics_[vNew];
+	const quadric &Qv = quadrics_[vNew];
 	for (uint32_t neighbor: neighbors_[vNew]) {
 		// Skip if vertex is no longer active
 		if (mapping[neighbor] != neighbor) continue;

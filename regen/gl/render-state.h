@@ -1,12 +1,5 @@
-/*
- * render-state.h
- *
- *  Created on: 05.08.2012
- *      Author: daniel
- */
-
-#ifndef RENDER_STATE_H_
-#define RENDER_STATE_H_
+#ifndef REGEN_RENDER_STATE_H_
+#define REGEN_RENDER_STATE_H_
 
 #include <vector>
 #include <map>
@@ -761,4 +754,4 @@ namespace regen {
 	std::istream &operator>>(std::istream &in, RenderState::Toggle &v);
 } // namespace
 
-#endif /* RENDER_STATE_H_ */
+#endif /* REGEN_RENDER_STATE_H_ */

@@ -11,7 +11,7 @@
 #include <regen/animation/animation.h>
 #include "regen/simulation/physical-object.h"
 #include "regen/scene/state-node.h"
-#include "regen/camera/sorting.h"
+#include "regen/camera/sort-mode.h"
 #include "regen/memory/element-buffer.h"
 #include "regen/scene/state-config.h"
 #include "regen/textures/material-state.h"

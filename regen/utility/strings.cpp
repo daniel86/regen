@@ -1,11 +1,8 @@
-
 #include <regen/config.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <map>
-
-#include "string-util.h"
+#include "strings.h"
 
 using namespace regen;
 using namespace std;

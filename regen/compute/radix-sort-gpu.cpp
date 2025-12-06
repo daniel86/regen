@@ -1,4 +1,4 @@
-#include "radix-sort.h"
+#include "radix-sort-gpu.h"
 #include "regen/gl/gl-param.h"
 #include "regen/utility/conversion.h"
 #include "prefix-scan.h"

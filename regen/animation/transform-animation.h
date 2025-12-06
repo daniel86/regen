@@ -4,7 +4,7 @@
 #include <optional>
 #include <regen/animation/animation.h>
 #include "regen/simulation/physical-object.h"
-#include "regen/scene/mesh-processor.h"
+#include "../objects/mesh-processor.h"
 
 namespace regen {
 	/**

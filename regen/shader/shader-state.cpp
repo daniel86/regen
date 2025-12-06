@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include "regen/utility/string-util.h"
+#include "regen/utility/strings.h"
 #include "regen/shading/light-state.h"
 #include "regen/textures/material-state.h"
 #include "regen/shader/directive-processor.h"

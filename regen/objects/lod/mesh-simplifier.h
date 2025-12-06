@@ -5,7 +5,7 @@
 #include <queue>
 #include <utility>
 #include <unordered_set>
-#include "regen/compute/Quadric.h"
+#include "regen/compute/quadric.h"
 #include "lod-attribute.h"
 #include "attribute-semantic.h"
 #include "triangle.h"
@@ -110,7 +110,7 @@ namespace regen {
 		std::vector<std::vector<Triangle>> lodLevels_;
 		std::vector<LODLevel> lodData_;
 		// per vertex quadrics
-		std::vector<Quadric> quadrics_;
+		std::vector<quadric> quadrics_;
 		std::vector<bool> isBoundary_;
 		std::vector<std::unordered_set<uint32_t>> neighbors_;
 		EgdeCollapseQueue edgeCollapses_;
@@ -135,13 +135,13 @@ namespace regen {
 
 		void buildEdgeQueue(const std::vector<Triangle> &faces, const LODLevel &data);
 
-		void pushEdge(uint32_t idx0, uint32_t idx2, const Quadric &Q, const LODLevel &lod);
+		void pushEdge(uint32_t idx0, uint32_t idx2, const quadric &Q, const LODLevel &lod);
 
 		uint32_t generateLodLevel(size_t targetFaceCount, LODLevel &lodData);
 
 		void updateEdgeCosts(uint32_t vNew, const LODLevel &levelData, std::vector<uint32_t> &mapping);
 
-		static bool solve(const Quadric& Q, Vec3f& outPos);
+		static bool solve(const quadric& Q, Vec3f& outPos);
 
 		bool isBoundaryVertex(uint32_t idx) const;
 

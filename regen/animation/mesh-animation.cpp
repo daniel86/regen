@@ -1,4 +1,4 @@
-#include <regen/utility/string-util.h>
+#include <regen/utility/strings.h>
 #include <regen/gl/gl-util.h>
 #include <regen/gl/gl-enum.h>
 

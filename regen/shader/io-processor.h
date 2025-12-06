@@ -1,10 +1,3 @@
-/*
- * io-processor.h
- *
- *  Created on: 29.10.2012
- *      Author: daniel
- */
-
 #ifndef REGEN_GLSL_IO_PROCESSOR_H
 #define REGEN_GLSL_IO_PROCESSOR_H
 
