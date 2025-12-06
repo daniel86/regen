@@ -220,7 +220,7 @@
     <mesh id="dwarf-mesh" type="asset" asset="dwarf-asset" asset-indices="*" asset-animation="1">
         <transform id="dwarf-tf">
             <rotate value="1.5707963,0.0,0.0"/>
-            <translate value="3.0,0.1,40.0"/>
+            <translate value="3.0,0.1,-32.0"/>
         </transform>
     </mesh>
 
