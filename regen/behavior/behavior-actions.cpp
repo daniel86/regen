@@ -49,14 +49,15 @@ static void setLingerTime(Blackboard& kb, PlaceType placeType) {
 	}
 }
 
-static void setInitialDistance(Blackboard& kb, Patient &patient) {
+static bool setInitialDistance(Blackboard& kb, Patient &patient) {
 	const Vec3f &characterPos = kb.currentPosition();
 	if (!patient.object) {
-		REGEN_WARN("["<<kb.instanceId()<<"] Unable to set initial distance, no object set.");
 		patient.currentDistance = std::numeric_limits<float>::max();
+		return false;
 	} else {
 		float dist = (patient.object->position2D() - Vec2f(characterPos.x, characterPos.z)).length();
 		patient.currentDistance = dist;
+		return true;
 	}
 }
 
@@ -112,7 +113,6 @@ BehaviorStatus SetTargetPlace::tick(Blackboard& kb, float /*dt_s*/) {
 	}
 	if (targetPlace.get() != currentTargetPlace) {
 		kb.setTargetPlace(targetPlace);
-		setInitialDistance(kb, kb.navigationTarget());
 		setLingerTime(kb, targetPlace->placeType());
 		if constexpr(NPC_ACTIONS_DEBUG) {
 			REGEN_INFO("["<<kb.instanceId()<<"] Setting target place to " <<
@@ -147,7 +147,9 @@ BehaviorStatus SetRoamingTarget::tick(Blackboard& kb, float /*dt_s*/) {
 	navTarget.affordance = {};
 	navTarget.affordanceSlot = -1;
 	kb.setNavigationTarget(navTarget);
-	setInitialDistance(kb, kb.navigationTarget());
+	if (!setInitialDistance(kb, kb.navigationTarget())) {
+		REGEN_WARN("["<<kb.instanceId()<<"] Unable to set initial distance, no object set.");
+	}
 
 	return BehaviorStatus::SUCCESS;
 }
@@ -348,7 +350,9 @@ static BehaviorStatus selectPatient(Blackboard &kb,
 		const ref_ptr<Affordance> &aff,
 		int slotIdx) {
 	kb.setInteractionTarget(obj, aff, slotIdx);
-	setInitialDistance(kb, kb.interactionTarget());
+	if (!setInitialDistance(kb, kb.interactionTarget())) {
+		REGEN_WARN("["<<kb.instanceId()<<"] Unable to set initial distance, no object set.");
+	}
 	kb.setDistanceToTarget(kb.distanceToPatient());
 	//setActionTime(kb, desiredAction);
 	return BehaviorStatus::SUCCESS;
@@ -513,7 +517,9 @@ BehaviorStatus MoveToTargetPlace::tick(Blackboard &kb, float /*dt_s*/) {
 	kb.unsetCurrentPlace();
 	kb.setCurrentAction(ActionType::NAVIGATING);
 	kb.setNavigationTarget(kb.targetPlace(), {}, -1);
-	setInitialDistance(kb, kb.navigationTarget());
+	if (!setInitialDistance(kb, kb.navigationTarget())) {
+		REGEN_WARN("["<<kb.instanceId()<<"] Unable to set initial distance, no object set.");
+	}
 	if constexpr(NPC_ACTIONS_DEBUG) {
 		REGEN_INFO("["<<kb.instanceId()<<"] Moving to target place '" << kb.targetPlace()->name() << "'.");
 	}
@@ -558,7 +564,9 @@ BehaviorStatus MoveToLocation::tick(Blackboard& kb, float /*dt_s*/) {
 	kb.unsetCurrentLocation();
 	kb.setCurrentAction(ActionType::NAVIGATING);
 	kb.setNavigationTarget(location, {}, -1);
-	setInitialDistance(kb, kb.navigationTarget());
+	if (!setInitialDistance(kb, kb.navigationTarget())) {
+		REGEN_WARN("["<<kb.instanceId()<<"] Unable to set initial distance, no object set.");
+	}
 	if constexpr(NPC_ACTIONS_DEBUG) {
 		REGEN_INFO("["<<kb.instanceId()<<"] Moving to location '" << location->name() << "'.");
 	}
@@ -595,7 +603,9 @@ BehaviorStatus MoveToGroup::tick(Blackboard& kb, float /*dt_s*/) {
 	}
 	kb.setCurrentAction(ActionType::NAVIGATING);
 	kb.setNavigationTarget(kb.currentGroup(), {}, -1);
-	setInitialDistance(kb, kb.navigationTarget());
+	if (!setInitialDistance(kb, kb.navigationTarget())) {
+		REGEN_WARN("["<<kb.instanceId()<<"] Unable to set initial distance, no object set.");
+	}
 	if constexpr(NPC_ACTIONS_DEBUG) {
 		REGEN_INFO("["<<kb.instanceId()<<"] Moving to group at position " <<
 			kb.currentGroup()->position2D() << ".");
