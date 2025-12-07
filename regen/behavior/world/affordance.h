@@ -45,8 +45,6 @@ namespace regen {
 		std::vector<const WorldObject*> users;
 		// Base offset from owner position
 		Vec3f baseOffset = Vec3f::zero();
-		// Precomputed slot positions in world space.
-		std::vector<Vec3f> slotPositions;
 		// Name of the affordance
 		std::string name;
 
@@ -78,10 +76,19 @@ namespace regen {
 		 * @param idx the index of the slot.
 		 * @return the position of the slot.
 		 */
-		const Vec3f& slotPosition(int idx) const { return slotPositions[idx]; }
+		const Vec3f& slotPosition(int idx) const;
 
 	protected:
 		Vec3f computeSlotPosition(int idx) const;
+		uint32_t localStamp_ = 0;
+
+		// slot positions in world space.
+		mutable std::vector<Vec3f> slotPositions;
+		mutable std::vector<uint32_t> slotStamps;
+
+		uint32_t tfStamp() const {
+			return owner->hasShape() ? owner->shape()->tfStamp() : localStamp_;
+		}
 	};
 
 	std::ostream &operator<<(std::ostream &out, const SlotLayout &v);

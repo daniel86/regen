@@ -5,19 +5,28 @@ using namespace regen;
 float Affordance::reachDistance = 1.0f;
 
 Affordance::Affordance(const ref_ptr<WorldObject> &owner) : owner(owner) {
-	// TODO: Also support dynamic world objects here, e.g. chairs that can be moved.
-	//         Then it makes sense to compute affordance slot in local space instead.
 }
 
 void Affordance::initialize() {
 	if (slotCount < 1) slotCount = 1;
 	freeSlots = slotCount;
+
 	users.resize(slotCount);
 	slotPositions.resize(slotCount);
+	slotStamps.resize(slotCount, tfStamp());
+
 	for (int32_t i = 0; i < slotCount; i++) {
 		users[i] = {};
 		slotPositions[i] = computeSlotPosition(i);
 	}
+}
+
+const Vec3f& Affordance::slotPosition(int idx) const {
+	if (const uint32_t stamp = tfStamp(); slotStamps[idx] != stamp) {
+		slotPositions[idx] = computeSlotPosition(idx);
+		slotStamps[idx] = stamp;
+	}
+	return slotPositions[idx];
 }
 
 Vec3f Affordance::computeSlotPosition(int idx) const {
@@ -39,7 +48,7 @@ Vec3f Affordance::computeSlotPosition(int idx) const {
 
 	switch (layout) {
 		case SlotLayout::CIRCULAR: {
-			float angle = (2.0f * M_PIf * static_cast<float>(idx)) /
+			const float angle = (math::twoPi<float>() * static_cast<float>(idx)) /
 				static_cast<float>(std::max(1, slotCount));
 			pos.x += std::cos(angle) * radius;
 			pos.z += std::sin(angle) * radius;
@@ -48,12 +57,12 @@ Vec3f Affordance::computeSlotPosition(int idx) const {
 
 		case SlotLayout::CIRCULAR_GRID: {
 			// Concentric circular layers
-			int perRing = slotCount / numRings;
-			auto ring = static_cast<float>(idx / perRing);
-			auto i = static_cast<float>(idx % perRing);
+			const int perRing = slotCount / numRings;
+			const auto ring = static_cast<float>(idx / perRing);
+			const auto i = static_cast<float>(idx % perRing);
 
-			float layoutRadius = minDistance + ring * spacing;
-			float angle = (2.0f * M_PIf * i) / static_cast<float>(perRing);
+			const float layoutRadius = minDistance + ring * spacing;
+			const float angle = (math::twoPi<float>() * i) / static_cast<float>(perRing);
 
 			pos.x += std::cos(angle) * layoutRadius;
 			pos.z += std::sin(angle) * layoutRadius;
@@ -63,14 +72,14 @@ Vec3f Affordance::computeSlotPosition(int idx) const {
 
 		case SlotLayout::GRID: {
 			// Compute rows & columns
-			int cols = std::max(std::ceil(std::sqrt(slotCount)), 2.0);
-			auto row = static_cast<float>(idx / cols);
-			auto col = static_cast<float>(idx % cols);
+			const auto cols = static_cast<int>(std::max(std::ceil(std::sqrt(slotCount)), 2.0));
+			const auto row  = static_cast<float>(idx / cols);
+			const auto col  = static_cast<float>(idx % cols);
 
 			// Orientation
 			Vec3f forward = pos - center;
 			forward.y = 0.0;
-			float l = forward.length();
+			const float l = forward.length();
 			if (l < 1e-3f) {
 				forward = Vec3f(0.0f, 0.0f, 1.0f);
 			} else {
@@ -80,8 +89,8 @@ Vec3f Affordance::computeSlotPosition(int idx) const {
 			right.normalize();
 
 			// Grid center offset
-			float gridWidth = static_cast<float>(cols - 1) * spacing;
-			float gridHeight = std::ceil(static_cast<float>(slotCount) /
+			const float gridWidth = static_cast<float>(cols - 1) * spacing;
+			const float gridHeight = std::ceil(static_cast<float>(slotCount) /
 				static_cast<float>(cols) - 1.0f) * spacing;
 
 			pos = pos - (right * gridWidth) * 0.5f + (forward * gridHeight) * 0.5f;
@@ -96,9 +105,9 @@ bool Affordance::hasFreeSlot() const {
 }
 
 int Affordance::reserveSlot(const WorldObject *user, bool randomizeSlot) {
-	int randomOffset = randomizeSlot ? math::randomInt() % slotCount : 0;
+	const int randomOffset = randomizeSlot ? math::randomInt() % slotCount : 0;
 	for (int i = 0; i < slotCount; ++i) {
-		int idx = (i + randomOffset) % slotCount;
+		const int idx = (i + randomOffset) % slotCount;
 		if (!users[idx]) {
 			users[idx] = user;
 			--freeSlots;
