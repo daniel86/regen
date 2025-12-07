@@ -259,20 +259,26 @@ static ref_ptr<BoundingShape> createShape(
 	// create a collision shape
 	ref_ptr<BoundingShape> shape;
 	if (shapeType == "sphere") {
+		ref_ptr<BoundingSphere> sphere;
 		if (mesh.get()) {
 			if (input.hasAttribute("radius")) {
-				shape = ref_ptr<BoundingSphere>::alloc(mesh, parts, input.getValue<float>("radius", 1.0f));
+				sphere = ref_ptr<BoundingSphere>::alloc(mesh, parts, input.getValue<float>("radius", 1.0f));
 			} else {
-				shape = ref_ptr<BoundingSphere>::alloc(mesh, parts);
+				sphere = ref_ptr<BoundingSphere>::alloc(mesh, parts);
+			}
+			if (input.hasAttribute("base-offset"))  {
+				sphere->setBasePosition(
+					input.getValue<Vec3f>("base-offset", Vec3f::zero()));
 			}
 		} else if (input.hasAttribute("radius")) {
 			auto radius_opt = getRadius(input);
 			if (radius_opt.has_value()) {
 				auto center = input.getValue<Vec3f>("center", Vec3f::zero());
-				shape = ref_ptr<BoundingSphere>::alloc(center, radius_opt.value());
-				for (auto &part: parts) { shape->addPart(part); }
+				sphere = ref_ptr<BoundingSphere>::alloc(center, radius_opt.value());
+				for (auto &part: parts) { sphere->addPart(part); }
 			}
 		}
+		shape = sphere;
 	} else if (shapeType == "aabb") {
 		if (mesh.get()) {
 			shape = ref_ptr<AABB>::alloc(mesh, parts);

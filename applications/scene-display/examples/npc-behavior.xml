@@ -875,10 +875,10 @@
                mesh-id="dwarf" mesh-index="1" transform-id="dwarf-tf">
             <traversal-bit value="{{collision-bit}}"/>
         </shape>
-        <shape id="weapon-shape" index="1" cull="1" type="obb"
+        <shape id="weapon-shape" index="1" cull="1" type="sphere" radius="4.0"
+               base-offset="0.0,2.0,0.0"
                mesh-id="dwarf" mesh-index="0" transform-id="dwarf-tf">
-            <!-- FIXME: Shape of weapon does not move with bones, and is wrong then.
-                   But we need to use separate shape for hiding/drawing weapon.  -->
+            <!-- NOTE: we need to use separate shape for hiding/drawing weapon.  -->
         </shape>
         <object id="dwarf" type="character" mesh="dwarf" mesh-index="1" radius="5.0">
             <!--

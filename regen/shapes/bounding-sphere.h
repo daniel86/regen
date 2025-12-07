@@ -69,6 +69,12 @@ namespace regen {
 		void setRadius(float radius) { globalBatchData_.radius()[globalIndex_] = radius; }
 
 		/**
+		 * @brief Set the base position of this sphere (without transformation)
+		 * @param position The base position
+		 */
+		void setBasePosition(const Vec3f &position) { basePosition_ = position; }
+
+		/**
 		 * @brief Check if this sphere has intersection with an AABB
 		 * @param box The AABB
 		 * @return True if there is an intersection, false otherwise
