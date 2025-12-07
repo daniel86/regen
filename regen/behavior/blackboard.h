@@ -498,6 +498,11 @@ namespace regen {
 		const ref_ptr<Location> &currentLocation() const { return currentLocation_; }
 
 		/**
+		 * @return The desired location the NPC wants to go to (may be nullptr).
+		 */
+		const ref_ptr<Location> &desiredLocation() const { return desiredLocation_; }
+
+		/**
 		 * Set the location where the NPC currently is (may be nullptr).
 		 * This is usually a constrained area within a place, e.g. a room in a building.
 		 * @param loc the current location.
@@ -578,6 +583,8 @@ namespace regen {
 		// The location where the NPC currently is (may be nullptr).
 		// This is usually a constrained area within a place, e.g. a room in a building.
 		ref_ptr<Location> currentLocation_;
+		// The desired location the NPC wants to go to (may be nullptr).
+		ref_ptr<Location> desiredLocation_;
 
 		// Perceived objects.
 		struct PerceivedObject {

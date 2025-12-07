@@ -286,8 +286,7 @@ namespace regen {
 	protected:
 		// Evaluate to true if the agent is at the desired location.
 		bool doEvaluate(const Blackboard& kb) const override {
-			// TODO: better introduce desired location attribute?
-			return kb.currentLocation().get() == kb.interactionTarget().object.get();
+			return kb.currentLocation().get() == kb.desiredLocation().get();
 		}
 	};
 

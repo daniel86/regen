@@ -45,6 +45,18 @@ void Blackboard::setInteractionTarget(const ref_ptr<WorldObject> &obj, const ref
 	interactionTarget_.object = obj;
 	interactionTarget_.affordance = aff;
 	interactionTarget_.affordanceSlot = slotIdx;
+
+	// Update desired location based on interaction target
+	if (obj->objectType() == ObjectType::LOCATION) {
+		desiredLocation_ = ref_ptr<Location>::staticCast(obj);
+	} else {
+		const auto &locOfSelected = obj->currentLocation();
+		if (locOfSelected.get()) {
+			desiredLocation_ = locOfSelected;
+		} else {
+			desiredLocation_ = {};
+		}
+	}
 }
 
 void Blackboard::unsetInteractionTarget() {
