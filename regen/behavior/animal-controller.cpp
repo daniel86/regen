@@ -157,6 +157,15 @@ std::vector<ref_ptr<AnimalController>> AnimalController::load(
 					<< "' in spatial index for controller '" << node.getDescription() << "'.");
 			} else {
 				auto perceptionSystem = std::make_unique<PerceptionSystem>(spatialIndex, indexedShape);
+
+				perceptionSystem->setEyeOffset(node.getValue<Vec3f>(
+					"eye-offset", Vec3f(0.0f, 1.0f, 0.0f)));
+				perceptionSystem->collisionShape()->setPerspective(
+					node.getValue<float>("perception-aspect", 1.0f),
+					node.getValue<float>("perception-fov", 60.0f),
+					node.getValue<float>("perception-near", 0.1f),
+					node.getValue<float>("perception-far", 15.0f));
+
 				perceptionSystem->setCollisionBit(node.getValue<uint32_t>("collision-bit", 0));
 				controller->setPerceptionSystem(std::move(perceptionSystem));
 			}

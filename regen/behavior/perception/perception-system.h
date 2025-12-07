@@ -25,6 +25,11 @@ namespace regen {
 		virtual ~PerceptionSystem() = default;
 
 		/**
+		 * @return the collision shape used for perception.
+		 */
+		ref_ptr<Frustum> collisionShape() { return collisionShape_; }
+
+		/**
 		 * Add a perception monitor to be notified of perception events.
 		 * @param monitor the perception monitor.
 		 */
@@ -41,6 +46,12 @@ namespace regen {
 		 * @param bit the collision bit.
 		 */
 		void setCollisionBit(uint32_t bit) { collisionMask_ = (1 << bit); }
+
+		/**
+		 * Set an offset for the eye position used in perception.
+		 * @param offset the eye offset.
+		 */
+		void setEyeOffset(const Vec3f &offset) { eyeOffset_ = offset; }
 
 		/**
 		 * Update the perception system.
@@ -61,9 +72,12 @@ namespace regen {
 		// The shape of the NPC in the spatial index.
 		ref_ptr<BoundingShape> indexedShape_;
 		// shape used for collision avoidance, it extends in walk direction
-		ref_ptr<BoundingShape> collisionShape_;
+		ref_ptr<Frustum> collisionShape_;
+		uint32_t lastCollisionShapeStamp_ = 0;
 		// collision mask to ignore collisions with other NPCs
 		uint32_t collisionMask_ = 0;
+		// Eye offset from the indexed shape origin.
+		Vec3f eyeOffset_ = Vec3f::zero();
 		// The perception data computed during intersection handling.
 		CollisionEvent collisionEvt_;
 		DetectionEvent detectionEvt_;
@@ -72,6 +86,8 @@ namespace regen {
 		std::vector<DetectionMonitor*> detectionMonitors_;
 
 		void updateCollisions();
+
+		void updateCollisionShape(bool forceUpdate);
 	};
 } // namespace
 

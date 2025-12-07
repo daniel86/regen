@@ -908,6 +908,15 @@ namespace regen {
 		}
 
 		/**
+		 * @return the forward direction vector of this matrix.
+		 */
+		constexpr Vec3f direction() const {
+			Vec3f forward{-x[8], -x[9], -x[10]};
+			forward.normalize();
+			return forward;
+		}
+
+		/**
 		 * Computes a transformation matrix with rotation, translation and scaling.
 		 * @param rot rotation of x/y/z axis.
 		 * @param translation translation vector.

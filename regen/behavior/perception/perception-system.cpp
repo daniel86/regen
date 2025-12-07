@@ -1,8 +1,13 @@
 #include "perception-system.h"
 
-#include "regen/shapes/obb.h"
-
 using namespace regen;
+
+namespace regen {
+	static constexpr float PERCEPTION_DEFAULT_ASPECT = 1.0f;
+	static constexpr float PERCEPTION_DEFAULT_FOV = 60.0f;
+	static constexpr float PERCEPTION_DEFAULT_NEAR = 0.1f;
+	static constexpr float PERCEPTION_DEFAULT_FAR = 15.0f;
+}
 
 PerceptionSystem::PerceptionSystem(
 			const ref_ptr<SpatialIndex> &spatialIndex,
@@ -10,25 +15,40 @@ PerceptionSystem::PerceptionSystem(
 	spatialIndex_(spatialIndex),
 	indexedShape_(indexedShape)
 {
-	auto &mesh = indexedShape_->baseMesh();
 	auto &tf = indexedShape_->transform();
 	collisionEvt_.data.self = indexedShape_.get();
 
 	// create the initial collision shape
-	// TODO: Experiment with form of shape for collision detection.
-	//     - best: frustum, but we might get away with a box or sphere.
-	//     - frustum actually better for testing
-	float lookAheadDistance = 15.0f;
-	Bounds<Vec3f> collisionBounds = Bounds<Vec3f>::create(mesh->minPosition(), mesh->maxPosition());
-	collisionBounds.min.z -= lookAheadDistance;
-	collisionBounds.min.x -= 0.0f;
-	collisionBounds.max.x += 0.0f;
-	collisionBounds.min.y -= 1.0f;
-	collisionBounds.max.y += 1.0f;
-	collisionShape_ = ref_ptr<OBB>::alloc(collisionBounds);
+	collisionShape_ = ref_ptr<Frustum>::alloc();
+	collisionShape_->setPerspective(
+		PERCEPTION_DEFAULT_ASPECT,
+		PERCEPTION_DEFAULT_FOV,
+		PERCEPTION_DEFAULT_NEAR,
+		PERCEPTION_DEFAULT_FAR);
 	collisionShape_->setTransform(tf, indexedShape->instanceID());
-	collisionShape_->updateTransform(true);
+	updateCollisionShape(true);
+
+	// include the collision shape in debug drawing
 	spatialIndex_->addDebugShape(collisionShape_);
+}
+
+void PerceptionSystem::updateCollisionShape(bool forceUpdate) {
+	auto nextStamp = indexedShape_->tfStamp();
+	if (!forceUpdate && lastCollisionShapeStamp_ == nextStamp) {
+		return;
+	}
+	lastCollisionShapeStamp_ = nextStamp;
+
+	// update the collision shape transform
+	if (const auto tf = indexedShape_->transform(); tf->hasModelMat()) {
+		const auto modalMat = tf->modelMat()->getVertex(indexedShape_->instanceID());
+		const Vec3f tfPos = modalMat.r.position() + eyeOffset_;
+		collisionShape_->update(tfPos, modalMat.r.direction());
+	} else {
+		const Vec3f tfPos = tf->position(indexedShape_->instanceID()).r + eyeOffset_;
+		collisionShape_->update(tfPos, Vec3f::front());
+	}
+	collisionShape_->updateOrthogonalProjection();
 }
 
 void PerceptionSystem::addMonitor(PerceptionMonitor *monitor) {
@@ -78,9 +98,8 @@ void PerceptionSystem::updateCollisions() {
 	for (auto &monitor : collisionMonitors_) {
 		monitor->initializeCollisionFrame();
 	}
-	// Update the collision shape transform
-	collisionShape_->updateTransform(false);
-	collisionShape_->updateOrthogonalProjection();
+	// Update the collision shape transform + projection
+	updateCollisionShape(false);
 	auto &hits = spatialIndex_->foreachIntersection(*collisionShape_.get(), collisionMask_);
 	for (uint32_t hitIdx = 0; hitIdx < hits.count; ++hitIdx) {
 		auto &b_shape = spatialIndex_->itemShape(hits.data[hitIdx]);
