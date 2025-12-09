@@ -192,64 +192,58 @@ uniform vec2 in_fogDistance;
 #include regen.weather.fog.fogIntensity
 
 #ifdef IS_SPOT_LIGHT
-void solvableQuadratic(
-    float a, float b, float c,
-    out float t0, out float t1)
-{
-    // Note: discriminant should always be >=0.0 because we are
-    // using the cone mesh as input.
-    float discriminant = b*b - 4.0*a*c;
-    // numerical receipes 5.6 (this method ensures numerical accuracy is preserved)
-    float t = -0.5 * (b + sign(b)*sqrt(discriminant));
-    t0 = t / a;
-    t1 = c / t;
-}
-vec2 computeConeIntersections(
-    vec3 pos, vec3 ray,
-    vec3 conePos, vec3 coneDir,
-    float cosAngle)
-{
-    // TODO: cone intersection could be simplified knowing one intersection, i guess
-    vec2 t = vec2(0.0);
+vec2 computeConeIntersections(vec3 pos, vec3 ray, vec3 conePos, vec3 coneDir, float cosAngle) {
+    // NOTE: We know one intersection point along the ray already, either entering or exiting
+    // depending on whether we are outside or inside the cone.
+    // But we still need to solve the quadratic to get the other intersection point.
+
     vec3 dp = pos-conePos;
     float a = dot(coneDir,ray);
     float b = dot(coneDir,dp);
     float phi = cosAngle*cosAngle;
-    solvableQuadratic(
-         a*a - phi*dot(ray,ray),
-        (a*b - phi*dot(ray,dp))*2.0,
-         b*b - phi*dot(dp,dp),
-         t.x,t.y);
-    // t.x is backface intersection and t.y frontface
-    t = vec2( min(t.x,t.y), max(t.x,t.y) );
-    // compute intersection points
-    vec3 x0 = pos + t.x*ray;
-    vec3 x1 = pos + t.y*ray;
-    // near intersects reflected cone ?
-    float reflected0 = float(dot(coneDir, x0-conePos)<0.0);
-    // far intersects reflected cone ?
-    float reflected1 = float(dot(coneDir, x1-conePos)<0.0);
-    t = (1.0-reflected0-reflected1)*t +
-        vec2(reflected0*t.y, reflected0 + reflected1*t.x);
-    return t;
+
+    float aa = a*a - phi*dot(ray,ray);
+    float ab = 2.0*(a*b - phi*dot(ray,dp));
+    float bb = b*b - phi*dot(dp,dp);
+
+    // quadratic: stable NR formula
+    float disc = ab*ab - 4.0 * aa * bb;
+    disc = max(disc, 0.0); // clamp numeric noise
+    float s = sqrt(disc);
+    float q = -0.5 * (ab + sign(ab) * s);
+    float t0 = q / aa;
+    float t1 = bb / q;
+
+    // sort
+    float nearT = min(t0, t1);
+    float farT = max(t0, t1);
+
+    // discard intersections on reflected/back cone side
+    float reflected0 = float(dot(coneDir, dp + nearT*ray) < 0.0);
+    float reflected1 = float(dot(coneDir, dp + farT*ray) < 0.0);
+
+    // combine safely
+    return (1.0 - reflected0 - reflected1) * vec2(nearT, farT)
+             + vec2(reflected0 * farT, reflected0 + reflected1 * nearT);
 }
 #endif
 
 #ifdef USE_SHADOW_MAP
-float volumeShadow(vec3 start, vec3 stop, float _step)
-{
-    vec3 p = start, lightVec;
+float volumeShadow(vec3 start, vec3 stop, float step) {
+    vec3 p = start;
     float shadow = 0.0, shadowDepth;
     float lightNear = in_lightProjParams.x;
     float lightFar = in_lightProjParams.y;
     // ray through the light volume
     vec3 stepRay = stop-start;
-    // scale factor for the ray (clamp to minimum to avoid tight samples)
-    float step = max(_step, in_shadowSampleThreshold/length(stepRay));
-    stepRay *= step;
+    float lengthStep = max(step, in_shadowSampleThreshold / max(length(stepRay), 1e-6));
+    int steps = int(clamp(ceil(1.0 / lengthStep), 1.0, 256.0)); // enforce upper bound
+    stepRay *= lengthStep;
+
     // step through the volume
-    for(float i=step; i<1.0; i+=step) {
-        lightVec = in_lightPosition.xyz - p;
+    for (int i = 0; i < steps; ++i) {
+        vec3 lightVec = in_lightPosition.xyz - p;
+        vec3 samplePos = p + stepRay * 0.5;
     #ifdef IS_POINT_LIGHT
         /*************************************/
         /***** PARABOLIC SHADOW MAPPING ******/
@@ -282,88 +276,100 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
     #endif
     #ifdef IS_SPOT_LIGHT
         shadow += spotShadowSingle(
-                in_shadowTexture, in_lightMatrix*vec4(p,1.0),
+                in_shadowTexture, in_lightMatrix*vec4(samplePos,1.0),
                 lightVec, lightNear, lightFar);
     #endif
         p += stepRay;
     }
-    return shadow*step;
+
+    return shadow / float(steps);
 }
 #endif
 
-void main()
-{
-    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-    vecTexco texco = computeTexco(texco_2D);
-    
-    vec3 vertexPos = transformTexcoToWorld(texco_2D, texture(in_gDepthTexture, texco).x, in_layer);
-    vec3 vertexRay = vertexPos-in_cameraPosition.xyz;
+void main() {
     // fog volume scales light radius
     vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
-    // compute point in the volume with maximum light intensity
+    float lightRadiusX = lightRadius.x*lightRadius.x;
+    float lightRadiusY = lightRadius.y*lightRadius.y;
+    vec3 lightPos = in_lightPosition.xyz;
 #ifdef IS_SPOT_LIGHT
-    // compute a ray. all intersections must be in range [0,1]*ray
-    vec3 ray1 = in_intersection - in_cameraPosition.xyz;
+    vec3 lightDir = normalize(in_lightDirection.xyz);
+#endif
+
+    vec3 cameraPos = in_cameraPosition.xyz;
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+
+    vec3 vertexPos = transformTexcoToWorld(texco_2D,
+        texture(in_gDepthTexture, texco).x, in_layer);
+    vec3 vertexRay = vertexPos - cameraPos;
+
+    // compute point `x` in the volume with maximum light intensity
+#ifdef IS_SPOT_LIGHT
+    // Compute ray through volume. Note that we need to cover two cases here:
+    // 1) the vertex is inside the cone volume, in which case we use the
+    //    intersection point as input to compute the other intersection point.
+    // 2) the vertex is outside the cone volume, in which case we use the
+    //    ray from the camera to the vertex to compute both intersection points.
+    vec3 ray1 = in_intersection - cameraPos;
     float toggle = float(dot(ray1,ray1) > dot(vertexRay,vertexRay));
     vec3 ray = toggle*vertexRay + (1.0-toggle)*ray1;
+
     // compute intersection points
     vec2 t = computeConeIntersections(
-        in_cameraPosition.xyz, ray,
-        in_lightPosition.xyz,
-        normalize(in_lightDirection.xyz),
+        cameraPos, ray,
+        lightPos, lightDir,
         in_lightConeAngles.y);
     t.x = clamp(t.x,0.0,1.0);
     t.y = clamp(t.y,0.0,1.0);
-    // clamp to ray length
-    vec3 x = in_cameraPosition.xyz + 0.5*(t.x+t.y)*ray;
-#else
-    float d = clamp(pointVectorDistance(
-        vertexRay, in_lightPosition.xyz - in_cameraPosition.xyz), 0.0, 1.0);
-    vec3 x = in_cameraPosition.xyz + d*vertexRay;
+    vec3 x = cameraPos + 0.5*(t.x+t.y)*ray;
+#else // IS_POINT_LIGHT
+    float d = clamp(pointVectorDistance(vertexRay, lightPos - cameraPos), 0.0, 1.0);
+    vec3 x = cameraPos + d*vertexRay;
 #endif
+
+    vec3 lx = lightPos - x;
     // compute fog exposure by distance to camera
-    float dCam = length(x-in_cameraPosition.xyz)/length(vertexRay);
+    float dCam = length(x - cameraPos)/length(vertexRay);
     // compute fog exposure by distance to camera
     float exposure = in_fogExposure * (1.0 - fogIntensity(dCam));
+
 #ifdef IS_SPOT_LIGHT
     // approximate spot falloff.
     exposure *= spotConeAttenuation(
-        normalize(in_lightPosition.xyz - x),
-        in_lightDirection.xyz,
+        normalize(lx), lightDir,
         in_lightConeAngles*in_fogConeScale);
-    vec3 start = in_cameraPosition.xyz + t.x*ray;
-    vec3 stop = in_cameraPosition.xyz + t.y*ray;
-#ifdef HAS_clipPlane
-    bool clip0 = isClipped(in_cameraPosition.xyz);
+    vec3 start = cameraPos + t.x*ray;
+    vec3 stop  = cameraPos + t.y*ray;
+    #ifdef HAS_clipPlane
+    bool clip0 = isClipped(cameraPos);
     bool clip1 = isClipped(start);
     bool clip2 = isClipped(stop);
     if(clip0==clip1 && clip1==clip2) discard;
-#endif
+    #endif
     // compute distance attenuation.
-    float a0 = radiusAttenuation(min(
-        distance(in_lightPosition.xyz, start),
-        distance(in_lightPosition.xyz, stop)),
-        lightRadius.x, lightRadius.y);
-#else
-#ifdef HAS_clipPlane
-    bool clip0 = isClipped(in_cameraPosition.xyz);
-    bool clip1 = isClipped(in_lightPosition.xyz);
-    if(clip0==clip1) discard;
-#endif
+    vec3 lx0 = lightPos - start;
+    vec3 lx1 = lightPos - stop;
+    float a0 = radiusAttenuation(
+        min(dot(lx0,lx0), dot(lx1,lx1)),
+        lightRadiusX, lightRadiusY);
+#else // IS_POINT_LIGHT
+    #ifdef HAS_clipPlane
+    if(isClipped(cameraPos) == isClipped(lightPos)) discard;
+    #endif
     // compute distance attenuation.
-    // vertexRay and the light position.
-    float lightDistance = distance(in_lightPosition.xyz, x);
-    float a0 = radiusAttenuation(lightDistance, lightRadius.x, lightRadius.y);
+    float lightDistanceSq = dot(lx,lx);
+    float a0 = radiusAttenuation(lightDistanceSq, lightRadiusX, lightRadiusY);
+    #ifdef USE_SHADOW_MAP
+    float omega = sqrt(lightRadiusY - lightDistanceSq);
+    vec3 start = cameraPos + clamp(d+omega, 0.0, 1.0)*vertexRay;
+    vec3 stop  = cameraPos + clamp(d-omega, 0.0, 1.0)*vertexRay;
+    #endif
 #endif
 
 #ifdef USE_SHADOW_MAP
     // sample shadow map along ray through volume
-#ifdef IS_POINT_LIGHT
-    float omega = sqrt(lightRadius.y*lightRadius.y - lightDistance*lightDistance);
-    vec3 start = in_cameraPosition.xyz + clamp(d+omega, 0.0, 1.0)*vertexRay;
-    vec3 stop = in_cameraPosition.xyz + clamp(d-omega, 0.0, 1.0)*vertexRay;
-#endif
-    exposure *= volumeShadow(start,stop,in_shadowSampleStep);
+    exposure *= volumeShadow(start, stop, in_shadowSampleStep);
 #endif
     out_color = (exposure * a0) * in_lightDiffuse;
 }
