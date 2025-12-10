@@ -91,6 +91,10 @@ uint32_t ClientBuffer::swapData() {
 	// flushing is only needed if the buffer is frame-locked.
 	if (!isFrameLocked_ || dataSize_ == 0u) return 0u;
 
+	// TODO: We could exploit here knowledge of the last swap. If we swapped last frame
+	//  we might be able to avoid some of the atomic fetch operations.
+	//  e.g. lastReadSlot = 1 - swappedReadSlot where swappedReadSlot is cached from last swap.
+
 	const int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
 
