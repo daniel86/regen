@@ -727,38 +727,42 @@ void ClientBuffer::writeLockAll() const {
 
 		const int readSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
 		const int writeSlot = 1 - readSlot;
+		// pull atomics
+		auto &writeFlag = currentOwner->writerFlags_[writeSlot].value;
+		auto &readFlag  = currentOwner->writerFlags_[readSlot].value;
+		auto &readerCount = currentOwner->readerCounts_[readSlot].value;
 
 		// First try to acquire write lock on current write slot.
 		// This will prevent any *new* attempts to write to this slot.
-		if (currentOwner->writerFlags_[writeSlot].value.test_and_set(std::memory_order_acquire)) {
+		if (writeFlag.test_and_set(std::memory_order_acquire)) {
 			// Failed, meaning there is another active writer on this slot.
 			CPU_PAUSE();
 			continue; // try again
 		}
 
 		// Check if there are any active readers on the read slot.
-		if (currentOwner->readerCounts_[readSlot].value.load(std::memory_order_acquire) != 0) {
+		if (readerCount.load(std::memory_order_acquire) != 0) {
 			// With active readers we must lift the lock again as it could be that the thread
 			// holding the read lock will also attempt to acquire the write lock.
-			currentOwner->writerFlags_[writeSlot].value.clear(std::memory_order_release);
+			writeFlag.clear(std::memory_order_release);
 			CPU_PAUSE();
 			continue; // try again
 		}
 
 		// Also acquire write lock on the read slot.
 		// This will prevent any *new* attempts to read or write.
-		if (currentOwner->writerFlags_[readSlot].value.test_and_set(std::memory_order_acquire)) {
+		if (readFlag.test_and_set(std::memory_order_acquire)) {
 			// failed to acquire write lock on read slot, release write lock on write slot.
-			currentOwner->writerFlags_[writeSlot].value.clear(std::memory_order_release);
+			writeFlag.clear(std::memory_order_release);
 			CPU_PAUSE();
 			continue; // try again
 		}
 
 		// To be safe, make sure that no readers sneaked in meanwhile on the read slot.
-		if (currentOwner->readerCounts_[readSlot].value.load(std::memory_order_acquire) != 0) {
+		if (readerCount.load(std::memory_order_acquire) != 0) {
 			// Readers sneaked in, release both write locks as it is not safe to read during swapping.
-			currentOwner->writerFlags_[writeSlot].value.clear(std::memory_order_release);
-			currentOwner->writerFlags_[readSlot].value.clear(std::memory_order_release);
+			writeFlag.clear(std::memory_order_release);
+			readFlag.clear(std::memory_order_release);
 			CPU_PAUSE();
 			continue; // try again
 		}
@@ -787,6 +791,8 @@ int ClientBuffer::readLock() const {
 		// Even worse, the flip can happen *during* this call, so we need to verify again after acquiring
 		// the read lock that we in fact acquired the lock on the correct slot.
 		const int dataSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
+		// pull atomics
+		auto &readerCount = currentOwner->readerCounts_[dataSlot].value;
 
 		// Check if a writer is pending, if so give them priority.
 		// However, if this thread is the owner of the write lock on this slot, then
@@ -799,13 +805,13 @@ int ClientBuffer::readLock() const {
 		}
 
 		// First step: increment the reader count for this slot.
-		currentOwner->readerCounts_[dataSlot].value.fetch_add(1, std::memory_order_relaxed);
+		readerCount.fetch_add(1, std::memory_order_relaxed);
 
 		// However, maybe there is an active writer on this slot already, we need to check that.
 		if (dataOwner_->writerFlags_[dataSlot].value.test(std::memory_order_acquire) != 0) {
 			// Seems there is an active writer on this slot, we need to wait for them to finish.
 			// first decrement the reader count, so that we do not block writer in the meanwhile.
-			currentOwner->readerCounts_[dataSlot].value.fetch_sub(1, std::memory_order_relaxed);
+			readerCount.fetch_sub(1, std::memory_order_relaxed);
 			// then wait until there are no active writers on `dataSlot`.
 			waitOnFlag<false>(dataOwner_->writerFlags_[dataSlot].value);
 			continue;
@@ -815,7 +821,7 @@ int ClientBuffer::readLock() const {
 				currentOwner->lastDataSlot_.load(std::memory_order_acquire) != dataSlot) {
 			// data owner has changed, or the read/write slot swapped meanwhile.
 			// better to retry in this case.
-			currentOwner->readerCounts_[dataSlot].value.fetch_sub(1, std::memory_order_relaxed);
+			readerCount.fetch_sub(1, std::memory_order_relaxed);
 			CPU_PAUSE();
 			continue;
 		}
@@ -836,26 +842,29 @@ int ClientBuffer::writeLock_DoubleBuffer() const {
 		// it within this loop in case we cannot obtain the lock on first try.
 		const int currentReadSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
 		const int currentWriteSlot = 1 - currentReadSlot;
+		// pull atomics
+		auto &readerCount = currentOwner->readerCounts_[currentWriteSlot].value;
+		auto &writeFlag = currentOwner->writerFlags_[currentWriteSlot].value;
 
 		// check if there are any active readers on the write slot.
-		if (currentOwner->readerCounts_[currentWriteSlot].value.load(std::memory_order_acquire) != 0) {
+		if (readerCount.load(std::memory_order_acquire) != 0) {
 			// seems there are some remaining readers on the write slot, we need to wait for them to finish.
-			waitOnAtomic<uint32_t,0u>(currentOwner->readerCounts_[currentWriteSlot].value);
+			waitOnAtomic<uint32_t,0u>(readerCount);
 			continue; // try again
 		}
 
-		if (currentOwner->writerFlags_[currentWriteSlot].value.test_and_set(std::memory_order_acquire)) {
+		if (writeFlag.test_and_set(std::memory_order_acquire)) {
 			// seems someone else is writing to this slot, we need to wait for them to finish.
-			waitOnFlag<false>(currentOwner->writerFlags_[currentWriteSlot].value);
+			waitOnFlag<false>(writeFlag);
 			continue; // try again
 		}
 
-		if (currentOwner->readerCounts_[currentWriteSlot].value.load(std::memory_order_acquire) != 0 ||
+		if (readerCount.load(std::memory_order_acquire) != 0 ||
 				dataOwner_ != currentOwner ||
 				currentOwner->lastDataSlot_.load(std::memory_order_acquire) != currentReadSlot) {
 			// a reader sneaked in while we were waiting for the write lock,
 			// data owner has changed, or read/write slot swapped meanwhile.
-			currentOwner->writerFlags_[currentWriteSlot].value.clear(std::memory_order_relaxed);
+			writeFlag.clear(std::memory_order_relaxed);
 			CPU_PAUSE();
 			continue;
 		}
