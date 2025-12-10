@@ -6,7 +6,9 @@
 
 using namespace regen;
 
-//#define USE_CLIENT_BUFFER_POOL
+namespace regen {
+	static constexpr bool USE_CLIENT_BUFFER_POOL = false;
+}
 
 ClientBuffer::ClientBuffer() {
 	// initially any data that will be allocated will be owned by this instance.
@@ -67,8 +69,8 @@ void ClientBuffer::addSegment(const ref_ptr<ClientBuffer> &segment) {
 }
 
 void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
-	auto it = std::find(bufferSegments_.begin(), bufferSegments_.end(), segment);
-	if (it != bufferSegments_.end()) {
+	if (const auto it = std::ranges::find(bufferSegments_, segment);
+			it != bufferSegments_.end()) {
 		writeLockAll();
 		// remove the segment from the list of segments.
 		bufferSegments_.erase(it);
@@ -89,7 +91,7 @@ uint32_t ClientBuffer::swapData() {
 	// flushing is only needed if the buffer is frame-locked.
 	if (!isFrameLocked_ || dataSize_ == 0u) return 0u;
 
-	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
+	const int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
 
 	if (!dataSlots_[1]) {
@@ -98,8 +100,8 @@ uint32_t ClientBuffer::swapData() {
 		dirtyLastFrame.clear();
 		return 0u;
 	} else if (dirtyLastFrame.empty()) {
-		int32_t lastWriteSlot = 1 - lastReadSlot;
-		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
+		const int32_t lastWriteSlot = 1 - lastReadSlot;
+		const auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
 
 		if(!dirtyThisFrame.empty()) {
 			// there was a write this frame -> need to do a swap
@@ -112,8 +114,8 @@ uint32_t ClientBuffer::swapData() {
 	} else {
 		// There were some dirty ranges in the last frame, we may need to copy the updated data
 		// over to have the full data in place for reading in the next frame.
-		int32_t lastWriteSlot = 1 - lastReadSlot;
-		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
+		const int32_t lastWriteSlot = 1 - lastReadSlot;
+		const auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
 
 		// We need to avoid race conditions of another thread getting a read lock
 		// while we do the switching, then the thread may attempt (while holding read)
@@ -146,8 +148,8 @@ uint32_t ClientBuffer::swapData() {
 			dataStamps_[lastReadSlot].load(std::memory_order_relaxed),
 			std::memory_order_relaxed);
 		for (auto &segment: bufferSegments_) {
-			auto writeStamp = segment->dataStamps_[lastWriteSlot].load(std::memory_order_relaxed);
-			auto readStamp = segment->dataStamps_[lastReadSlot].load(std::memory_order_relaxed);
+			const auto writeStamp = segment->dataStamps_[lastWriteSlot].load(std::memory_order_relaxed);
+			const auto readStamp = segment->dataStamps_[lastReadSlot].load(std::memory_order_relaxed);
 			if (writeStamp < readStamp) {
 				segment->dataStamps_[lastWriteSlot].store(readStamp, std::memory_order_relaxed);
 			}
@@ -185,7 +187,7 @@ void ClientBuffer::nextStamp() const {
 }
 
 void ClientBuffer::nextStamp(uint32_t dataSlot) const {
-	auto readSlot = (dataSlots_[1] ? (1 - dataSlot) : 0);
+	const auto readSlot = (dataSlots_[1] ? (1 - dataSlot) : 0);
 	auto stamp = dataStamps_[readSlot].load(std::memory_order_relaxed);
 	dataStamps_[dataSlot].store(stamp + 1, std::memory_order_relaxed);
 	// Increase the stamp for all parent buffer ranges as well.
@@ -204,7 +206,7 @@ void ClientBuffer::nextSegmentStamp(uint32_t dataSlot, uint32_t writeBegin, uint
 	for (auto &segment: bufferSegments_) {
 		if (writeBegin < segment->dataOffset_ + segment->dataSize_ && writeEnd > segment->dataOffset_) {
 			// check if the segment overlaps with the updated range.
-			auto readSlot = (segment->dataSlots_[1] ? (1 - dataSlot) : 0);
+			const auto readSlot = (segment->dataSlots_[1] ? (1 - dataSlot) : 0);
 			segment->dataStamps_[dataSlot].store(
 				segment->dataStamps_[readSlot].load(std::memory_order_relaxed) + 1,
 				std::memory_order_relaxed);
@@ -230,20 +232,18 @@ MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t s
 			// Double-buffered mode, we can write to either slot.
 			return writeRange_DoubleBuffer(offset, size);
 		}
-	} else {
-		if (clientBufferMode_ == AdaptiveBuffer) {
-			if (!hasTwoSlots()) {
-				return readRange_SingleBuffer(offset, size);
-			} else {
-				return readRange_DoubleBuffer(offset, size);
-			}
-		} else if (clientBufferMode_ == SingleBuffer) {
-			// Single-buffered mode, we can only read from the first slot.
+	} else if (clientBufferMode_ == AdaptiveBuffer) {
+		if (!hasTwoSlots()) {
 			return readRange_SingleBuffer(offset, size);
-		} else { // clientBufferMode_ == DoubleBuffer
-			// Double-buffered mode, we can read from either slot.
+		} else {
 			return readRange_DoubleBuffer(offset, size);
 		}
+	} else if (clientBufferMode_ == SingleBuffer) {
+		// Single-buffered mode, we can only read from the first slot.
+		return readRange_SingleBuffer(offset, size);
+	} else { // clientBufferMode_ == DoubleBuffer
+		// Double-buffered mode, we can read from either slot.
+		return readRange_DoubleBuffer(offset, size);
 	}
 }
 
@@ -269,7 +269,7 @@ MappedClientData ClientBuffer::writeRange_DoubleBuffer(uint32_t offset, uint32_t
 		if (!isFrameLocked_) {
 			// we swap after each write operation, and a partial write is required.
 			// make sure to copy the data from the read slot to the write slot before we do the swap.
-			int r_index = readLock();
+			const int r_index = readLock();
 			std::memcpy(data_w, dataSlots_[r_index], dataSize_);
 			readUnlock(r_index);
 		}
@@ -356,7 +356,7 @@ MappedClientData ClientBuffer::writeRange_SingleBuffer(uint32_t offset, uint32_t
 		// safely switch to double-buffered mode.
 		// Note: in case all reader are in this thread, we could skip switching to double-buffered mode,
 		//       but currently the thread ids of readers are not tracked.
-		int r_index = readLock();
+		const int r_index = readLock();
 		if (r_index > 0) {
 			// seems someone else allocated the second slot already.
 			// release the read lock and do double-buffered write.
@@ -404,11 +404,11 @@ void ClientBuffer::deallocateClientData() {
 	if (isDataOwner()) {
 		for (int i = 0; i < 2; ++i) {
 			if (dataSlots_[i]) {
-#ifdef USE_CLIENT_BUFFER_POOL
-				getMemoryPool()->free(dataRefs_[i]);
-#else
-				delete[] dataSlots_[i];
-#endif
+				if constexpr(USE_CLIENT_BUFFER_POOL) {
+					getMemoryPool()->free(dataRefs_[i]);
+				} else {
+					delete[] dataSlots_[i];
+				}
 				dataSlots_[i] = nullptr;
 			}
 		}
@@ -509,59 +509,71 @@ void ClientBuffer::ownerResize() {
 	updateBufferSize();
 
 	// allocate new data slots.
-#ifdef USE_CLIENT_BUFFER_POOL
-	auto oldDataRefs0 = dataRefs_[0];
-	auto oldDataRefs1 = dataRefs_[1];
-	auto memoryPool = ClientBuffer::getMemoryPool();
-	auto *allocator = ClientBuffer::getMemoryAllocator(dataSize_);
-	dataRefs_[0] = memoryPool->alloc(allocator, dataSize_);
-	dataSlots_[0] = dataRefs_[0].allocatorNode->allocatorRef;
-	if (clientBufferMode_ == SingleBuffer) {
-		dataSlots_[1] = nullptr;
-	} else if (clientBufferMode_ == DoubleBuffer) {
-		dataRefs_[1] = memoryPool->alloc(allocator, dataSize_);
-		dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
-	} else if (clientBufferMode_ == AdaptiveBuffer) {
-		if (dataSlots_[1]) {
+	if constexpr(USE_CLIENT_BUFFER_POOL) {
+		auto oldDataRefs0 = dataRefs_[0];
+		auto oldDataRefs1 = dataRefs_[1];
+		auto memoryPool = ClientBuffer::getMemoryPool();
+		auto *allocator = ClientBuffer::getMemoryAllocator(dataSize_);
+		dataRefs_[0] = memoryPool->alloc(allocator, dataSize_);
+		dataSlots_[0] = dataRefs_[0].allocatorNode->allocatorRef;
+		if (clientBufferMode_ == SingleBuffer) {
+			dataSlots_[1] = nullptr;
+		} else if (clientBufferMode_ == DoubleBuffer) {
 			dataRefs_[1] = memoryPool->alloc(allocator, dataSize_);
 			dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
+		} else if (clientBufferMode_ == AdaptiveBuffer) {
+			if (dataSlots_[1]) {
+				dataRefs_[1] = memoryPool->alloc(allocator, dataSize_);
+				dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
+			}
 		}
-	}
-#else
-	dataSlots_[0] = new byte[dataSize_];
-	if (clientBufferMode_ == SingleBuffer) {
-		dataSlots_[1] = nullptr;
-	} else if (clientBufferMode_ == DoubleBuffer) {
-		dataSlots_[1] = new byte[dataSize_];
-	} else if (clientBufferMode_ == AdaptiveBuffer) {
+
 		if (dataSlots_[1]) {
-			dataSlots_[1] = new byte[dataSize_];
+			resize_DoubleBuffer(
+					this,
+					oldData0,
+					oldData1,
+					dataSlots_[0],
+					dataSlots_[1]);
+		} else {
+			resize_SingleBuffer(
+					this,
+					oldData0,
+					dataSlots_[0]);
 		}
-	}
-#endif
 
-	if (dataSlots_[1]) {
-		resize_DoubleBuffer(
-				this,
-				oldData0,
-				oldData1,
-				dataSlots_[0],
-				dataSlots_[1]);
-	} else {
-		resize_SingleBuffer(
-				this,
-				oldData0,
-				dataSlots_[0]);
-	}
+		// delete the old data slots.
+		if (oldData0) getMemoryPool()->free(oldDataRefs0);
+		if (oldData1) getMemoryPool()->free(oldDataRefs1);
+	} else { // not using memory pool
+		dataSlots_[0] = new byte[dataSize_];
+		if (clientBufferMode_ == SingleBuffer) {
+			dataSlots_[1] = nullptr;
+		} else if (clientBufferMode_ == DoubleBuffer) {
+			dataSlots_[1] = new byte[dataSize_];
+		} else if (clientBufferMode_ == AdaptiveBuffer) {
+			if (dataSlots_[1]) {
+				dataSlots_[1] = new byte[dataSize_];
+			}
+		}
 
-	// delete the old data slots.
-#ifdef USE_CLIENT_BUFFER_POOL
-	if (oldData0) memoryPool->free(oldDataRefs0);
-	if (oldData1) memoryPool->free(oldDataRefs1);
-#else
-	delete[] oldData0;
-	delete[] oldData1;
-#endif
+		if (dataSlots_[1]) {
+			resize_DoubleBuffer(
+					this,
+					oldData0,
+					oldData1,
+					dataSlots_[0],
+					dataSlots_[1]);
+		} else {
+			resize_SingleBuffer(
+					this,
+					oldData0,
+					dataSlots_[0]);
+		}
+
+		delete[] oldData0;
+		delete[] oldData1;
+	}
 }
 
 void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataPtr, byte *newDataPtr) {
@@ -603,11 +615,11 @@ void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataP
 		readerCounts_[1].store(0, std::memory_order_release);
 		writerFlags_[0].clear(std::memory_order_release);
 		writerFlags_[1].clear(std::memory_order_release);
-#ifdef USE_CLIENT_BUFFER_POOL
-		getMemoryPool()->free(dataRefs_[0]);
-#else
-		delete[] localOldDataPtr;
-#endif
+		if constexpr(USE_CLIENT_BUFFER_POOL) {
+			getMemoryPool()->free(dataRefs_[0]);
+		} else {
+			delete[] localOldDataPtr;
+		}
 	}
 }
 
@@ -667,17 +679,17 @@ void ClientBuffer::resize_DoubleBuffer(
 		readerCounts_[1].store(0, std::memory_order_release);
 		writerFlags_[0].clear(std::memory_order_release);
 		writerFlags_[1].clear(std::memory_order_release);
-#ifdef USE_CLIENT_BUFFER_POOL
-		getMemoryPool()->free(dataRefs_[0]);
-		if (localOldDataPtr1 != nullptr && localOldDataPtr1 != localOldDataPtr0) {
-			getMemoryPool()->free(dataRefs_[1]);
+		if constexpr(USE_CLIENT_BUFFER_POOL) {
+			getMemoryPool()->free(dataRefs_[0]);
+			if (localOldDataPtr1 != nullptr && localOldDataPtr1 != localOldDataPtr0) {
+				getMemoryPool()->free(dataRefs_[1]);
+			}
+		} else {
+			delete[] localOldDataPtr0;
+			if (localOldDataPtr1 != nullptr && localOldDataPtr1 != localOldDataPtr0) {
+				delete[] localOldDataPtr1;
+			}
 		}
-#else
-		delete[] localOldDataPtr0;
-		if (localOldDataPtr1 != nullptr && localOldDataPtr1 != localOldDataPtr0) {
-			delete[] localOldDataPtr1;
-		}
-#endif
 	}
 }
 
@@ -693,7 +705,7 @@ void ClientBuffer::setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t s
 	}
 }
 
-inline void spinWaitUntil1(std::atomic_flag &flag) {
+inline void spinWaitUntil1(const std::atomic_flag &flag) {
 	for (int i = 0; flag.test(std::memory_order_acquire) != 0; ++i) {
 		if (i < 16) { CPU_PAUSE(); }
 		else if (i < 256) { std::this_thread::yield(); }
@@ -701,7 +713,15 @@ inline void spinWaitUntil1(std::atomic_flag &flag) {
 	}
 }
 
-inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
+inline void spinWaitUntil2(const std::atomic<bool> &flag) {
+	for (int i = 0; flag.load(std::memory_order_acquire); ++i) {
+		if (i < 16) { CPU_PAUSE(); }
+		else if (i < 256) { std::this_thread::yield(); }
+		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
+	}
+}
+
+inline void spinWaitUntil2(const std::atomic<uint32_t> &count) {
 	for (int i = 0; count.load(std::memory_order_acquire) != 0; ++i) {
 		if (i < 16) { CPU_PAUSE(); }
 		else if (i < 256) { std::this_thread::yield(); }
@@ -710,28 +730,68 @@ inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
 }
 
 void ClientBuffer::writeLockAll() const {
-	auto *currentOwner = dataOwner_;
+	auto *owner0 = dataOwner_;
 
-	// Indicate intent to acquire all write locks
-	currentOwner->writerPending_.store(true, std::memory_order_release);
+	// Indicate intent to acquire all write locks.
+	// This is used to prevent new readers from acquiring read locks meanwhile.
+	// However, this has one exception: if the thread that wants to acquire read
+	// lock is also the owner of the write lock on the slot, then it is allowed
+	// to acquire the read lock even with writeAllPending=true to avoid deadlocks.
+	owner0->writeAllPending_.store(true, std::memory_order_release);
 
-	for (auto &readerCount: currentOwner->readerCounts_) {
-		// wait for any active readers to finish.
-		// It is important to wait for readers before acquiring
-		// the write lock, else we could deadlock if a reader
-		// sneaks in after we acquired the write lock.
-		spinWaitUntil2(readerCount);
-	}
-	for (auto &writerFlag: currentOwner->writerFlags_) {
-		// get exclusive write access to the data slot:
-		// block any attempt to write concurrently to this slot.
-		while (writerFlag.test_and_set(std::memory_order_acquire)) {
-			CPU_PAUSE(); // spin-wait for writers
+	while (true) {
+		auto *currentOwner = dataOwner_;
+
+		// If owner changed, move intent declaration to new owner
+		if (currentOwner != owner0) {
+			owner0->writeAllPending_.store(false, std::memory_order_release);
+			owner0 = currentOwner;
+			owner0->writeAllPending_.store(true, std::memory_order_release);
 		}
+
+		const int readSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
+		const int writeSlot = 1 - readSlot;
+
+		// First try to acquire write lock on current write slot.
+		// This will prevent any *new* attempts to write to this slot.
+		if (currentOwner->writerFlags_[writeSlot].test_and_set(std::memory_order_acquire)) {
+			// Failed, meaning there is another active writer on this slot.
+			CPU_PAUSE();
+			continue; // try again
+		}
+
+		// Check if there are any active readers on the read slot.
+		if (currentOwner->readerCounts_[readSlot].load(std::memory_order_acquire) != 0) {
+			// With active readers we must lift the lock again as it could be that the thread
+			// holding the read lock will also attempt to acquire the write lock.
+			currentOwner->writerFlags_[writeSlot].clear(std::memory_order_release);
+			CPU_PAUSE();
+			continue; // try again
+		}
+
+		// Also acquire write lock on the read slot.
+		// This will prevent any *new* attempts to read or write.
+		if (currentOwner->writerFlags_[readSlot].test_and_set(std::memory_order_acquire)) {
+			// failed to acquire write lock on read slot, release write lock on write slot.
+			currentOwner->writerFlags_[writeSlot].clear(std::memory_order_release);
+			CPU_PAUSE();
+			continue; // try again
+		}
+
+		// To be safe, make sure that no readers sneaked in meanwhile on the read slot.
+		if (currentOwner->readerCounts_[readSlot].load(std::memory_order_acquire) != 0) {
+			// Readers sneaked in, release both write locks as it is not safe to read during swapping.
+			currentOwner->writerFlags_[writeSlot].clear(std::memory_order_release);
+			currentOwner->writerFlags_[readSlot].clear(std::memory_order_release);
+			CPU_PAUSE();
+			continue; // try again
+		}
+
+		break; // got both write locks
 	}
 
 	// Writer now owns all slots
-	currentOwner->writerPending_.store(false, std::memory_order_release);
+	owner0->writeAllPending_.store(false, std::memory_order_release);
 }
 
 void ClientBuffer::writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const {
@@ -743,37 +803,50 @@ int ClientBuffer::readLock() const {
 	while (true) {
 		// Note: ownership may change while waiting for the lock.
 		auto *currentOwner = dataOwner_;
-		// Check if a writer is pending, if so give them priority.
-		if (currentOwner->writerPending_.load(std::memory_order_acquire)) {
-			std::this_thread::yield(); // back off and give writer a chance
-			continue;
-		}
+
 		// Get the current slot index for reading.
-		// note that every writer will flip the slot index, so we need to keep loading
+		// note that the slot index can be flipped through data swapping, so we need to keep loading
 		// it within this loop in case we cannot obtain the lock on first try, e.g.
 		// because there are active writers on the slot which in turn will flip the slot index once done.
-		int dataSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
+		// Even worse, the flip can happen *during* this call, so we need to verify again after acquiring
+		// the read lock that we in fact acquired the lock on the correct slot.
+		const int dataSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
+
+		// Check if a writer is pending, if so give them priority.
+		// However, if this thread is the owner of the write lock on this slot, then
+		// we must ignore the intent as otherwise we definitely would deadlock in this situation!
+		if (currentOwner->writeAllPending_.load(std::memory_order_acquire) &&
+				currentOwner->writerThreads_[dataSlot] != std::this_thread::get_id()) {
+			// there is a pending writer, we need to wait for them to finish.
+			spinWaitUntil2(currentOwner->writeAllPending_);
+			continue; // try again
+		}
 
 		// First step: increment the reader count for this slot.
-		// this will prevent writers from setting the flag on this slot.
 		currentOwner->readerCounts_[dataSlot].fetch_add(1, std::memory_order_relaxed);
 
 		// However, maybe there is an active writer on this slot already, we need to check that.
-		if (dataOwner_->writerFlags_[dataSlot].test(std::memory_order_acquire) == 0) {
-			// no writer has locked the slot, other ones are prevented from doing so,
-			// hence we can safely read from this slot.
-			if (dataOwner_ != currentOwner) {
-				currentOwner->readerCounts_[dataSlot].fetch_sub(1, std::memory_order_relaxed);
-				continue;
-			}
-			return dataSlot;
-		} else {
+		if (dataOwner_->writerFlags_[dataSlot].test(std::memory_order_acquire) != 0) {
 			// Seems there is an active writer on this slot, we need to wait for them to finish.
-			// but first decrement the reader count, so that we do not block writer in the meanwhile.
+			// first decrement the reader count, so that we do not block writer in the meanwhile.
 			currentOwner->readerCounts_[dataSlot].fetch_sub(1, std::memory_order_relaxed);
-			// wait until there are no active writers on `dataSlot`.
+			// then wait until there are no active writers on `dataSlot`.
 			spinWaitUntil1(dataOwner_->writerFlags_[dataSlot]);
+			continue;
 		}
+
+		if (dataOwner_ != currentOwner ||
+				currentOwner->lastDataSlot_.load(std::memory_order_acquire) != dataSlot) {
+			// data owner has changed, or the read/write slot swapped meanwhile.
+			// better to retry in this case.
+			currentOwner->readerCounts_[dataSlot].fetch_sub(1, std::memory_order_relaxed);
+			CPU_PAUSE();
+			continue;
+		}
+
+		// no writer has locked the slot, other ones are prevented from doing so,
+		// hence we can safely read from this slot.
+		return dataSlot;
 	}
 }
 
@@ -781,37 +854,39 @@ int ClientBuffer::writeLock_DoubleBuffer() const {
 	while (true) {
 		// Note: ownership may change while waiting for the lock.
 		auto *currentOwner = dataOwner_;
+
 		// get the current slot index for writing.
 		// note that every writer will flip the slot index, so we need to keep loading
 		// it within this loop in case we cannot obtain the lock on first try.
-		int dataSlot = 1 - currentOwner->lastDataSlot_.load(std::memory_order_acquire);
+		const int currentReadSlot = currentOwner->lastDataSlot_.load(std::memory_order_acquire);
+		const int currentWriteSlot = 1 - currentReadSlot;
 
 		// check if there are any active readers on the write slot.
-		if (currentOwner->readerCounts_[dataSlot].load(std::memory_order_acquire) != 0) {
+		if (currentOwner->readerCounts_[currentWriteSlot].load(std::memory_order_acquire) != 0) {
 			// seems there are some remaining readers on the write slot, we need to wait for them to finish.
-			spinWaitUntil2(currentOwner->readerCounts_[dataSlot]);
+			spinWaitUntil2(currentOwner->readerCounts_[currentWriteSlot]);
 			continue; // try again
 		}
 
-		if (currentOwner->writerFlags_[dataSlot].test_and_set(std::memory_order_acquire)) {
+		if (currentOwner->writerFlags_[currentWriteSlot].test_and_set(std::memory_order_acquire)) {
 			// seems someone else is writing to this slot, we need to wait for them to finish.
-			spinWaitUntil1(currentOwner->writerFlags_[dataSlot]);
+			spinWaitUntil1(currentOwner->writerFlags_[currentWriteSlot]);
 			continue; // try again
-		} else {
-			if (currentOwner->readerCounts_[dataSlot].load(std::memory_order_acquire) != 0) {
-				// a reader sneaked in while we were waiting for the write lock
-				currentOwner->writerFlags_[dataSlot].clear(std::memory_order_relaxed);
-				continue;
-			}
-			if (dataOwner_ != currentOwner) {
-				// data owner has changed, we need to retry.
-				currentOwner->writerFlags_[dataSlot].clear(std::memory_order_relaxed);
-				continue;
-			}
-			// we got the exclusive write lock for this slot, so we can safely write to it.
-			setOwnerOfWriteLock(dataSlot);
-			return dataSlot;
 		}
+
+		if (currentOwner->readerCounts_[currentWriteSlot].load(std::memory_order_acquire) != 0 ||
+				dataOwner_ != currentOwner ||
+				currentOwner->lastDataSlot_.load(std::memory_order_acquire) != currentReadSlot) {
+			// a reader sneaked in while we were waiting for the write lock,
+			// data owner has changed, or read/write slot swapped meanwhile.
+			currentOwner->writerFlags_[currentWriteSlot].clear(std::memory_order_relaxed);
+			CPU_PAUSE();
+			continue;
+		}
+
+		// we got the exclusive write lock for this slot, so we can safely write to it.
+		setOwnerOfWriteLock(currentWriteSlot);
+		return currentWriteSlot;
 	}
 }
 
@@ -822,7 +897,8 @@ bool ClientBuffer::readLock_SingleBuffer() const {
 	// which would be indicated by the writerFlags_[0] being set.
 	auto *owner = dataOwner_;
 
-	if (owner->writerPending_.load(std::memory_order_acquire)) return false;
+	if (owner->writeAllPending_.load(std::memory_order_acquire) &&
+		owner->writerThreads_[0] != std::this_thread::get_id()) return false;
 
 	owner->readerCounts_[0].fetch_add(1, std::memory_order_relaxed);
 	if (owner->writerFlags_[0].test(std::memory_order_acquire) != 0) {
@@ -892,13 +968,13 @@ void ClientBuffer::setOwnerOfWriteLock(int dataSlot) const {
 }
 
 void ClientBuffer::createSecondSlot() {
-#ifdef USE_CLIENT_BUFFER_POOL
-	auto *allocator = ClientBuffer::getMemoryAllocator(dataSize_);
-	dataRefs_[1] = ClientBuffer::getMemoryPool()->alloc(allocator, dataSize_);
-	dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
-#else
-	dataSlots_[1] = new byte[dataSize_];
-#endif
+	if constexpr(USE_CLIENT_BUFFER_POOL) {
+		auto *allocator = ClientBuffer::getMemoryAllocator(dataSize_);
+		dataRefs_[1] = ClientBuffer::getMemoryPool()->alloc(allocator, dataSize_);
+		dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
+	} else {
+		dataSlots_[1] = new byte[dataSize_];
+	}
 	std::memcpy(dataSlots_[1], dataSlots_[0], dataSize_);
 
 	// Initialize second slot stamp to the same value as the first slot.

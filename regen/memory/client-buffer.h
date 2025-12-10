@@ -314,7 +314,7 @@ namespace regen {
 		std::thread::id writerThreads_[2] = {std::thread::id(), std::thread::id()};
 		// Avoid that readers keep sneaking in while a thread attempts to get a global
 		// write lock, e.g. for buffer swapping.
-		std::atomic<bool> writerPending_{false};
+		std::atomic<bool> writeAllPending_{false};
 		// Indicates the last modification time for each data slot.
 		// This is exposed to the user, so it can be read from different threads hence we need atomic operations.
 		mutable std::atomic<uint32_t> dataStamps_[2] = {0u,0u};
