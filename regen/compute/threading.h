@@ -32,7 +32,7 @@ namespace regen {
 	 * \tparam Mode The waiting mode to use (linear or exponential backoff).
 	 * \param flag The atomic_flag to wait on.
 	 */
-	template <bool DesiredFlagState, WaitMode Mode = WaitMode::LINEAR>
+	template <bool DesiredFlagState, WaitMode Mode = WaitMode::EXPONENTIAL>
 	static void waitOnFlag(const std::atomic_flag &flag) {
 		if constexpr (Mode == WaitMode::LINEAR) {
 			// Linear backoff
@@ -61,7 +61,7 @@ namespace regen {
 	 * \tparam Mode The waiting mode to use (linear or exponential backoff).
 	 * \param count The atomic variable to wait on.
 	 */
-	template <typename AtomicType, AtomicType DesiredAtom, WaitMode Mode = WaitMode::LINEAR>
+	template <typename AtomicType, AtomicType DesiredAtom, WaitMode Mode = WaitMode::EXPONENTIAL>
 	static void waitOnAtomic(const std::atomic<AtomicType> &count) {
 		if constexpr(Mode == WaitMode::LINEAR) {
 			for (int i = 0; count.load(std::memory_order_acquire) != DesiredAtom; ++i) {
