@@ -19,6 +19,69 @@
 
 namespace regen {
 	/**
+	 * \brief Mode for waiting on atomics assuming certain states.
+	 */
+	enum class WaitMode {
+		LINEAR = 0,
+		EXPONENTIAL
+	};
+
+	/**
+	 * \brief Wait until the atomic_flag reaches the desired state.
+	 * \tparam DesiredFlagState The desired state of the flag to wait for.
+	 * \tparam Mode The waiting mode to use (linear or exponential backoff).
+	 * \param flag The atomic_flag to wait on.
+	 */
+	template <bool DesiredFlagState, WaitMode Mode = WaitMode::LINEAR>
+	static void waitOnFlag(const std::atomic_flag &flag) {
+		if constexpr (Mode == WaitMode::LINEAR) {
+			// Linear backoff
+			for (int i = 0; flag.test(std::memory_order_acquire) != DesiredFlagState; ++i) {
+				if (i < 16) { CPU_PAUSE(); }
+				else if (i < 256) { std::this_thread::yield(); }
+				else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
+			}
+		} else if constexpr (Mode == WaitMode::EXPONENTIAL) {
+			// Exponential backoff
+			int delay = 1; // in CPU cycles or iterations
+			while (flag.test(std::memory_order_acquire) != DesiredFlagState) {
+				for (int i = 0; i < delay; ++i) CPU_PAUSE();
+				delay = std::min(delay * 2, 1024); // cap max delay
+				//if (delay >= 256) std::this_thread::yield();
+			}
+		} else {
+			static_assert(false, "Unknown WaitMode");
+		}
+	}
+
+	/**
+	 * \brief Wait until the atomic variable reaches the desired value.
+	 * \tparam AtomicType The type of the atomic variable.
+	 * \tparam DesiredAtom The desired value to wait for.
+	 * \tparam Mode The waiting mode to use (linear or exponential backoff).
+	 * \param count The atomic variable to wait on.
+	 */
+	template <typename AtomicType, AtomicType DesiredAtom, WaitMode Mode = WaitMode::LINEAR>
+	static void waitOnAtomic(const std::atomic<AtomicType> &count) {
+		if constexpr(Mode == WaitMode::LINEAR) {
+			for (int i = 0; count.load(std::memory_order_acquire) != DesiredAtom; ++i) {
+				if (i < 16) { CPU_PAUSE(); }
+				else if (i < 256) { std::this_thread::yield(); }
+				else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
+			}
+		} else if constexpr (Mode == WaitMode::EXPONENTIAL) {
+			int delay = 1; // in CPU cycles or iterations
+			while (count.load(std::memory_order_acquire) != DesiredAtom) {
+				for (int i = 0; i < delay; ++i) CPU_PAUSE();
+				delay = std::min(delay * 2, 1024); // cap max delay
+				//if (delay >= 256) std::this_thread::yield();
+			}
+		} else {
+			static_assert(false, "Unknown WaitMode");
+		}
+	}
+
+	/**
 	 * \brief A simple spin lock implementation.
 	 * This is a low-level lock that can be used for short critical sections.
 	 * It is not suitable for long operations as it can lead to high CPU usage.

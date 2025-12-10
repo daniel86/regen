@@ -21,25 +21,6 @@ static void setStagingCopyFlag() {
 	StagingSystem::instance().setIsCopyInProgress();
 }
 
-template <bool DesiredFlagState>
-static void waitOnFlag(const std::atomic_flag &flag) {
-	for (int i = 0; flag.test(std::memory_order_acquire) != DesiredFlagState; ++i) {
-		if (i < 16) { CPU_PAUSE(); }
-		else if (i < 256) { std::this_thread::yield(); }
-		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
-	}
-}
-
-template <typename CounterType, CounterType DesiredCount>
-static void waitOnCounter(const std::atomic<CounterType> &count) {
-	for (int i = 0; count.load(std::memory_order_acquire) != DesiredCount; ++i) {
-		if (i < 16) { CPU_PAUSE(); }
-		else if (i < 256) { std::this_thread::yield(); }
-		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
-	}
-}
-
-
 AnimationManager::AnimationManager()
 		: frameBarrier_(2, setStagingCopyFlag) {
 	resetTime();
@@ -56,7 +37,7 @@ AnimationManager::~AnimationManager() {
 	cpuUpdateThread_.join();
 	// Finally also join the dedicated threads
 	if (unsynced_numActiveUpdates_.load(std::memory_order_acquire) > 0) {
-		waitOnCounter<int,0>(unsynced_numActiveUpdates_);
+		waitOnAtomic<int,0>(unsynced_numActiveUpdates_);
 	}
 	for (auto &thread : unsyncedThreads_) {
 		thread.join();
@@ -145,7 +126,7 @@ void AnimationManager::waitForAnimations() const {
 		waitOnFlag<false>(gpu_isUpdateActive_.value);
 	}
 	if (unsynced_numActiveUpdates_.load(std::memory_order_acquire) > 0) {
-		waitOnCounter<int,0>(unsynced_numActiveUpdates_);
+		waitOnAtomic<int,0>(unsynced_numActiveUpdates_);
 	}
 }
 

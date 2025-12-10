@@ -705,30 +705,6 @@ void ClientBuffer::setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t s
 	}
 }
 
-inline void spinWaitUntil1(const std::atomic_flag &flag) {
-	for (int i = 0; flag.test(std::memory_order_acquire) != 0; ++i) {
-		if (i < 16) { CPU_PAUSE(); }
-		else if (i < 256) { std::this_thread::yield(); }
-		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
-	}
-}
-
-inline void spinWaitUntil2(const std::atomic<bool> &flag) {
-	for (int i = 0; flag.load(std::memory_order_acquire); ++i) {
-		if (i < 16) { CPU_PAUSE(); }
-		else if (i < 256) { std::this_thread::yield(); }
-		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
-	}
-}
-
-inline void spinWaitUntil2(const std::atomic<uint32_t> &count) {
-	for (int i = 0; count.load(std::memory_order_acquire) != 0; ++i) {
-		if (i < 16) { CPU_PAUSE(); }
-		else if (i < 256) { std::this_thread::yield(); }
-		else { std::this_thread::sleep_for(std::chrono::microseconds(1)); }
-	}
-}
-
 void ClientBuffer::writeLockAll() const {
 	auto *owner0 = dataOwner_;
 
@@ -818,7 +794,7 @@ int ClientBuffer::readLock() const {
 		if (currentOwner->writeAllPending_.load(std::memory_order_acquire) &&
 				currentOwner->writerThreads_[dataSlot] != std::this_thread::get_id()) {
 			// there is a pending writer, we need to wait for them to finish.
-			spinWaitUntil2(currentOwner->writeAllPending_);
+			waitOnAtomic<bool,false>(currentOwner->writeAllPending_);
 			continue; // try again
 		}
 
@@ -831,7 +807,7 @@ int ClientBuffer::readLock() const {
 			// first decrement the reader count, so that we do not block writer in the meanwhile.
 			currentOwner->readerCounts_[dataSlot].value.fetch_sub(1, std::memory_order_relaxed);
 			// then wait until there are no active writers on `dataSlot`.
-			spinWaitUntil1(dataOwner_->writerFlags_[dataSlot].value);
+			waitOnFlag<false>(dataOwner_->writerFlags_[dataSlot].value);
 			continue;
 		}
 
@@ -864,13 +840,13 @@ int ClientBuffer::writeLock_DoubleBuffer() const {
 		// check if there are any active readers on the write slot.
 		if (currentOwner->readerCounts_[currentWriteSlot].value.load(std::memory_order_acquire) != 0) {
 			// seems there are some remaining readers on the write slot, we need to wait for them to finish.
-			spinWaitUntil2(currentOwner->readerCounts_[currentWriteSlot].value);
+			waitOnAtomic<uint32_t,0u>(currentOwner->readerCounts_[currentWriteSlot].value);
 			continue; // try again
 		}
 
 		if (currentOwner->writerFlags_[currentWriteSlot].value.test_and_set(std::memory_order_acquire)) {
 			// seems someone else is writing to this slot, we need to wait for them to finish.
-			spinWaitUntil1(currentOwner->writerFlags_[currentWriteSlot].value);
+			waitOnFlag<false>(currentOwner->writerFlags_[currentWriteSlot].value);
 			continue; // try again
 		}
 
