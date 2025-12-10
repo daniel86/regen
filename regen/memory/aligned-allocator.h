@@ -8,6 +8,20 @@
 
 namespace regen {
 	/**
+	 * \brief A structure representing a cache line aligned primitive type.
+	 * This is used to ensure that the primitive type is aligned to a cache line boundary,
+	 * which can improve performance when accessing the data from multiple threads.
+	 * It is also padded to ensure that it occupies a full cache line (64 bytes).
+	 * NOTE: This is specifically useful for atomic types to avoid false sharing.
+	 */
+	template <typename PrimitiveType>
+	struct alignas(64) CachePadded {
+		static_assert(sizeof(PrimitiveType) <= 64, "PrimitiveType must be smaller than or equal to 64 bytes");
+		PrimitiveType value;
+		char padding[64 - sizeof(PrimitiveType)];
+	};
+
+	/**
 	 * @brief A custom allocator that provides aligned memory allocation.
 	 * This allocator uses posix_memalign to allocate memory with a specified alignment.
 	 * It is designed to be used with types that require specific alignment, such as SIMD types.

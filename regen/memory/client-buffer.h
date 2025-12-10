@@ -9,6 +9,8 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/memory/client-data-base.h>
 #include <regen/memory/client-allocator.h>
+
+#include "aligned-allocator.h"
 #include "dirty-list.h"
 #include "buffer-enums.h"
 
@@ -31,7 +33,6 @@ namespace regen {
 
 		/**
 		 * @brief Constructs a client buffer with the specified mode.
-		 * @param clientBufferMode the mode of buffering to use.
 		 */
 		ClientBuffer();
 
@@ -129,14 +130,14 @@ namespace regen {
 		 * @return the stamp of the data that is currently being written to.
 		 */
 		inline uint32_t stampOfWriteData() const {
-			return dataStamps_[currentWriteSlot()].load(std::memory_order_relaxed);
+			return dataStamps_[currentWriteSlot()].value.load(std::memory_order_relaxed);
 		}
 
 		/**
 		 * @return the stamp of the data that is currently being read.
 		 */
 		inline uint32_t stampOfReadData() const {
-			return dataStamps_[currentReadSlot()].load(std::memory_order_relaxed);
+			return dataStamps_[currentReadSlot()].value.load(std::memory_order_relaxed);
 		}
 
 		/**
@@ -307,17 +308,19 @@ namespace regen {
 		// Per-slot reader/writer count.
 		// Multiple readers are allowed, so we need atomic operations here.
 		// note: only the data owner manages the reader counts.
-		std::atomic<uint32_t> readerCounts_[2] = {0u, 0u};
+		CachePadded<std::atomic<uint32_t>> readerCounts_[2] = {
+			{0u}, {0u} };
 		// protects against simultaneous writers
 		// note: only the data owner manages the write flags.
-		std::atomic_flag writerFlags_[2] = {ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT};
+		CachePadded<std::atomic_flag> writerFlags_[2] = {
+			{ATOMIC_FLAG_INIT}, {ATOMIC_FLAG_INIT} };
 		std::thread::id writerThreads_[2] = {std::thread::id(), std::thread::id()};
 		// Avoid that readers keep sneaking in while a thread attempts to get a global
 		// write lock, e.g. for buffer swapping.
 		std::atomic<bool> writeAllPending_{false};
 		// Indicates the last modification time for each data slot.
 		// This is exposed to the user, so it can be read from different threads hence we need atomic operations.
-		mutable std::atomic<uint32_t> dataStamps_[2] = {0u,0u};
+		mutable CachePadded<std::atomic<uint32_t>> dataStamps_[2] = {{0u},{0u}};
 		// stores the ranges written to in the current and last frame if frame-locked.
 		// note: only the data owner maintains the dirty lists.
 		// note: is only written and read while holding the write lock, so we do not need atomic operations here.
