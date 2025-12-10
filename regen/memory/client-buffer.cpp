@@ -91,12 +91,9 @@ uint32_t ClientBuffer::swapData() {
 	// flushing is only needed if the buffer is frame-locked.
 	if (!isFrameLocked_ || dataSize_ == 0u) return 0u;
 
-	// TODO: We could exploit here knowledge of the last swap. If we swapped last frame
-	//  we might be able to avoid some of the atomic fetch operations.
-	//  e.g. lastReadSlot = 1 - swappedReadSlot where swappedReadSlot is cached from last swap.
-
-	const int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
+	const int32_t lastReadSlot = swapDataSlot_;
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
+	//assert(lastReadSlot == lastDataSlot_.load(std::memory_order_relaxed));
 
 	if (!dataSlots_[1]) {
 		// Single-buffered mode, no need to copy data.
@@ -112,6 +109,7 @@ uint32_t ClientBuffer::swapData() {
 			writeLockAll();
 			lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
 			writeUnlockAll(0u, 0u);
+			swapDataSlot_ = lastWriteSlot;
 		}
 
 		return 0u;
@@ -164,6 +162,9 @@ uint32_t ClientBuffer::swapData() {
 
 		// Unlock the write locks on both slots.
 		writeUnlockAll(0u, 0u);
+
+		// Keep a cached copy of the last read slot for the next swap.
+		swapDataSlot_ = lastWriteSlot;
 
 		// clear dirty lists for the last read slot, such that it can be reused
 		// next frame for writing.
@@ -222,27 +223,18 @@ void ClientBuffer::nextSegmentStamp(uint32_t dataSlot, uint32_t writeBegin, uint
 }
 
 MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
+	const bool singleBufferMode = (clientBufferMode_ == SingleBuffer ||
+		(clientBufferMode_ == AdaptiveBuffer && !hasTwoSlots()));
+
 	if ((mapMode & BUFFER_GPU_WRITE) != 0) {
-		if (clientBufferMode_ == AdaptiveBuffer) {
-			if (!hasTwoSlots()) {
-				return writeRange_SingleBuffer(offset, size);
-			} else {
-				return writeRange_DoubleBuffer(offset, size);
-			}
-		} else if (clientBufferMode_ == SingleBuffer) {
+		if (singleBufferMode) {
 			// Single-buffered mode, we can only write to the first slot.
 			return writeRange_SingleBuffer(offset, size);
-		} else { // clientBufferMode_ == DoubleBuffer
+		} else { // DoubleBuffer || (AdaptiveBuffer && isDoubleBuffered)
 			// Double-buffered mode, we can write to either slot.
 			return writeRange_DoubleBuffer(offset, size);
 		}
-	} else if (clientBufferMode_ == AdaptiveBuffer) {
-		if (!hasTwoSlots()) {
-			return readRange_SingleBuffer(offset, size);
-		} else {
-			return readRange_DoubleBuffer(offset, size);
-		}
-	} else if (clientBufferMode_ == SingleBuffer) {
+	} else if (singleBufferMode) {
 		// Single-buffered mode, we can only read from the first slot.
 		return readRange_SingleBuffer(offset, size);
 	} else { // clientBufferMode_ == DoubleBuffer

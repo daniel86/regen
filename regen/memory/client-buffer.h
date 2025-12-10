@@ -305,6 +305,8 @@ namespace regen {
 		// Active slot for readers.
 		// Threads might read this concurrently, so we need atomic operations.
 		mutable std::atomic<int> lastDataSlot_{0};
+		// cached copy of lastDataSlot_ for writers to avoid repeated atomic loads in swap function.
+		int swapDataSlot_ = 0;
 		// Per-slot reader/writer count.
 		// Multiple readers are allowed, so we need atomic operations here.
 		// note: only the data owner manages the reader counts.
