@@ -331,7 +331,7 @@ void main() {
     vec3 lx = lightPos - x;
     // compute fog exposure by distance to camera
     float dCam = length(x - cameraPos)/length(vertexRay);
-    // compute fog exposure by distance to camera
+    // compute fog falloff/attenuation by distance
     float exposure = in_fogExposure * (1.0 - fogIntensity(dCam));
 
 #ifdef IS_SPOT_LIGHT
