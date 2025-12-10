@@ -43,14 +43,14 @@ static void waitOnCounter(const std::atomic<CounterType> &count) {
 AnimationManager::AnimationManager()
 		: frameBarrier_(2, setStagingCopyFlag) {
 	resetTime();
-	cpu_isUpdateActive_.clear(std::memory_order_release);
-	gpu_isUpdateActive_.clear(std::memory_order_release);
+	cpu_isUpdateActive_.value.clear(std::memory_order_release);
+	gpu_isUpdateActive_.value.clear(std::memory_order_release);
 	cpuUpdateThread_ = boost::thread(&AnimationManager::cpuUpdate, this);
 }
 
 AnimationManager::~AnimationManager() {
 	// toggle atomic close flag to true
-	closeFlag_.test_and_set(std::memory_order_release);
+	closeFlag_.value.test_and_set(std::memory_order_release);
 	// indicate arrival at the barrier and drop this thread
 	frameBarrier_.arrive_and_drop();
 	cpuUpdateThread_.join();
@@ -138,11 +138,11 @@ void AnimationManager::removeAnimation(Animation *animation) {
 void AnimationManager::waitForAnimations() const {
 	// Block until all "isUpdateActive" flags are cleared in all *other* threads.
 	const auto thisThreadID = boost::this_thread::get_id();
-	if (thisThreadID != cpu_threadID_ && cpu_isUpdateActive_.test(std::memory_order_acquire)) {
-		waitOnFlag<false>(cpu_isUpdateActive_);
+	if (thisThreadID != cpu_threadID_ && cpu_isUpdateActive_.value.test(std::memory_order_acquire)) {
+		waitOnFlag<false>(cpu_isUpdateActive_.value);
 	}
-	if (thisThreadID != gpu_threadID_ && gpu_isUpdateActive_.test(std::memory_order_acquire)) {
-		waitOnFlag<false>(gpu_isUpdateActive_);
+	if (thisThreadID != gpu_threadID_ && gpu_isUpdateActive_.value.test(std::memory_order_acquire)) {
+		waitOnFlag<false>(gpu_isUpdateActive_.value);
 	}
 	if (unsynced_numActiveUpdates_.load(std::memory_order_acquire) > 0) {
 		waitOnCounter<int,0>(unsynced_numActiveUpdates_);
@@ -151,13 +151,13 @@ void AnimationManager::waitForAnimations() const {
 
 void AnimationManager::shutdown(bool blocking) {
 	// toggle atomic close flag to true
-	closeFlag_.test_and_set(std::memory_order_release);
+	closeFlag_.value.test_and_set(std::memory_order_release);
 	if (blocking) waitForAnimations();
 }
 
 void AnimationManager::pause(bool blocking) {
 	// toggle atomic pause flag to true
-	pauseFlag_.test_and_set(std::memory_order_release);
+	pauseFlag_.value.test_and_set(std::memory_order_release);
 	if (blocking) waitForAnimations();
 }
 
@@ -179,7 +179,7 @@ void AnimationManager::resume(bool runOnce) {
 		}
 	}
 	// toggle atomic pause flag to false
-	pauseFlag_.clear(std::memory_order_release);
+	pauseFlag_.value.clear(std::memory_order_release);
 }
 
 void AnimationManager::gpuUpdateStep(double dt) {
@@ -188,11 +188,12 @@ void AnimationManager::gpuUpdateStep(double dt) {
 	gpu_threadID_ = boost::this_thread::get_id();
 
 	// Set processing flags, so that other threads can wait for the completion of this loop
-	gpu_isUpdateActive_.test_and_set(std::memory_order_acquire);
+	gpu_isUpdateActive_.value.test_and_set(std::memory_order_acquire);
 
 	// Avoid race condition with close waiting for gpu_isUpdateActive_ to clear
-	if (closeFlag_.test(std::memory_order_acquire) || pauseFlag_.test(std::memory_order_acquire)) {
-		gpu_isUpdateActive_.clear(std::memory_order_release);
+	if (closeFlag_.value.test(std::memory_order_acquire) ||
+		pauseFlag_.value.test(std::memory_order_acquire)) {
+		gpu_isUpdateActive_.value.clear(std::memory_order_release);
 		return;
 	}
 
@@ -206,7 +207,7 @@ void AnimationManager::gpuUpdateStep(double dt) {
 	}
 
 	// Clear processing flags
-	gpu_isUpdateActive_.clear(std::memory_order_release);
+	gpu_isUpdateActive_.value.clear(std::memory_order_release);
 
 	// Perform pending add/remove operations
 	while (!gpu_commandQueue_.empty()) {
@@ -230,11 +231,12 @@ void AnimationManager::cpuUpdateStep() {
 		(time_ - lastTime_).total_microseconds()) / 1000.0;
 
 	// Set processing flags, so that other threads can wait for the completion of this loop
-	cpu_isUpdateActive_.test_and_set(std::memory_order_acquire);
+	cpu_isUpdateActive_.value.test_and_set(std::memory_order_acquire);
 
 	// Avoid race conditions with close/pause waiting for cpu_isUpdateActive_ to clear
-	if (closeFlag_.test(std::memory_order_acquire) || pauseFlag_.test(std::memory_order_acquire)) {
-		cpu_isUpdateActive_.clear(std::memory_order_release);
+	if (closeFlag_.value.test(std::memory_order_acquire) ||
+		pauseFlag_.value.test(std::memory_order_acquire)) {
+		cpu_isUpdateActive_.value.clear(std::memory_order_release);
 		return;
 	}
 
@@ -255,7 +257,7 @@ void AnimationManager::cpuUpdateStep() {
 	}
 
 	// Clear processing flags
-	cpu_isUpdateActive_.clear(std::memory_order_release);
+	cpu_isUpdateActive_.value.clear(std::memory_order_release);
 
 	// Perform pending add/remove operations
 	while (!cpu_commandQueue_.empty()) {
@@ -277,7 +279,7 @@ void AnimationManager::cpuUpdate() {
 	cpu_threadID_ = boost::this_thread::get_id();
 	resetTime();
 
-	while (closeFlag_.test(std::memory_order_acquire) == false) {
+	while (closeFlag_.value.test(std::memory_order_acquire) == false) {
 		time_ = boost::posix_time::ptime(boost::posix_time::microsec_clock::local_time());
 		cpuUpdateStep();
 		lastTime_ = time_;
@@ -294,20 +296,20 @@ void AnimationManager::unsyncedUpdate(Animation *animation) {
 	const auto frameDuration = std::chrono::duration_cast<Clock::duration>(d_frameDuration);
 	auto nextFrame = Clock::now();
 
-	while (closeFlag_.test(std::memory_order_acquire) == false && animation->isRunning()) {
+	while (closeFlag_.value.test(std::memory_order_acquire) == false && animation->isRunning()) {
 		// Increase update counter atomic
 		unsynced_numActiveUpdates_.fetch_add(1, std::memory_order_acquire);
 
 		// Avoid race condition on close
-		if (closeFlag_.test(std::memory_order_acquire)) {
+		if (closeFlag_.value.test(std::memory_order_acquire)) {
 			unsynced_numActiveUpdates_.fetch_sub(1, std::memory_order_release);
 			break;
 		}
 
 		// Spin until we can continue
-		if (pauseFlag_.test(std::memory_order_acquire)) {
+		if (pauseFlag_.value.test(std::memory_order_acquire)) {
 			unsynced_numActiveUpdates_.fetch_sub(1, std::memory_order_release);
-			waitOnFlag<false>(pauseFlag_);
+			waitOnFlag<false>(pauseFlag_.value);
 			continue;
 		}
 
@@ -334,11 +336,11 @@ void AnimationManager::unsyncedUpdate(Animation *animation) {
 }
 
 void AnimationManager::swapClientData() {
-	if (closeFlag_.test(std::memory_order_acquire)) return;
+	if (closeFlag_.value.test(std::memory_order_acquire)) return;
 	auto &staging = StagingSystem::instance();
 	// Wait for the staging system to finish copying client data for this frame.
 	while (staging.isCopyInProgress() &&
-		!closeFlag_.test(std::memory_order_acquire)) {
+		!closeFlag_.value.test(std::memory_order_acquire)) {
 		CPU_PAUSE();
 	}
 	staging.swapClientData();

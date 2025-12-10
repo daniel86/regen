@@ -145,14 +145,14 @@ namespace regen {
 		boost::mutex unsyncedListLock_;
 
 		// The close flag is only toggled to true when system shuts down
-		std::atomic_flag closeFlag_ = { false };
+		CachePadded<std::atomic_flag> closeFlag_ = { {false} };
 		// The pause flag is toggled to true when animations are paused, eg.
 		// when a new scene is loaded
-		std::atomic_flag pauseFlag_ = { false };
+		CachePadded<std::atomic_flag> pauseFlag_ = { {false} };
 		// Flags to indicate if an update is active, one for each thread.
 		// Unsynced animations currently have their dedicated threads, so each has its own flag.
-		std::atomic_flag cpu_isUpdateActive_ = { false };
-		std::atomic_flag gpu_isUpdateActive_ = { false };
+		CachePadded<std::atomic_flag> cpu_isUpdateActive_ = { {false} };
+		CachePadded<std::atomic_flag> gpu_isUpdateActive_ = { {false} };
 		std::atomic<int> unsynced_numActiveUpdates_{0};
 
 		// Command queues for adding/removing animations

@@ -9,6 +9,8 @@
 #include <functional>
 #include <regen/utility/ref-ptr.h>
 
+#include "regen/memory/aligned-allocator.h"
+
 namespace regen {
 	/**
 	 * \brief Data passed from event emitter to event handlers.
@@ -114,9 +116,9 @@ namespace regen {
 		struct StaticData {;
 			std::vector<QueuedEvent> eventQueue_[2];
 			// index of the queue being written to by emitters
-			std::atomic<int> eventPushIndex_{0};
+			CachePadded<std::atomic<int>> eventPushIndex_{0};
 			// the number of emitters currently writing to each queue
-			std::atomic<int> eventPusherCount_[2];
+			CachePadded<std::atomic<int>> eventPusherCount_[2];
 		};
 		static StaticData staticData_;
 

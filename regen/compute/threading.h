@@ -6,6 +6,8 @@
 #include <atomic>
 #include <vector>
 
+#include "regen/memory/aligned-allocator.h"
+
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
     #include <immintrin.h>
     #define CPU_PAUSE() _mm_pause()
@@ -72,9 +74,9 @@ namespace regen {
 	class JobQueue {
 		std::vector<JobType> buffer;
 		// Producer position, padded to avoid false sharing
-		/** alignas(64) **/ std::atomic<uint32_t> head{0};
+		CachePadded<std::atomic<uint32_t>> head{0};
 		// Consumer position, padded to avoid false sharing
-		/** alignas(64) **/ std::atomic<uint32_t> tail{0};
+		CachePadded<std::atomic<uint32_t>> tail{0};
 	public:
 		JobQueue() : buffer(1024) {
 			assert((buffer.size() & mask()) == 0 && "JobQueue size must be power of two");
@@ -92,16 +94,16 @@ namespace regen {
 		void grow() {
 			const size_t oldSize = buffer.size();
 			const size_t newSize = oldSize * 2;
-			const uint32_t t = tail.load(std::memory_order_acquire);
-			const uint32_t h = head.load(std::memory_order_acquire);
+			const uint32_t t = tail.value.load(std::memory_order_acquire);
+			const uint32_t h = head.value.load(std::memory_order_acquire);
 			const uint32_t count = (h - t) & (oldSize - 1);
 
 			std::vector<JobType> newBuffer(newSize);
 			for (uint32_t i = 0; i < count; ++i) {
 				newBuffer[i] = buffer[(t + i) & (oldSize - 1)];
 			}
-			head.store(count, std::memory_order_release);
-			tail.store(0, std::memory_order_release);
+			head.value.store(count, std::memory_order_release);
+			tail.value.store(0, std::memory_order_release);
 			buffer = std::move(newBuffer);
 		}
 
@@ -114,12 +116,12 @@ namespace regen {
 			const uint32_t mask = this->mask();
 			while (true) {
 				// Load current head and tail
-				uint32_t h = head.load(std::memory_order_relaxed);
-				const uint32_t t = tail.load(std::memory_order_acquire);
+				uint32_t h = head.value.load(std::memory_order_relaxed);
+				const uint32_t t = tail.value.load(std::memory_order_acquire);
 				if ((h - t) == mask) return false; // full
 				// try to claim slot h by incrementing head -> h+1
 				// on success we "own" index h and can safely write to buffer[h & mask]
-				if (head.compare_exchange_weak(h, h+1,
+				if (head.value.compare_exchange_weak(h, h+1,
 							std::memory_order_acq_rel,
 							std::memory_order_relaxed)) {
 					buffer[h & mask] = j;
@@ -137,12 +139,12 @@ namespace regen {
 			const uint32_t mask = this->mask();
 			while (true) {
 				// Load current tail and head
-				const uint32_t h = head.load(std::memory_order_acquire);
-				uint32_t t = tail.load(std::memory_order_relaxed);
+				const uint32_t h = head.value.load(std::memory_order_acquire);
+				uint32_t t = tail.value.load(std::memory_order_relaxed);
 				if (t == h) return false; // empty
 				// try to claim slot t by incrementing tail -> t+1
 				// on success we "own" index t and can safely read buffer[t & mask]
-				if (tail.compare_exchange_weak(t, t+1,
+				if (tail.value.compare_exchange_weak(t, t+1,
 							std::memory_order_acq_rel,
 							std::memory_order_relaxed)) {
 					out = buffer[t & mask];
@@ -156,8 +158,8 @@ namespace regen {
 		 * @return True if there are unassigned jobs, false otherwise.
 		 */
 		bool hasUnassignedJobs() const {
-			const uint32_t t = tail.load(std::memory_order_acquire);
-			const uint32_t h = head.load(std::memory_order_acquire);
+			const uint32_t t = tail.value.load(std::memory_order_acquire);
+			const uint32_t h = head.value.load(std::memory_order_acquire);
 			return t != h;
 		}
 	};
@@ -372,10 +374,10 @@ namespace regen {
 	    	// Only modified by the producer.
 	    	// Conceptually the write cursor is "behind" the read cursor,
 	    	// and stands still when reaching the read cursor.
-	        std::atomic<size_t> writeCursor{0};
+	        CachePadded<std::atomic<size_t>> writeCursor{0};
 	    	// The cursor for reading items from the segment.
 	    	// Only modified by the consumer.
-	        std::atomic<size_t> readCursor{0};
+	        CachePadded<std::atomic<size_t>> readCursor{0};
 	    	// Segments are linked in a singly linked list.
 	    	// Only modified by the producer.
 	        std::atomic<Segment*> next{nullptr};
@@ -427,13 +429,13 @@ namespace regen {
 			// Load the current head segment which we will write to.
 	        Segment* seg = head_.load(std::memory_order_acquire);
 			// Load the cursor positions for this segment.
-	        const size_t w = seg->writeCursor.load(std::memory_order_relaxed);
-	        const size_t r = seg->readCursor.load(std::memory_order_acquire);
+	        const size_t w = seg->writeCursor.value.load(std::memory_order_relaxed);
+	        const size_t r = seg->readCursor.value.load(std::memory_order_acquire);
 
 	        if (w - r < SEG_SIZE) {
 	            // there is enough space in current segment.
 	            seg->items[w % SEG_SIZE] = item;
-	            seg->writeCursor.store(w + 1, std::memory_order_release);
+	            seg->writeCursor.value.store(w + 1, std::memory_order_release);
 	            return;
 	        }
 
@@ -443,7 +445,7 @@ namespace regen {
 			// NOTE: The consumer can release the old segment when it is done with it.
 	        auto* newSeg = acquireSegment();
 	        newSeg->items[0] = item;
-	        newSeg->writeCursor.store(1, std::memory_order_release);
+	        newSeg->writeCursor.value.store(1, std::memory_order_release);
 
 			// Link new segment to current head segment, and update head_ to point to new segment.
 	        seg->next.store(newSeg, std::memory_order_release);
@@ -456,8 +458,8 @@ namespace regen {
 		 */
 	    bool empty() const {
 	        const Segment* seg = tail_.load(std::memory_order_acquire);
-	        const size_t w = seg->writeCursor.load(std::memory_order_acquire);
-	        const size_t r = seg->readCursor.load(std::memory_order_relaxed);
+	        const size_t w = seg->writeCursor.value.load(std::memory_order_acquire);
+	        const size_t r = seg->readCursor.value.load(std::memory_order_relaxed);
 			// if cursors are at different positions, queue is not empty
 	        if (r != w) return false;
 			// also if there is a next segment, queue is not empty
@@ -471,13 +473,13 @@ namespace regen {
 		 */
 		T& front() {
 	        Segment* seg = tail_.load(std::memory_order_acquire);
-	        const size_t r = seg->readCursor.load(std::memory_order_relaxed);
-	        const size_t w = seg->writeCursor.load(std::memory_order_acquire);
+	        const size_t r = seg->readCursor.value.load(std::memory_order_relaxed);
+	        const size_t w = seg->writeCursor.value.load(std::memory_order_acquire);
 
 	        if (r == w) {
 				// Advance to next segment if we hit the write cursor.
 	            Segment* next = seg->next.load(std::memory_order_acquire);
-	            const size_t r_next = next->readCursor.load(std::memory_order_relaxed);
+	            const size_t r_next = next->readCursor.value.load(std::memory_order_relaxed);
 	            tail_.store(next, std::memory_order_release);
 	            // Old segment can now be released
 	        	releaseSegment(seg);
@@ -493,13 +495,13 @@ namespace regen {
 		 */
 		void pop() {
 	        Segment* seg = tail_.load(std::memory_order_acquire);
-	        const size_t r = seg->readCursor.load(std::memory_order_relaxed) + 1;
+	        const size_t r = seg->readCursor.value.load(std::memory_order_relaxed) + 1;
 
 			// Advance read cursor
-	        seg->readCursor.store(r, std::memory_order_release);
+	        seg->readCursor.value.store(r, std::memory_order_release);
 
 	        // If segment fully consumed and next exists -> move to next
-	        size_t w = seg->writeCursor.load(std::memory_order_acquire);
+	        size_t w = seg->writeCursor.value.load(std::memory_order_acquire);
 	        if (r == w) {
 	            Segment* next = seg->next.load(std::memory_order_acquire);
 	            if (next != nullptr) {
@@ -520,8 +522,8 @@ namespace regen {
 				segmentPool_.pop_back();
 				poolLock_.unlock();
 
-				seg->writeCursor.store(0, std::memory_order_relaxed);
-				seg->readCursor.store(0, std::memory_order_relaxed);
+				seg->writeCursor.value.store(0, std::memory_order_relaxed);
+				seg->readCursor.value.store(0, std::memory_order_relaxed);
 				seg->next.store(nullptr, std::memory_order_relaxed);
 
 				return seg;

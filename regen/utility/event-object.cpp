@@ -128,12 +128,12 @@ void EventObject::emitEvent(const std::string &eventName, const ref_ptr<EventDat
 
 void EventObject::dispatchEvents() {
 	// Swap queues
-	int dispatchIdx = staticData_.eventPushIndex_.load(std::memory_order_acquire);
+	int dispatchIdx = staticData_.eventPushIndex_.value.load(std::memory_order_acquire);
 	int nextPushIdx = (dispatchIdx == 0) ? 1 : 0;
-	staticData_.eventPushIndex_.store(nextPushIdx, std::memory_order_release);
+	staticData_.eventPushIndex_.value.store(nextPushIdx, std::memory_order_release);
 
 	// Wait for any concurrent pushers on dispatchIdx to finish
-	while (staticData_.eventPusherCount_[dispatchIdx].load(std::memory_order_acquire) > 0) {
+	while (staticData_.eventPusherCount_[dispatchIdx].value.load(std::memory_order_acquire) > 0) {
 		CPU_PAUSE();
 	}
 
@@ -149,14 +149,14 @@ void EventObject::dispatchEvents() {
 
 int EventObject::pushLock() {
 	// load the current push index
-	int insertIdx = staticData_.eventPushIndex_.load(std::memory_order_acquire);
+	int insertIdx = staticData_.eventPushIndex_.value.load(std::memory_order_acquire);
 	// increment pusher count
 	auto &count = staticData_.eventPusherCount_[insertIdx];
-	count.fetch_add(1, std::memory_order_acquire);
+	count.value.fetch_add(1, std::memory_order_acquire);
 	// make sure insertIdx is still valid, as it could be that dispatch has swapped the queues
 	// in the meantime. If not, we are protected by the counter and can proceed.
-	if (insertIdx != staticData_.eventPushIndex_.load(std::memory_order_acquire)) {
-		count.fetch_sub(1, std::memory_order_release);
+	if (insertIdx != staticData_.eventPushIndex_.value.load(std::memory_order_acquire)) {
+		count.value.fetch_sub(1, std::memory_order_release);
 		return -1;
 	}
 	return insertIdx;
@@ -164,7 +164,7 @@ int EventObject::pushLock() {
 
 void EventObject::pushUnlock(int insertIdx) {
 	// and decrement pusher count
-	staticData_.eventPusherCount_[insertIdx].fetch_sub(1, std::memory_order_release);
+	staticData_.eventPusherCount_[insertIdx].value.fetch_sub(1, std::memory_order_release);
 }
 
 void EventObject::queueEmit(unsigned int eventID, const ref_ptr<EventData> &data) {
