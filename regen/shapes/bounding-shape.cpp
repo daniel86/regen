@@ -13,7 +13,7 @@ BoundingShape::BoundingShape(BoundingShapeType shapeType)
 		: shapeType_(shapeType),
 		  useLocalStamp_(false),
 		  lastGeometryStamp_(0u) {
-	localStamp_.store(0u);
+	localStamp_.store(0u, std::memory_order_relaxed);
 	updateStampFunction();
 }
 
