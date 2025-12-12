@@ -44,7 +44,9 @@ namespace regen {
 		 * @param cfg the blanket configuration.
 		 * @param numInstances the number of blanket instances.
 		 */
-		explicit Blanket(const BlanketConfig &cfg, uint32_t numInstances);
+		Blanket(const BlanketConfig &cfg,
+			uint32_t numInstances,
+			const SystemTime &systemTime);
 
 		/**
 		 * Revive a dead blanket instance, returning its index
@@ -66,11 +68,12 @@ namespace regen {
 		uint32_t numBlankets_;
 		uint32_t numDeadBlankets_ = 0;
 		float blanketLifetimeMax_;
-		ref_ptr<ShaderInput1f> sh_blanketLifetime_;
+		ref_ptr<ShaderInput1f> timeOfBirth_;
 		std::vector<uint32_t> deadBlankets_;
 		std::vector<float> blanketLifetime_;
 		uint32_t blanketTraversalMask_;
 		ref_ptr<Animation> lifetimeAnimation_;
+		const SystemTime *systemTime_ = nullptr;
 	};
 } // namespace
 

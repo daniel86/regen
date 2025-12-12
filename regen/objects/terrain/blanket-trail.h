@@ -36,7 +36,8 @@ namespace regen {
 		 */
 		BlanketTrail(
 			const ref_ptr<Ground> &groundMesh,
-			const TrailConfig &cfg);
+			const TrailConfig &cfg,
+			const SystemTime &systemTime);
 
 		/**
 		 * Assigns a blanket mask texture.

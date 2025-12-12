@@ -331,8 +331,9 @@ void main() {
     vec2 maskUV = in_texco0;
     #endif
     float blanketMaskVal = texture(in_blanketMask, maskUV).r;
-    #ifdef HAS_blanketLifetime
-    blanketMaskVal *= in_blanketLifetime;
+    #ifdef HAS_timeOfBirth
+    const float lifetime = in_time - in_timeOfBirth;
+    blanketMaskVal *= max(1.0 - lifetime / in_maxLifetime, 0.0);
     #endif
     out_collision = blanketMaskVal;
 }

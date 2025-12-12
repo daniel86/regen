@@ -16,11 +16,14 @@ static uint32_t computeMaxInstances(const BlanketTrail::TrailConfig &cfg) {
 }
 
 BlanketTrail::BlanketTrail(
-	const ref_ptr<Ground> &groundMesh,
-	const TrailConfig &cfg) : Blanket(cfg, computeMaxInstances(cfg)) {
+		const ref_ptr<Ground> &groundMesh,
+		const TrailConfig &cfg,
+		const SystemTime &systemTime)
+		: Blanket(cfg, computeMaxInstances(cfg), systemTime),
+		  tmpMat_(Mat4f::identity()) {
 	groundMesh_ = groundMesh;
 	insertHeight_ = groundMesh_->mapCenter()->getVertex(0).r.y -
-			0.5f*groundMesh_->mapSize()->getVertex(0).r.y;
+	                0.5f * groundMesh_->mapSize()->getVertex(0).r.y;
 }
 
 void BlanketTrail::setBlanketMask(const ref_ptr<Texture> &tex) {
@@ -129,7 +132,7 @@ ref_ptr<BlanketTrail> BlanketTrail::load(LoadingContext &ctx,
 	meshCfg.accessMode = input.getValue<ClientAccessMode>("access-mode", BUFFER_CPU_WRITE);
 	meshCfg.numTrails = input.getValue<uint32_t>("blanket-trails", 1u);
 	meshCfg.blanketFrequency = input.getValue<float>("blanket-frequency", 0.5f);
-	auto blanket = ref_ptr<BlanketTrail>::alloc(groundMesh, meshCfg);
+	auto blanket = ref_ptr<BlanketTrail>::alloc(groundMesh, meshCfg, scene->systemTime());
 
 	// early add mesh vector to scene for children handling below
 	auto out_ = ref_ptr<CompositeMesh>::alloc();

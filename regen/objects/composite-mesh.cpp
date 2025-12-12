@@ -119,7 +119,7 @@ ref_ptr<CompositeMesh> CompositeMesh::load(LoadingContext &ctx, scene::SceneInpu
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		uint32_t numInstances = input.getValue<uint32_t>("num-instances", 1u);
-		auto blanket = ref_ptr<Blanket>::alloc(meshCfg, numInstances);
+		auto blanket = ref_ptr<Blanket>::alloc(meshCfg, numInstances, parser->systemTime());
 		blanket->updateAttributes();
 		(*out) = CompositeMesh();
 		out->addMesh(blanket);
