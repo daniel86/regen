@@ -107,12 +107,11 @@ void CameraController::initCameraController() {
 
 void CameraController::cpuUpdate(double dt) {
 	updateStep(dt);
-	if (!isRotating_ && !isMoving_) return;
-
-	pos_ += step_;
-
-	updateCameraPose();
-	computeMatrices(camPos_, camDir_);
+	if (isRotating_ || isMoving_) {
+		pos_ += step_;
+		updateCameraPose();
+		computeMatrices(camPos_, camDir_);
+	}
 	updateCamera(camPos_, camDir_, dt);
 }
 
