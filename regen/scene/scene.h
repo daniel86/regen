@@ -310,14 +310,14 @@ namespace regen {
 		void updateTime();
 
 		/**
-		 * @return the world time uniform. time in seconds.
+		 * @return the world time.
 		 */
-		auto &worldTime() const { return worldTime_; }
+		const WorldTime &worldTime() const { return worldTime_; }
 
 		/**
-		 * @return the time of last frame.
+		 * @return the system time.
 		 */
-		auto &lastTime() const { return lastTime_; }
+		const SystemTime &systemTime() const { return systemTime_; }
 
 		/**
 		 * Sets the world time scale.
@@ -387,15 +387,14 @@ namespace regen {
 		ref_ptr<ShaderInput2f> mousePosition_;
 		ref_ptr<ShaderInput2f> mouseTexco_;
 		ref_ptr<ShaderInput1f> mouseDepth_;
-		ref_ptr<ShaderInput1f> timeSeconds_;
 		ref_ptr<ShaderInput1f> timeDelta_;
 		ref_ptr<UBO> globalUniforms_;
 
 		ref_ptr<WorldModel> worldModel_;
 
 		boost::posix_time::ptime lastMotionTime_;
-		boost::posix_time::ptime lastTime_;
 		WorldTime worldTime_;
+		SystemTime systemTime_;
 
 		bool isGLInitialized_;
 		bool isTimeInitialized_;

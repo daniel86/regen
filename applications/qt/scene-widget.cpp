@@ -148,9 +148,7 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		return;
 	}
 	isRunning_ = true;
-#ifdef WAIT_ON_VSYNC
 	int dt;
-#endif
 #ifdef REGEN_SCENE_DEBUG_TIME
 	ElapsedTimeDebugger elapsedTime("Scene Drawing", 300);
 #endif
@@ -204,7 +202,8 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 			// adjust interval to hit the desired frame rate if we can
 			boost::posix_time::ptime t(
 					boost::posix_time::microsec_clock::local_time());
-			dt = std::max(0, updateInterval_ - static_cast<int>((t - app_->lastTime()).total_microseconds()));
+			dt = std::max(0, updateInterval_ - static_cast<int>((t -
+				app_->systemTime().p_time).total_microseconds()));
 			// sleep desired interval
 			usleepRegen(dt);
 		}

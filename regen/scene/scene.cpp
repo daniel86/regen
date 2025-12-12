@@ -42,10 +42,14 @@ Scene::Scene(const int& /*argc*/, const char** /*argv*/)
 	mouseDepth_ = ref_ptr<ShaderInput1f>::alloc("mouseDepthVS");
 	mouseDepth_->setUniformData(0.0f);
 
-	timeSeconds_ = ref_ptr<ShaderInput1f>::alloc("time");
-	timeSeconds_->setUniformData(0.0f);
 	timeDelta_ = ref_ptr<ShaderInput1f>::alloc("timeDeltaMS");
 	timeDelta_->setUniformData(0.0f);
+
+	// UTC time of the system
+	systemTime_.in = ref_ptr<ShaderInput1f>::alloc("time");
+	systemTime_.in->setUniformData(0.0f);
+	systemTime_.p_time = boost::posix_time::microsec_clock::local_time();
+
 	// UTC time of the game world
 	worldTime_.in = ref_ptr<ShaderInput1f>::alloc("worldTime");
 	worldTime_.in->setUniformData(0.0f);
@@ -299,7 +303,7 @@ void Scene::initGL() {
 	globalUniforms_->addStagedInput(mouseDepth_);
 	globalUniforms_->addStagedInput(isMouseEntered_);
 	globalUniforms_->addStagedInput(worldTime_.in);
-	globalUniforms_->addStagedInput(timeSeconds_);
+	globalUniforms_->addStagedInput(systemTime_.in);
 	globalUniforms_->addStagedInput(timeDelta_);
 	renderTree_->state()->setInput(globalUniforms_);
 	// Note: don't add to the UBO as it might use ring buffer causing
@@ -308,9 +312,11 @@ void Scene::initGL() {
 }
 
 void Scene::setTime() {
-	lastTime_ = boost::posix_time::ptime(
+	systemTime_.p_time = boost::posix_time::ptime(
 			boost::posix_time::microsec_clock::local_time());
-	lastMotionTime_ = lastTime_;
+	systemTime_.in->setVertex(0,
+			systemTime_.p_time.time_of_day().total_microseconds() / 1e+6);
+	lastMotionTime_ = systemTime_.p_time;
 	isTimeInitialized_ = true;
 }
 
@@ -372,10 +378,10 @@ void Scene::updateTime() {
 		setTime();
 	}
 	boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
-	auto dt = (t - lastTime_).total_microseconds();
+	auto dt = (t - systemTime_.p_time).total_microseconds();
 	timeDelta_->setVertex(0, ((float) dt)/1000.0f);
-	timeSeconds_->setVertex(0, t.time_of_day().total_microseconds() / 1e+6);
-	lastTime_ = t;
+	systemTime_.in->setVertex(0, t.time_of_day().total_microseconds() / 1e+6);
+	systemTime_.p_time = t;
 	worldTime_.p_time += boost::posix_time::milliseconds(static_cast<long>((dt/1000.0) * worldTime_.scale));
 }
 

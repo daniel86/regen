@@ -77,6 +77,16 @@ namespace regen::scene {
 		const ref_ptr<ShaderInput2f> &getMouseTexco() const;
 
 		/**
+		 * @return The world time.
+		 */
+		const WorldTime& worldTime() const { return application()->worldTime(); }
+
+		/**
+		 * @return The system time.
+		 */
+		const SystemTime& systemTime() const { return application()->systemTime(); }
+
+		/**
 		 * @return The world model.
 		 */
 		ref_ptr<WorldModel> worldModel() const { return worldModel_; }
