@@ -512,7 +512,7 @@ namespace regen {
 		 * Recompute the camera parameters.
 		 * @return true if the camera was updated.
 		 */
-		virtual bool updateCamera();
+		bool updateCamera();
 
 		virtual void updateViewProjection1();
 
