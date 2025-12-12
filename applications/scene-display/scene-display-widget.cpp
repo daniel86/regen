@@ -904,6 +904,9 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	REGEN_INFO("Loading XML scene at " << sceneFile << ".");
 
 	AnimationManager::get().pause(true);
+	// Ensure all GL operations are finished before deleting GL resources.
+	glFinish();
+
 	AnimationManager::get().clear();
 	AnimationManager::get().setRootState(app_->renderTree()->state());
 	TextureBinder::reset();
