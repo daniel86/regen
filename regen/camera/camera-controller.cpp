@@ -12,8 +12,7 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 		: Animation(false, true),
 		  CameraControllerBase(cam),
 		  cameraMode_(FIRST_PERSON),
-		  meshDistance_(10.0f),
-		  lastOrientation_(0.0) {
+		  meshDistance_(10.0f) {
 	setAnimationName("controller");
 	horizontalOrientation_ = 0.0;
 	verticalOrientation_ = 0.0;

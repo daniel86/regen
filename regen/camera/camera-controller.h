@@ -255,7 +255,7 @@ namespace regen {
 		bool moveDown_ = false;
 		bool isMoving_ = false;
 		bool isRotating_ = false;
-		double lastOrientation_;
+		double lastOrientation_ = -1.0;
 
 		Vec3f meshEyeOffset_;
 		double meshHorizontalOrientation_;
