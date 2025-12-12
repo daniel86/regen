@@ -330,6 +330,30 @@ namespace regen {
 		}
 
 		/**
+		 * Matrix-Vec3 multiplication (ignoring translation, w=0).
+		 * @param v the vector.
+		 * @return transformed vector.
+		 */
+		constexpr Vec3f mul_30(const Vec3f &v) const {
+			return Vec3f{
+				v.x * x[0] + v.y * x[1] + v.z * x[2] + x[3],
+				v.x * x[4] + v.y * x[5] + v.z * x[6] + x[7],
+				v.x * x[8] + v.y * x[9] + v.z * x[10] + x[11]};
+		}
+
+		/**
+		 * Matrix-Vec3 multiplication (including translation, w=1).
+		 * @param v the vector.
+		 * @return transformed vector.
+		 */
+		constexpr Vec3f mul_31(const Vec3f &v) const {
+			return Vec3f{
+				v.x * x[0] + v.y * x[1] + v.z * x[2] + x[3],
+				v.x * x[4] + v.y * x[5] + v.z * x[6] + x[7],
+				v.x * x[8] + v.y * x[9] + v.z * x[10] + x[11]};
+		}
+
+		/**
 		 * Matrix-Matrix multiplication.
 		 * @param b another matrix.
 		 * @return the matrix product.
@@ -756,7 +780,7 @@ namespace regen {
 		 * @return vector multiplied with matrix, ignoring the translation.
 		 */
 		constexpr Vec3f rotateVector(const Vec3f &v) const {
-			return ((*this) * Vec4f::create(v, 0.0f)).xyz();
+			return mul_30(v);
 		}
 
 		/**
@@ -764,7 +788,7 @@ namespace regen {
 		 * @return vector multiplied with matrix.
 		 */
 		constexpr Vec3f transformVector(const Vec3f &v) const {
-			return ((*this) * Vec4f::create(v, 1.0f)).xyz();
+			return mul_31(v);
 		}
 
 		/**
@@ -919,12 +943,12 @@ namespace regen {
 					euler.z = atan2f(x[9], x[10]);
 					euler.y = atan2f(x[4], x[0]);
 				} else {
-					euler.x = -M_PI / 2;
+					euler.x = -math::halfPi<float>();
 					euler.z = -atan2f(x[6], x[5]);
 					euler.y = 0;
 				}
 			} else {
-				euler.x = M_PI / 2;
+				euler.x = math::halfPi<float>();
 				euler.z = atan2f(x[6], x[5]);
 				euler.y = 0;
 			}
