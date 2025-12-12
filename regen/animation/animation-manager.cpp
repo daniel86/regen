@@ -147,7 +147,16 @@ void AnimationManager::clear() {
 	boost::unique_lock lock(unsyncedListLock_);
 	cpuAnimations_.clear();
 	gpuAnimations_.clear();
+	// Join all unsynced threads.
+	// Note: the animation thread keeps running until closeFlag_ is set.
+	for (auto &anim : unsyncedAnimations_) {
+		anim->isRunning_.clear(std::memory_order_release);
+	}
+	for (auto &thread : unsyncedThreads_) {
+		thread.join();
+	}
 	unsyncedAnimations_.clear();
+	unsyncedThreads_.clear();
 	spatialIndices_.clear();
 }
 
@@ -290,7 +299,7 @@ void AnimationManager::unsyncedUpdate(Animation *animation) {
 		// Spin until we can continue
 		if (pauseFlag_.value.test(std::memory_order_acquire)) {
 			unsynced_numActiveUpdates_.fetch_sub(1, std::memory_order_release);
-			waitOnFlag<false>(pauseFlag_.value);
+			CPU_PAUSE();
 			continue;
 		}
 
