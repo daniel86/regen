@@ -87,7 +87,7 @@ namespace regen {
 		 * Advance the local stamp by one.
 		 * This is used when no ModelTransformation is set and the local transform is used
 		 */
-		void nextLocalStamp() { localStamp_ += 1u; }
+		void nextLocalStamp() { localStamp_.fetch_add(1u, std::memory_order_relaxed); }
 
 		/**
 		 * Set the bitmask used to skip the shape during traversal.
