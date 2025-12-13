@@ -68,12 +68,14 @@ namespace regen {
 		uint32_t numBlankets_;
 		uint32_t numDeadBlankets_ = 0;
 		float blanketLifetimeMax_;
-		ref_ptr<ShaderInput1f> timeOfBirth_;
 		std::vector<uint32_t> deadBlankets_;
 		std::vector<float> blanketLifetime_;
 		uint32_t blanketTraversalMask_;
 		ref_ptr<Animation> lifetimeAnimation_;
 		const SystemTime *systemTime_ = nullptr;
+
+		ref_ptr<BufferBlock> blanketBuffer_;
+		ref_ptr<ShaderInput1f> timeOfBirth_;
 	};
 } // namespace
 

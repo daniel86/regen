@@ -41,7 +41,7 @@ void BlanketTrail::setBlanketMask(const ref_ptr<Texture> &tex) {
 		maskIndex_.resize(numBlankets_, 0);
 		u_maskIndex_ = ref_ptr<ShaderInput1ui>::alloc("maskIndex");
 		u_maskIndex_->setInstanceData(numBlankets_, 1, (byte*)maskIndex_.data());
-		setInput(u_maskIndex_);
+		blanketBuffer_->addStagedInput(u_maskIndex_);
 	} else {
 		maskIndex_.clear();
 		u_maskIndex_ = {};

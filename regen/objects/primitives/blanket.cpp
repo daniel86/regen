@@ -53,10 +53,20 @@ Blanket::Blanket(const BlanketConfig &cfg, uint32_t numInstances, const SystemTi
 		}
 	}
 	blanketLifetime_.resize(numInstances, cfg.isInitiallyDead ? 0.0f : 1.0f);
+
+	// create GL buffer for blanket data that is written per-frame but only for the few
+	// blankets that were inserted.
+	timeOfBirth_ = ref_ptr<ShaderInput1f>::alloc("timeOfBirth");
+	timeOfBirth_->setInstanceData(numBlankets_, 1, (byte*)blanketLifetime_.data());
+
+	blanketBuffer_ = ref_ptr<SSBO>::alloc("Blanket", BufferUpdateFlags::PARTIAL_PER_FRAME);
+	blanketBuffer_->addStagedInput(timeOfBirth_);
+	setInput(blanketBuffer_);
+
 	// expose max lifetime as shader input
-	auto sh_maxLife = ref_ptr<ShaderInput1f>::alloc("maxLifetime");
-	sh_maxLife->setUniformData(blanketLifetimeMax_);
-	setInput(sh_maxLife);
+	auto maxLife = ref_ptr<ShaderInput1f>::alloc("maxLifetime");
+	maxLife->setUniformData(blanketLifetimeMax_);
+	setInput(maxLife);
 }
 
 void Blanket::updateAttributes() {
@@ -70,9 +80,6 @@ void Blanket::updateAttributes() {
 		}
 	}
 
-	timeOfBirth_ = ref_ptr<ShaderInput1f>::alloc("timeOfBirth");
-	timeOfBirth_->setInstanceData(numBlankets_, 1, (byte*)blanketLifetime_.data());
-	setInput(timeOfBirth_);
 	if (blanketLifetimeMax_ > 0.0f) {
 		lifetimeAnimation_ = ref_ptr<BlanketLifetimeAnimation>::alloc(this);
 		lifetimeAnimation_->startAnimation();
