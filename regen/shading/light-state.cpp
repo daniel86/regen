@@ -75,9 +75,7 @@ void Light::setConeAngles(float inner, float outer) {
 }
 
 bool Light::updateConeMatrix() {
-	uint32_t stamp = std::max(lightRadius_->stampOfReadData(),
-			std::max(lightDirection_->stampOfReadData(),
-			std::max(lightConeAngles_->stampOfReadData(), lightPosition_->stampOfReadData())));
+	const uint32_t stamp = lightBuffer_->stampOfReadData();
 	if (lightConeStamp_ == stamp) return false; // no update needed
 
 	// Note: cone opens in positive z direction.

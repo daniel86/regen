@@ -142,9 +142,9 @@ bool LightCamera_CSM::updateFrustumSplit() {
 }
 
 bool LightCamera_CSM::updateLightView() {
-	if (lightDirStamp_ == light_->direction()->stampOfReadData() &&
-		lightPosStamp_ == userPositionStamp_) { return false; }
-	lightDirStamp_ = light_->direction()->stampOfReadData();
+	const uint32_t dirStamp = light_->direction()->stampOfReadData();
+	if (lightDirStamp_ == dirStamp && lightPosStamp_ == userPositionStamp_) { return false; }
+	lightDirStamp_ = dirStamp;
 	lightPosStamp_ = userPositionStamp_;
 
 	auto f = -light_->directionStaged(0).r;

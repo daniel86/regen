@@ -305,12 +305,13 @@ void BoidsGPU::gpuUpdate(RenderState *rs, double dt) {
 		bboxPass_->enable(rs);
 		bboxPass_->disable(rs);
 		// update the grid in case the bounding box around the boids changed.
-		if(bboxBuffer_->updateBoundingBox() || vrStamp_ != visualRange_->stampOfReadData()) {
+		const uint32_t vrStamp = visualRange_->stampOfReadData();
+		if(bboxBuffer_->updateBoundingBox() || vrStamp_ != vrStamp) {
 			auto &newBounds = bboxBuffer_->bbox();
 			if (newBounds.max != newBounds.min) {
 				boidBounds_ = newBounds;
 				updateGrid();
-				vrStamp_ = visualRange_->stampOfReadData();
+				vrStamp_ = vrStamp;
 			}
 		}
 #ifdef BOID_DEBUG_BBOX_TIME

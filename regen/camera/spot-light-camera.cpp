@@ -30,8 +30,9 @@ bool LightCamera_Spot::updateSpotLight() {
 }
 
 bool LightCamera_Spot::updateLightProjection() {
-	if (lightRadiusStamp_ == light_->radius()->stampOfReadData() &&
-		lightConeStamp_ == light_->coneAngle()->stampOfReadData()) { return false; }
+	const uint32_t radiusStamp = light_->radius()->stampOfReadData();
+	const uint32_t coneStamp = light_->coneAngle()->stampOfReadData();
+	if (lightRadiusStamp_ == radiusStamp && lightConeStamp_ == coneStamp) { return false; }
 	const auto radius = light_->radiusStaged(0);
 	const auto coneAngle = light_->coneAngleStaged(0);
 	setPerspective(
@@ -39,16 +40,17 @@ bool LightCamera_Spot::updateLightProjection() {
 			2.0f * acosf(coneAngle.r.y) * math::RAD_TO_DEG,
 			lightNear_,
 			radius.r.y);
-	lightRadiusStamp_ = light_->radius()->stampOfReadData();
-	lightConeStamp_ = light_->coneAngle()->stampOfReadData();
+	lightRadiusStamp_ = radiusStamp;
+	lightConeStamp_ = coneStamp;
 	return true;
 }
 
 bool LightCamera_Spot::updateLightView() {
-	if (lightPosStamp_ == light_->position()->stampOfReadData() &&
-		lightDirStamp_ == light_->direction()->stampOfReadData()) { return false; }
-	lightPosStamp_ = light_->position()->stampOfReadData();
-	lightDirStamp_ = light_->direction()->stampOfReadData();
+	const uint32_t posStamp = light_->position()->stampOfReadData();
+	const uint32_t dirStamp = light_->direction()->stampOfReadData();
+	if (lightPosStamp_ == posStamp && lightDirStamp_ == dirStamp) { return false; }
+	lightPosStamp_ = posStamp;
+	lightDirStamp_ = dirStamp;
 	setPosition(0, light_->positionStaged(0).r.xyz());
 	setDirection(0, light_->directionStaged(0).r);
 	return updateView();

@@ -36,8 +36,9 @@ ModelMatrixUpdater::~ModelMatrixUpdater() {
 }
 
 void ModelMatrixUpdater::cpuUpdate(double dt) {
-	if (stamp_ == tf_->modelMat()->stampOfReadData()) return;
-	stamp_ = tf_->modelMat()->stampOfReadData();
+	const uint32_t stamp = tf_->modelMat()->stampOfReadData();
+	if (stamp_ == stamp) return;
+	stamp_ = stamp;
 	auto regenData = tf_->modelMat()->mapClientDataRaw(BUFFER_GPU_WRITE);
 	std::memcpy(regenData.w, backBuffer_, tf_->modelMat()->inputSize());
 }

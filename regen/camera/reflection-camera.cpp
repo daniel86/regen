@@ -101,18 +101,25 @@ bool ReflectionCamera::updateReflection() {
 
 	bool reflectorChanged = false;
 	if (hasMesh_) {
-		if (transform_.get() != nullptr && transform_->stampOfReadData() != transformStamp_) {
-			reflectorChanged = true;
-			transformStamp_ = transform_->stampOfReadData();
+		if (transform_.get() != nullptr) {
+			const uint32_t tfStamp = transform_->stampOfReadData();
+			if (tfStamp != transformStamp_) {
+				reflectorChanged = true;
+				transformStamp_ = tfStamp;
+			}
 		}
-		if (nor_->stampOfReadData() != norStamp_) {
+
+		const uint32_t norStamp = nor_->stampOfReadData();
+		const uint32_t posStamp = pos_->stampOfReadData();
+		if (norStamp != norStamp_) {
 			reflectorChanged = true;
-			norStamp_ = nor_->stampOfReadData();
+			norStamp_ = norStamp;
 		}
-		if (pos_->stampOfReadData() != posStamp_) {
+		if (posStamp != posStamp_) {
 			reflectorChanged = true;
-			posStamp_ = pos_->stampOfReadData();
+			posStamp_ = posStamp;
 		}
+
 		// Compute plane parameters...
 		if (reflectorChanged) {
 			if (!pos_->hasClientData()) pos_->readServerData();

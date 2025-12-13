@@ -96,19 +96,21 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 }
 
 bool LightCamera_Parabolic::updateLightProjection() {
-	if (lightRadiusStamp_ == light_->radius()->stampOfReadData()) { return false; }
+	const uint32_t radiusStamp = light_->radius()->stampOfReadData();
+	if (lightRadiusStamp_ == radiusStamp) { return false; }
 	auto radius = light_->radiusStaged(0);
-	lightRadiusStamp_ = light_->radius()->stampOfReadData();
+	lightRadiusStamp_ = radiusStamp;
 	setPerspective(1.0f, 180.0f, lightNear_, radius.r.y);
 	return true;
 }
 
 bool LightCamera_Parabolic::updateLightView() {
-	if (lightPosStamp_ == light_->position()->stampOfReadData() &&
-		lightDirStamp_ == light_->direction()->stampOfReadData()) { return false; }
+	const uint32_t posStamp = light_->position()->stampOfReadData();
+	const uint32_t dirStamp = light_->direction()->stampOfReadData();
+	if (lightPosStamp_ == posStamp && lightDirStamp_ == dirStamp) { return false; }
 	auto dir = light_->directionStaged(0);
-	lightPosStamp_ = light_->position()->stampOfReadData();
-	lightDirStamp_ = light_->direction()->stampOfReadData();
+	lightPosStamp_ = posStamp;
+	lightDirStamp_ = dirStamp;
 	// Set the position of the light camera
 	setPosition(0, light_->positionStaged(0).r.xyz());
 	setDirection(0, -dir.r);
