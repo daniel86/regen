@@ -336,9 +336,9 @@ namespace regen {
 		 */
 		constexpr Vec3f mul_30(const Vec3f &v) const {
 			return Vec3f{
-				v.x * x[0] + v.y * x[1] + v.z * x[2] + x[3],
-				v.x * x[4] + v.y * x[5] + v.z * x[6] + x[7],
-				v.x * x[8] + v.y * x[9] + v.z * x[10] + x[11]};
+				v.x * x[0] + v.y * x[1] + v.z * x[2],
+				v.x * x[4] + v.y * x[5] + v.z * x[6],
+				v.x * x[8] + v.y * x[9] + v.z * x[10]};
 		}
 
 		/**
