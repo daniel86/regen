@@ -274,7 +274,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${REGEN_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${REGEN_MICRO_VERSION}")
 if(WIN32)
     # There is a bug in NSI that does not handle full unix paths properly. Make
-    # sure there is at least one set of four (4) backlasshes.
+    # sure there is at least one set of four (4) backlashes.
     set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/regen/res\\\\icon-small.png")
     set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ${PROJECT_NAME}")
     set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\daniel86.github.io/regen/")
