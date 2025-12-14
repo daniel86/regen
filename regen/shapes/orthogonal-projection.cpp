@@ -106,21 +106,25 @@ void OrthogonalProjection::createRectangle_AABB(const BoundingShape &box) {
 	auto &aabb = static_cast<const AABB&>(box);
 	auto &batchData = aabb.globalBatchData_t();
 	const uint32_t batchIdx = aabb.globalIndex();
+	float* __restrict minX = batchData.minX().data();
+	float* __restrict minZ = batchData.minZ().data();
+	float* __restrict maxX = batchData.maxX().data();
+	float* __restrict maxZ = batchData.maxZ().data();
 	type = RECTANGLE;
 	// generate the 4 corners of the box in the xz-plane.
 	points.resize(4);
 	// bottom-left
-	points[0].x = batchData.minX()[batchIdx];
-	points[0].y = batchData.minZ()[batchIdx];
+	points[0].x = minX[batchIdx];
+	points[0].y = minZ[batchIdx];
 	// bottom-right
-	points[1].x = batchData.maxX()[batchIdx];
-	points[1].y = batchData.minZ()[batchIdx];
+	points[1].x = maxX[batchIdx];
+	points[1].y = minZ[batchIdx];
 	// top-right
-	points[2].x = batchData.maxX()[batchIdx];
-	points[2].y = batchData.maxZ()[batchIdx];
+	points[2].x = maxX[batchIdx];
+	points[2].y = maxZ[batchIdx];
 	// top-left
-	points[3].x = batchData.minX()[batchIdx];
-	points[3].y = batchData.maxZ()[batchIdx];
+	points[3].x = minX[batchIdx];
+	points[3].y = maxZ[batchIdx];
 	// axes of the rectangle (and quad)
 	axes[2].dir = perpendicular(points[1] - points[0]);
 	axes[3].dir = perpendicular(points[3] - points[0]);
