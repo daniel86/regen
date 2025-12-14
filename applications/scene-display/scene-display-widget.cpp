@@ -158,7 +158,7 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 
 void SceneDisplayWidget::init() {
 	if (activeFile_.empty()) {
-		openFile();
+		openFile0();
 	} else {
 		loadScene(activeFile_);
 	}
