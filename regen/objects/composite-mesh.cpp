@@ -362,6 +362,15 @@ ref_ptr<CompositeMesh> CompositeMesh::load(LoadingContext &ctx, scene::SceneInpu
 		}
 	}
 
+	// Set number of instances if requested
+	const uint32_t numInstances = input.getValue<uint32_t>("num-instances", 1u);
+	if (numInstances > 1u) {
+		for (auto &mesh: out->meshes()) {
+			mesh->set_numInstances(numInstances);
+			mesh->set_numVisibleInstances(numInstances);
+		}
+	}
+
 	// generate LOD levels if requested
 	if (input.hasAttribute("lod-simplification")) {
 		auto thresholds = input.getValue<Vec4f>(

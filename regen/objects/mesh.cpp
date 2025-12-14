@@ -994,6 +994,10 @@ void Mesh::loadShaderConfig(LoadingContext &ctx, scene::SceneInputNode &input) {
 	} else if (input.hasAttribute("key")) {
 		setShaderKey(input.getValue<std::string>("key", shaderKey_));
 	}
+	if (input.hasAttribute("num-instances")) {
+		set_numInstances(input.getValue<int32_t>("num-instances", numInstances()));
+		set_numVisibleInstances(numInstances());
+	}
 	for (int i = 0; i < glenum::glslStageCount(); ++i) {
 		auto stage = glenum::glslStages()[i];
 		auto keyName = glenum::glslStagePrefix(stage);
