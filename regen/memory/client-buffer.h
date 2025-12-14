@@ -144,7 +144,7 @@ namespace regen {
 		 * Returns the current read slot index.
 		 * @return the current read slot index (0 or 1).
 		 */
-		inline uint32_t currentReadSlot() const {
+		inline int32_t currentReadSlot() const {
 			return dataOwner_->lastDataSlot_.load(std::memory_order_acquire);
 		}
 
@@ -153,14 +153,14 @@ namespace regen {
 		 * This is the slot that will be written to next.
 		 * @return the current write slot index (0 or 1).
 		 */
-		inline uint32_t currentWriteSlot() const {
-			return hasTwoSlots() ? 1u - currentReadSlot() : 0u;
+		inline int32_t currentWriteSlot() const {
+			return (1 - currentReadSlot()) - static_cast<int32_t>(dataSlots_[1] == nullptr);
 		}
 
 		/**
 		 * Increment the stamp.
 		 */
-		void nextStamp(uint32_t slotIdx) const;
+		void nextStamp(int32_t writeSlot) const;
 
 		/**
 		 * Assigns a list of segments to this client buffer, replacing any existing segments.
@@ -335,7 +335,7 @@ namespace regen {
 
 		bool readLock_SingleBuffer() const;
 
-		void readUnlock(int slotIndex) const;
+		void readUnlock(int32_t slotIndex) const;
 
 		int writeLock_DoubleBuffer() const;
 
@@ -353,11 +353,11 @@ namespace regen {
 
 		void nextStamp() const;
 
-		bool isOwnerOfWriteLock(int dataSlot) const;
+		bool isOwnerOfWriteLock(int32_t dataSlot) const;
 
-		void setOwnerOfWriteLock(int dataSlot) const;
+		void setOwnerOfWriteLock(int32_t dataSlot) const;
 
-		void nextSegmentStamp(uint32_t dataSlot, uint32_t updatedOffset, uint32_t updateSize) const;
+		void nextSegmentStamp(int32_t dataSlot, uint32_t updatedOffset, uint32_t updateSize) const;
 
 		void createSecondSlot();
 
