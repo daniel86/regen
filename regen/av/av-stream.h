@@ -1,25 +1,14 @@
-/*
- * ffmpeg-stream.h
- *
- *  Created on: 08.04.2012
- *      Author: daniel
- */
-
-#ifndef FFMPEG_STREAM_H_
-#define FFMPEG_STREAM_H_
+#ifndef REGEN_FFMPEG_STREAM_H_
+#define REGEN_FFMPEG_STREAM_H_
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
 
-#include <GL/glew.h>
-
-#include <iostream>
 #include <stdexcept>
 #include <queue>
 
-#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
 namespace regen {
@@ -123,4 +112,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* FFMPEG_STREAM_H_ */
+#endif /* REGEN_FFMPEG_STREAM_H_ */

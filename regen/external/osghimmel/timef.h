@@ -30,7 +30,6 @@
 
 #include "typedefs.h"
 
-#include <boost/timer/timer.hpp>
 #include <time.h>
 
 namespace osgHimmel {

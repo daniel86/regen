@@ -1,6 +1,4 @@
-#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-
 #include <regen/utility/strings.h>
 #include <regen/gl/gl-util.h>
 #include <regen/gl/render-state.h>
