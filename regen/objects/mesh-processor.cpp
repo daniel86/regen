@@ -126,8 +126,16 @@ void MeshNodeProvider::processInput(
 					meshCopy->setSortMode(cullShape->instanceSortMode());
 				}
 			}
-		} else if (input.hasAttribute("update-visibility")) {
-			REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape, but update-visibility is set.");
+		} else {
+			if (input.hasAttribute("update-visibility")) {
+				REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape, but update-visibility is set.");
+			}
+			// If multi-layer rendering is used, we need to create an indirect draw buffer
+			// to replicate each LOD level for each layer.
+			auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
+			if (cam.get() && cam->numLayer() > 1) {
+				meshCopy->createIndirectDrawBuffer(cam->numLayer());
+			}
 		}
 
 		LoadingContext ctx(scene, parent);
