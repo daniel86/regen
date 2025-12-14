@@ -94,7 +94,7 @@ namespace regen {
 
 		/**
 		 * Coalesce adjacent dirty ranges in the list.
-		 * This method merges ranges are directly adjacent
+		 * This method merges ranges that are directly adjacent
 		 * to reduce the number of dirty ranges.
 		 */
 		void coalesce();
