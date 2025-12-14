@@ -93,6 +93,13 @@ namespace regen {
 		inline void clear() { count_ = 0; }
 
 		/**
+		 * Coalesce adjacent dirty ranges in the list.
+		 * This method merges ranges are directly adjacent
+		 * to reduce the number of dirty ranges.
+		 */
+		void coalesce();
+
+		/**
 		 * Insert a new dirty range into the list.
 		 * If the range overlaps with an existing range, it will be merged.
 		 * @param offset The offset in bytes from the start of the buffer.

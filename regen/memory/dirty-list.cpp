@@ -12,6 +12,23 @@ void DirtyList::Range::merge(const Range& other) {
 	size = new_end - new_start;
 }
 
+void DirtyList::coalesce() {
+	// assume correct ordering, but elements may overlap
+	if (count_ < 2) return;
+	uint32_t write = 0;
+	for (uint32_t read = 1; read < count_; ++read) {
+		if (ranges_[write].end() == ranges_[read].offset) {
+			ranges_[write].size += ranges_[read].size;
+		} else {
+			++write;
+			if (write != read) {
+				ranges_[write] = ranges_[read];
+			}
+		}
+	}
+	count_ = write + 1;
+}
+
 void DirtyList::insert(uint32_t offset, uint32_t size) {
     const Range newRange{offset, size};
 

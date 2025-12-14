@@ -133,12 +133,11 @@ uint32_t ClientBuffer::swapData() {
 		// Also we need to avoid any writer adding stuff to the dirty list while we read it.
 		writeLockAll();
 
-		// Merge overlapping segments, and sort along offsets.
-		// NOTE: This is done also across padded regions, as dataSize_ is used for dirty tracking,
-		//       and it includes the padded bytes too.
-		// First, delete all dirty ranges from the last read slot that have been written to this frame.
+		// Delete all dirty ranges from the last read slot that have been written to this frame.
 		// It is certain that both dirty lists are coalesced, so calling subtract is safe.
 		dirtyLastFrame.subtract(dirtyThisFrame);
+		// Coalesce the remaining dirty ranges reducing the number of copy operations needed.
+		dirtyLastFrame.coalesce();
 
 		// Remaining are the ranges where data in the write slot is not up-to-date with the read slot,
 		// hence we copy it over.
