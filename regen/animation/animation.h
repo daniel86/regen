@@ -60,6 +60,11 @@ namespace regen {
 		bool isRunning() const { return isRunning_.test(std::memory_order_acquire); }
 
 		/**
+		 * @return the running atomic flag.
+		 */
+		const std::atomic_flag &runningFlag() const { return isRunning_; }
+
+		/**
 		 * @return the name of the animation.
 		 */
 		const std::string &animationName() const { return animationName_; }

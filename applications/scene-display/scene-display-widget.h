@@ -44,6 +44,8 @@ public:
 
 	void resetFile();
 
+	void openFile0();
+
 	void readConfig();
 
 	void writeConfig();
@@ -129,6 +131,8 @@ protected:
 	void loadSceneGraphicsThread(const std::string &sceneFile);
 
 	void resizeEvent(QResizeEvent *event);
+
+	void resetState();
 
 	static double getAnchorTime(const Vec3f &fromPosition, const Vec3f &toPosition);
 

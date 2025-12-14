@@ -288,7 +288,7 @@ void AnimationManager::unsyncedUpdate(Animation *animation) {
 
 	while (closeFlag_.value.test(std::memory_order_acquire) == false && animation->isRunning()) {
 		// Increase update counter atomic
-		unsynced_numActiveUpdates_.fetch_add(1, std::memory_order_acquire);
+		unsynced_numActiveUpdates_.fetch_add(1, std::memory_order_release);
 
 		// Avoid race condition on close
 		if (closeFlag_.value.test(std::memory_order_acquire)) {
