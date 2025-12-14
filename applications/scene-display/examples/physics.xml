@@ -81,6 +81,14 @@
         <texture id="normal"/>
         <depth pixel-size="24"/>
     </fbo>
+    <fbo id="paraboloid-emission-fbo"
+         size-mode="abs" size="256,256,2"
+         target="TEXTURE_2D_ARRAY"
+         sampler-type="sampler2DArray"
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="color" pixel-components="4"/>
+        <depth id="depth"/>
+    </fbo>
     <!-- Textures -->
     <texture id="reflector-noise" type="noise" preset="perlin" noise-scale="4.0"
             size="2048.0,2048.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
@@ -396,14 +404,24 @@
                 target-tf="sphere2-tf" target-randomize="1"/>
     </mesh>
 
+    <node id="Lightning-Bolt-Albedo">
+        <depth test="1" write="0"/>
+        <input type="float" name="lightningWidth" value="0.15"/>
+        <input type="vec3" name="matDiffuse" value="1.0, 1.0, 1.0"/>
+        <mesh id="lightning-mesh"/>
+    </node>
+
+    <node id="Lightning-Bolt-Emission">
+        <input type="float" name="lightningWidth" value="0.6"/>
+        <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
+        <mesh id="lightning-mesh"/>
+    </node>
+
+
     <node id="Emission-Draw">
         <depth test="1" write="0"/>
         <blend mode="lighten"/>
-        <node id="Lightning-Bolt0">
-            <input type="float" name="lightningWidth" value="0.6"/>
-            <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
-            <mesh id="lightning-mesh"/>
-        </node>
+        <node import="Lightning-Bolt-Emission"/>
     </node>
 
     <node id="G-Buffer-Emission-Update">
@@ -427,23 +445,13 @@
         </node>
     </node>
 
-    <node id="Emission-Draw-Lightning-Bolt">
-        <depth test="1" write="0"/>
-        <input type="float" name="lightningWidth" value="0.15"/>
-        <input type="vec3" name="matDiffuse" value="1.0, 1.0, 1.0"/>
-        <mesh id="lightning-mesh"/>
-    </node>
-
-    <node id="Emission-Draw-Glow">
-        <depth test="0" write="0"/>
-        <fullscreen-pass shader="regen.filter.sampling"/>
-    </node>
-
     <node id="G-Buffer-Emission-Draw">
         <blend mode="alpha"/>
-        <node import="Emission-Draw-Lightning-Bolt" />
-        <node import="Emission-Draw-Glow">
+        <node import="Lightning-Bolt-Albedo" />
+        <node>
+            <depth test="0" write="0"/>
             <texture name="inputTexture" id="emission-color"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
         </node>
     </node>
 
@@ -536,30 +544,24 @@
             <texture name="depthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
         </node>
         -->
-        <!-- TODO: Add lightning to the reflection buffer.
-                - For some reason the bolt does not render into cube map.
-                - Seems not the shader.
-                - Maybe something regarding the vertex data update? the vertex data is not really in place initially
-                  when copies are created.
-        -->
-        <!--
+
+        <!-- Add lightning to the reflection buffer. -->
         <node id="Cube-Emission-Update">
+            <!-- Copy depth from cube reflection buffer to cube emission buffer. -->
             <node id="Cube-Emission-Depth">
                 <depth test="1" write="1"/>
                 <fbo id="cube-emission-fbo" clear-depth="1"/>
                 <texture name="inputTexture" fbo="cube-reflection-buffer" attachment="depth"/>
                 <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
             </node>
+            <!-- Draw lightning into cube emission buffer. -->
             <node id="Cube-Emission-Draw">
                 <fbo id="cube-emission-fbo" clear-buffers="0" draw-buffers="0"/>
                 <depth test="1" write="0"/>
                 <blend mode="lighten"/>
-                <node id="Lightning-Bolt0">
-                    <input type="float" name="lightningWidth" value="0.6"/>
-                    <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
-                    <mesh id="lightning-mesh"/>
-                </node>
+                <node import="Lightning-Bolt-Emission"/>
             </node>
+            <!-- Blur cube emission color texture, output is "cube-emission-color". -->
             <node id="Cube-Emission-Blur">
                 <input type="int" name="numBlurPixels" value="9"/>
                 <input type="float" name="blurSigma" value="5.0"/>
@@ -567,6 +569,18 @@
                     <filter shader="regen.filter.blur.horizontal"/>
                     <filter shader="regen.filter.blur.vertical"/>
                 </filter-sequence>
+            </node>
+        </node>
+
+        <!-- Draw lightning bolt albedo and emission onto cube reflection buffer. -->
+        <node id="Cube-Transparent-Pass">
+            <depth test="1" write="0"/>
+            <blend mode="alpha"/>
+            <node import="Lightning-Bolt-Albedo" />
+            <node>
+                <depth test="0" write="0"/>
+                <texture name="inputTexture" id="cube-emission-color"/>
+                <fullscreen-pass shader="regen.filter.sampling"/>
             </node>
         </node>
 
@@ -580,18 +594,6 @@
             <texture name="inputTexture" id="cube-emission-color"/>
             <fullscreen-pass shader="regen.filter.sampling.cube"/>
         </view>
-        <node id="Cube-Transparent-Pass">
-            <blend mode="add"/>
-            <depth test="1" write="0"/>
-            <node id="Cube-Emission-Draw">
-                <blend mode="alpha"/>
-                <node import="Emission-Draw-Lightning-Bolt" />
-                <node import="Emission-Draw-Glow">
-                    <texture name="inputTexture" id="cube-emission-color"/>
-                </node>
-            </node>
-        </node>
-        -->
     </node>
 
     <node id="Paraboloid-Background-Pass">
@@ -599,6 +601,56 @@
             <depth test="1" write="0"/>
             <sky id="sky"/>
         </node>
+
+        <!-- Add lightning to the reflection buffer. -->
+        <node id="Paraboloid-Emission-Update">
+            <!-- Copy depth from paraboloid reflection buffer to paraboloid emission buffer. -->
+            <node id="Paraboloid-Emission-Depth">
+                <depth test="1" write="1"/>
+                <fbo id="paraboloid-emission-fbo" clear-depth="1"/>
+                <texture name="inputTexture" fbo="paraboloid-reflection-buffer" attachment="depth"/>
+                <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
+            </node>
+            <!-- Draw lightning into paraboloid emission buffer. -->
+            <node id="Paraboloid-Emission-Draw">
+                <fbo id="paraboloid-emission-fbo" clear-buffers="0" draw-buffers="0"/>
+                <depth test="1" write="0"/>
+                <blend mode="lighten"/>
+                <node import="Lightning-Bolt-Emission"/>
+            </node>
+            <!-- Blur paraboloid emission color texture, output is "paraboloid-emission-color". -->
+            <node id="Paraboloid-Emission-Blur">
+                <input type="int" name="numBlurPixels" value="9"/>
+                <input type="float" name="blurSigma" value="5.0"/>
+                <filter-sequence id="paraboloid-emission-color" fbo="paraboloid-emission-fbo" attachment="0">
+                    <filter shader="regen.filter.blur.horizontal"/>
+                    <filter shader="regen.filter.blur.vertical"/>
+                </filter-sequence>
+            </node>
+        </node>
+
+        <!-- Draw lightning bolt albedo and emission onto paraboloid reflection buffer. -->
+        <node id="Paraboloid-Transparent-Pass">
+            <depth test="1" write="0"/>
+            <blend mode="alpha"/>
+            <node import="Lightning-Bolt-Albedo" />
+            <node>
+                <depth test="0" write="0"/>
+                <texture name="inputTexture" id="paraboloid-emission-color"/>
+                <fullscreen-pass shader="regen.filter.sampling"/>
+            </node>
+        </node>
+
+        <view id="Paraboloid-Emission-Color">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" fbo="paraboloid-emission-fbo" attachment="0"/>
+            <fullscreen-pass shader="regen.filter.sampling.array"/>
+        </view>
+        <view id="Paraboloid-Emission-Blurred">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="paraboloid-emission-color"/>
+            <fullscreen-pass shader="regen.filter.sampling.array"/>
+        </view>
     </node>
 
     <node id="Post-Pass">
