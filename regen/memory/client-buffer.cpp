@@ -21,6 +21,40 @@ ClientBuffer::~ClientBuffer() {
 	bufferSegments_.clear();
 }
 
+ClientBufferPool *ClientBuffer::getMemoryPool(bool reset) {
+	static ClientBufferPool *memoryPool = nullptr;
+	if (reset && memoryPool != nullptr) {
+		delete memoryPool;
+		memoryPool = nullptr;
+	}
+	if (memoryPool == nullptr) {
+		memoryPool = new ClientBufferPool();
+		memoryPool->set_index(0);
+		memoryPool->set_alignment(32);
+		memoryPool->set_minSize(4u * 1024u * 1024u); // 4 MB blocks
+	}
+	return memoryPool;
+}
+
+ClientBufferPool *ClientBuffer::getMemoryPool() {
+	return getMemoryPool(false);
+}
+
+ClientBufferPool *ClientBuffer::resetMemoryPool() {
+	return getMemoryPool(true);
+}
+
+ClientBufferPool::Node* ClientBuffer::getMemoryAllocator(uint32_t dataSize) {
+	ClientBufferPool::Node *n = getMemoryPool()->chooseAllocator(dataSize);
+	if (n == nullptr) {
+		n = getMemoryPool()->createAllocator(dataSize);
+	}
+	if (n == nullptr) {
+		REGEN_ERROR("no allocator found for " << dataSize/1024.0 << " KB for client buffer.");
+	}
+	return n;
+}
+
 void ClientBuffer::setFrameLocked(bool frameLocked) {
 	isFrameLocked_ = frameLocked;
 	for (auto &segment: bufferSegments_) {
@@ -478,37 +512,6 @@ void ClientBuffer::updateBufferSize() {
 	}
 }
 
-ClientBufferPool *ClientBuffer::getMemoryPool(bool reset) {
-	static ClientBufferPool *memoryPool = nullptr;
-	if (reset && memoryPool != nullptr) {
-		delete memoryPool;
-		memoryPool = nullptr;
-	}
-	if (memoryPool == nullptr) {
-		memoryPool = new ClientBufferPool();
-		memoryPool->set_index(0);
-		memoryPool->set_alignment(1);
-		memoryPool->set_minSize(4u * 1024u * 1024u); // 4 MB blocks
-	}
-	return memoryPool;
-}
-
-ClientBufferPool::Node* ClientBuffer::getMemoryAllocator(uint32_t dataSize) {
-	ClientBufferPool::Node *n = getMemoryPool()->chooseAllocator(dataSize);
-	if (n == nullptr) {
-		n = getMemoryPool()->createAllocator(dataSize);
-	}
-	return n;
-}
-
-ClientBufferPool *ClientBuffer::getMemoryPool() {
-	return getMemoryPool(false);
-}
-
-ClientBufferPool *ClientBuffer::resetMemoryPool() {
-	return getMemoryPool(true);
-}
-
 void ClientBuffer::ownerResize() {
 	// keep a reference to the old data slots, for copying data over.
 	byte *oldData0 = dataSlots_[0];
@@ -522,17 +525,20 @@ void ClientBuffer::ownerResize() {
 	if constexpr(USE_CLIENT_BUFFER_POOL) {
 		auto oldDataRefs0 = dataRefs_[0];
 		auto oldDataRefs1 = dataRefs_[1];
-		auto memoryPool = ClientBuffer::getMemoryPool();
-		auto *allocator = ClientBuffer::getMemoryAllocator(dataSize_);
+		auto memoryPool = getMemoryPool();
+		auto *allocator = getMemoryAllocator(dataSize_);
 		dataRefs_[0] = memoryPool->alloc(allocator, dataSize_);
 		dataSlots_[0] = dataRefs_[0].allocatorNode->allocatorRef;
+
 		if (clientBufferMode_ == SingleBuffer) {
 			dataSlots_[1] = nullptr;
 		} else if (clientBufferMode_ == DoubleBuffer) {
+			allocator = getMemoryAllocator(dataSize_);
 			dataRefs_[1] = memoryPool->alloc(allocator, dataSize_);
 			dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
 		} else if (clientBufferMode_ == AdaptiveBuffer) {
 			if (dataSlots_[1]) {
+				allocator = getMemoryAllocator(dataSize_);
 				dataRefs_[1] = memoryPool->alloc(allocator, dataSize_);
 				dataSlots_[1] = dataRefs_[1].allocatorNode->allocatorRef;
 			}
@@ -553,8 +559,8 @@ void ClientBuffer::ownerResize() {
 		}
 
 		// delete the old data slots.
-		if (oldData0) getMemoryPool()->free(oldDataRefs0);
-		if (oldData1) getMemoryPool()->free(oldDataRefs1);
+		if (oldData0) memoryPool->free(oldDataRefs0);
+		if (oldData1) memoryPool->free(oldDataRefs1);
 	} else { // not using memory pool
 		dataSlots_[0] = new byte[dataSize_];
 		if (clientBufferMode_ == SingleBuffer) {
