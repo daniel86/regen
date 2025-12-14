@@ -53,13 +53,13 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat, co
 void ModelTransformation::initBufferContainer() {
 	tfBuffer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation", tfUpdateFlags_);
 	if (tfMode_ & TF_MATRIX) {
-		tfBuffer_->addInput(modelMat_);
+		tfBuffer_->addStagedInput(modelMat_);
 		tfClientBuffer_ = modelMat_->clientBuffer();
 	} else {
 		tfClientBuffer_ = modelOffset_->clientBuffer();
 	}
 	if (tfMode_ & TF_OFFSET) {
-		tfBuffer_->addInput(modelOffset_);
+		tfBuffer_->addStagedInput(modelOffset_);
 	}
 	joinStates(tfBuffer_);
 }

@@ -53,7 +53,7 @@ namespace regen {
 		 * Add a shader input to the container.
 		 * @param input the shader input object.
 		 */
-		void addInput(const ref_ptr<ShaderInput> &input, std::string_view name = "");
+		void addStagedInput(const ref_ptr<ShaderInput> &input, std::string_view name = "");
 
 		/**
 		 * Allocate the buffers for the shader inputs.
