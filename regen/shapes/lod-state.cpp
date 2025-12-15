@@ -17,11 +17,6 @@
 //#define LOD_DEBUG_TIME
 //#define LOD_DEBUG_GPU_TIME
 //#define LOD_DEBUG_SHAPE "silhouette-shape"
-// TODO: Consider using indirect draw buffers for single-LOD shapes as well.
-//      - evades synchronization issues with the staging system which uploads to main with delay.
-//      - might be needed in the long run anyway, when grouping meshes with the same shader
-//      - trivial to implement.
-//#define LOD_USE_DIBO_FOR_SINGLE_LOD
 
 using namespace regen;
 
@@ -30,6 +25,9 @@ namespace regen {
 	//       in spatial index traversal.
 	//       So for now we stick to having a duplication instance buffer.
 	static constexpr bool LOD_SEPARATE_INSTANCE_BUFFERS = true;
+	// Use DIBO even for single-LOD shapes.
+	// This may avoid synchronization issues with the staging system which uploads to main with delay.
+	static constexpr bool LOD_USE_DIBO_FOR_SINGLE_LOD = false;
 
 	class InstanceUpdater : public Animation {
 	public:
@@ -106,9 +104,13 @@ void LODState::initLODState() {
 		createInstanceBuffer();
 		// Create indirect draw buffers for each mesh part and LOD.
 		createIndirectDrawBuffers();
-	} else if (camera_->numLayer()>1) {
-		// we also need indirect draw buffers for multi-layer rendering
-		createIndirectDrawBuffers();
+	} else {
+		if constexpr(LOD_USE_DIBO_FOR_SINGLE_LOD) {
+			createIndirectDrawBuffers();
+		} else if (camera_->numLayer()>1) {
+			// even for single instance we need indirect draw buffers if multiple layers are used
+			createIndirectDrawBuffers();
+		}
 	}
 	if (!indirectDrawBuffers_.empty()) {
 		cullShape_->setIndirectDrawBuffers(indirectDrawBuffers_);
