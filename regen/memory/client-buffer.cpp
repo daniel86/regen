@@ -520,6 +520,12 @@ void ClientBuffer::ownerResize() {
 	// note: that some segments may need padding to align to their base alignment.
 	//       so the data size of a composed client buffer might be larger than the sum of the segment sizes.
 	updateBufferSize();
+	if (dataSize_==0u) {
+		// no data to allocate.
+		REGEN_WARN("data size is zero, no data allocated." <<
+			" Number of segments is: " << bufferSegments_.size());
+		return;
+	}
 
 	// allocate new data slots.
 	if constexpr(USE_CLIENT_BUFFER_POOL) {

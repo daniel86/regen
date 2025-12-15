@@ -417,6 +417,7 @@ void ShapeProcessor::processInput(
 	if (input.hasAttribute("num-instances")) {
 		numInstances = input.getValue<uint32_t>("num-instances", numInstances);
 	}
+	numInstances = std::max(numInstances, 1u);
 
 	if (isPhysicalShape) {
 		// add shape to physics engine
