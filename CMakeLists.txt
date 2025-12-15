@@ -3,15 +3,19 @@ cmake_minimum_required(VERSION 3.31)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
+# We support sanitizing builds below. By default, we use AddressSanitizer
+# for "Profile" builds.
+# To enable MemorySanitizer, set SANITIZER to "Memory".
 if(NOT SANITIZER)
     set(SANITIZER "Address" CACHE STRING "Enable sanitizers: Address, Memory")
 endif()
+
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}.")
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(REGEN_DEBUG_BUILD 1)
     add_definitions( -O2 )
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Profile")
-    # Address and UndefinedBehavior sanitizer
+    # Profiling using sanitizer
 	set(REGEN_DEBUG_BUILD 1)
 	if(${SANITIZER} STREQUAL "Memory")
         set(SANITIZE_FLAGS "-fsanitize=memory -fno-omit-frame-pointer -g -O1")
@@ -27,6 +31,7 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL "Profile")
     endif()
     set(CMAKE_BUILD_TYPE Debug)
 else()
+    # Non-debug build
 	set(REGEN_DEBUG_BUILD 0)
     add_definitions( -O2 )
 endif()
@@ -77,6 +82,7 @@ endif()
 # perform more aggressive floating-point optimizations
 # add_definitions( -ffast-math )
 
+# enable macros for C++11 standard limits and constants
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 ############
