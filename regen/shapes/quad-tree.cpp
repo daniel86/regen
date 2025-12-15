@@ -6,12 +6,9 @@
 #include "quad-tree.h"
 #include "regen/compute/simd.h"
 
-#define QUAD_TREE_DEBUG_TIME
 //#define QUAD_TREE_DISABLE_SIMD
 
-#ifdef QUAD_TREE_DEBUG_TIME
 #include "regen/gl/queries/elapsed-time.h"
-#endif
 
 using namespace regen;
 
@@ -22,6 +19,7 @@ namespace regen {
 	static constexpr bool QUAD_TREE_MASK_EARLY_EXIT = true;
 	static constexpr bool QUAD_TREE_DEFERRED_BATCH_STORE = false;
 	static constexpr bool QUAD_TREE_DEBUG_TESTS = false;
+	static constexpr bool QUAD_TREE_DEBUG_TIME = false;
 }
 
 namespace regen {
@@ -93,6 +91,11 @@ namespace regen {
 		template<uint32_t NumAxes> static void testNodesAndAxes(QuadTreeTraversal &td);
 		template<uint32_t NumAxes, TestMode_3D TestMode3D>
 		static void intersectionLoop(QuadTreeTraversal &td);
+
+		ElapsedTimeDebugger elapsedTime_ = ElapsedTimeDebugger(
+			"Quad-Tree Update",
+			1000,
+			ElapsedTimeDebugger::CPU_ONLY);
 	};
 }
 
@@ -924,12 +927,10 @@ void QuadTree::update(float dt) {
 		return;
 	}
 	bool hasChanged;
-#ifdef QUAD_TREE_DEBUG_TIME
-	thread_local ElapsedTimeDebugger elapsedTime("Quad-Tree Update",
-		1000, ElapsedTimeDebugger::CPU_ONLY);
-	elapsedTime.beginFrame();
-	elapsedTime.push("starting");
-#endif
+	if constexpr(QUAD_TREE_DEBUG_TIME) {
+		priv_->elapsedTime_.beginFrame();
+		priv_->elapsedTime_.push("starting");
+	}
 
 	changedItems_.clear();
 	reAddedItems_.clear();
@@ -994,9 +995,9 @@ void QuadTree::update(float dt) {
 		newBounds_.max.x = std::max(newBounds_.max.x, newBounds_.max.y);
 		newBounds_.max.y = newBounds_.max.x;
 	}
-#ifdef QUAD_TREE_DEBUG_TIME
-	elapsedTime.push("bounds-update");
-#endif
+	if constexpr(QUAD_TREE_DEBUG_TIME) {
+		priv_->elapsedTime_.push("bounds-update");
+	}
 
 	if (root_ == nullptr || newBounds_ != root_->bounds) {
 		// if bounds have changed, re-initialize the tree
@@ -1021,9 +1022,9 @@ void QuadTree::update(float dt) {
 			readd(itemIdx, true);
 		}
 	}
-#ifdef QUAD_TREE_DEBUG_TIME
-	elapsedTime.push("re-insertions");
-#endif
+	if constexpr(QUAD_TREE_DEBUG_TIME) {
+		priv_->elapsedTime_.push("re-insertions");
+	}
 
 	// finally insert the new items
 	for (auto item: newItems_) {
@@ -1039,9 +1040,9 @@ void QuadTree::update(float dt) {
 		}
 	}
 	newItems_.clear();
-#ifdef QUAD_TREE_DEBUG_TIME
-	elapsedTime.push("new-insertions");
-#endif
+	if constexpr(QUAD_TREE_DEBUG_TIME) {
+		priv_->elapsedTime_.push("new-insertions");
+	}
 
 	// update buffer sizes for intersection tests.
 	// at max we will have num-leaves nodes in the queue.
@@ -1050,10 +1051,10 @@ void QuadTree::update(float dt) {
 
 	// make the visibility computations
 	updateVisibility(traversalBit_);
-#ifdef QUAD_TREE_DEBUG_TIME
-	elapsedTime.push("updated-visibility");
-	elapsedTime.endFrame();
-#endif
+	if constexpr(QUAD_TREE_DEBUG_TIME) {
+		priv_->elapsedTime_.push("updated-visibility");
+		priv_->elapsedTime_.endFrame();
+	}
 }
 
 inline Vec3f toVec3(const Vec2f &v, float y) {
