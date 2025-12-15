@@ -15,6 +15,7 @@ namespace regen {
 		}
 
 		static bool interactWithVideo(TextureState &state) {
+#ifdef HAS_AV_LIBS
 			auto &tex = state.texture();
 			if (tex.get()) {
 				auto *video = dynamic_cast<VideoTexture*>(tex.get());
@@ -23,6 +24,7 @@ namespace regen {
 					return true;
 				}
 			}
+#endif
 			return false;
 		}
 	};

@@ -130,11 +130,6 @@ void Camera::updateShaderData(float dt) {
 	}
 	lastPosition_ = position_[0].xyz();
 
-	if (isAudioListener()) {
-		AudioListener::set3f(AL_POSITION, position(0));
-		AudioListener::set3f(AL_VELOCITY, velocity());
-		AudioListener::set6f(AL_ORIENTATION, Vec6f::create(direction(0), Vec3f::up()));
-	}
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
 	auto &clientBuffer = *cameraBlock_->clientBuffer().get();
@@ -407,17 +402,6 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 	isOrtho_ = true;
 	projStamp_ += 1u;
 	camStamp_ += 1u;
-}
-
-void Camera::set_isAudioListener(bool isAudioListener) {
-	isAudioListener_ = isAudioListener;
-	if (isAudioListener_) {
-		AudioListener::set3f(AL_POSITION, position_[0].xyz());
-		AudioListener::set3f(AL_VELOCITY, vel_.xyz());
-		AudioListener::set6f(AL_ORIENTATION, Vec6f::create(
-				direction_[0].xyz(),
-				Vec3f::up()));
-	}
 }
 
 bool Camera::updatePose() {
@@ -703,8 +687,6 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		return cam;
 	} else {
 		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
-		cam->set_isAudioListener(
-				input.getValue<bool>("audio-listener", false));
 		cam->setPosition(0, input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
 		if (input.hasAttribute("up")) {
 			cam->setLocalUp(input.getValue<Vec3f>("up", Vec3f::right()));

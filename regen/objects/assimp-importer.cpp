@@ -223,6 +223,7 @@ static void loadTexture(
 			tex = textures::load(filePath);
 		}
 		catch (textures::Error &ie) {
+#ifdef HAS_AV_LIBS
 			// try video texture
 			ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::alloc();
 			try {
@@ -234,6 +235,10 @@ static void loadTexture(
 				REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
 				return;
 			}
+#else
+			REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
+			return;
+#endif
 		}
 	} else if (aiTexture->mHeight == 0) {
 		// The texture is stored in a "compressed" format such as DDS or PNG

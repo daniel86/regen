@@ -28,8 +28,6 @@
 #cmakedefine HAS_IL
 #cmakedefine HAS_ILU
 #cmakedefine HAS_ILUT
-#cmakedefine HAS_OPENAL
-#cmakedefine HAS_ALUT
 #cmakedefine HAS_STB
 /* assimp defines */
 #cmakedefine HAS_ASSIMP
@@ -45,6 +43,7 @@
 /* ALUT defines */
 #cmakedefine HAS_ALUT
 #cmakedefine HAS_OPENAL
+#cmakedefine HAS_AV_LIBS
 
 namespace regen {
     class LoadingContext;

@@ -8,7 +8,6 @@ message(STATUS "Installing config.h to ${CMAKE_BINARY_DIR}/regen/config.h")
 
 set(SOURCE_DIRS
     compute
-    av
     gl
     shader
     memory
@@ -24,6 +23,13 @@ set(SOURCE_DIRS
     passes
     scene
     external)
+
+if (HAS_AV_LIBS)
+    message(STATUS "Including AV source directories")
+    list(APPEND SOURCE_DIRS av)
+else ()
+    message(STATUS "AV libraries not found, excluding AV source directories")
+endif()
 
 # collect sources from sub directories
 foreach(DIR ${SOURCE_DIRS})

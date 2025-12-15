@@ -31,8 +31,10 @@ using namespace std;
 #include "interactions/node-activation.h"
 #include "regen/simulation/impulse-controller.h"
 #include "regen/behavior/animal-controller.h"
-#include "regen/av/video-recorder.h"
 #include "regen/gl/states/blit-state.h"
+#ifdef HAS_AV_LIBS
+#include "regen/av/video-recorder.h"
+#endif
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -214,6 +216,7 @@ void SceneDisplayWidget::nextView() {
 	active1.node->set_isHidden(false);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 
+#ifdef HAS_AV_LIBS
 	if (videoRecorder_.get()) {
 		auto blitState = active1.node->findStateWithType<BlitToScreen>();
 		if (blitState) {
@@ -222,6 +225,7 @@ void SceneDisplayWidget::nextView() {
 			});
 		}
 	}
+#endif
 }
 
 void SceneDisplayWidget::previousView() {
@@ -238,6 +242,7 @@ void SceneDisplayWidget::previousView() {
 	active1.node->set_isHidden(false);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 
+#ifdef HAS_AV_LIBS
 	if (videoRecorder_.get()) {
 		auto blitState = active1.node->findStateWithType<BlitToScreen>();
 		if (blitState) {
@@ -246,6 +251,7 @@ void SceneDisplayWidget::previousView() {
 			});
 		}
 	}
+#endif
 }
 
 void SceneDisplayWidget::toggleOffCameraTransform() {
@@ -335,6 +341,7 @@ void SceneDisplayWidget::playAnchor() {
 	anchorAnim_->startAnimation();
 }
 
+#ifdef HAS_AV_LIBS
 void SceneDisplayWidget::makeVideo(bool isClicked) {
 	if (isClicked) {
 		auto &view = *activeView_;
@@ -380,6 +387,11 @@ void SceneDisplayWidget::makeVideo(bool isClicked) {
 		videoRecorder_->stopAnimation();
 	}
 }
+#else
+void SceneDisplayWidget::makeVideo(bool /** isClicked **/) {
+	REGEN_WARN("Video recording not supported, FFmpeg libraries not available.");
+}
+#endif
 
 void SceneDisplayWidget::toggleInputsDialog() {
 	if (inputDialog_ == nullptr) {

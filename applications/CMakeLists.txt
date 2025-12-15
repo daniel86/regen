@@ -23,6 +23,6 @@ if(BUILD_TESTS)
     add_subdirectory(noise-gui)
 endif()
 
-if(BUILD_VIDEO_PLAYER)
+if(BUILD_VIDEO_PLAYER AND HAS_AV_LIBS)
     add_subdirectory(video-player)
 endif()

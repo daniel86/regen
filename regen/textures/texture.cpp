@@ -556,7 +556,9 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		catch (textures::Error &ie) {
 			REGEN_ERROR("Failed to load Texture at " << filePath << ". " << ie.what());
 		}
-	} else if (input.hasAttribute("video")) {
+	}
+#ifdef HAS_AV_LIBS
+	else if (input.hasAttribute("video")) {
 		const std::string filePath = resourcePath(input.getValue("video"));
 		ref_ptr<VideoTexture> video = ref_ptr<VideoTexture>::alloc();
 		try {
@@ -572,7 +574,9 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		catch (VideoTexture::Error &ve) {
 			REGEN_ERROR("Failed to load Video at " << filePath << ". " << ve.what());
 		}
-	} else if (typeName == "noise") {
+	}
+#endif
+	else if (typeName == "noise") {
 		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
 		auto sizeAbs = getSize(screen->viewport().r, sizeMode, sizeRel);

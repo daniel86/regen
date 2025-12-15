@@ -83,6 +83,8 @@ add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 #### Search for Dependencies
 ###########
 
+set(REGEN_DISABLE_AV OFF)
+
 # openGL libraries
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
@@ -108,12 +110,25 @@ endif()
 find_package(ASSIMP REQUIRED)
 # check for Font lib
 find_package(Freetype REQUIRED)
-# check for Audio-Video libs
-find_package(OpenAL REQUIRED)
-find_package(ALUT REQUIRED)
-find_package(FFmpeg REQUIRED)
 find_package(Bullet REQUIRED)
 find_package(PNG REQUIRED)
+
+# check for Audio-Video libs
+find_package(OpenAL)
+find_package(ALUT)
+find_package(FFmpeg)
+# Define AV_LIBRARIES + AV_INCLUDE_DIRS macro
+set(AV_LIBRARIES "")
+set(AV_INCLUDE_DIRS "")
+if(FFMPEG_LIBRARIES AND OPENAL_FOUND AND ALUT_FOUND AND NOT REGEN_DISABLE_AV)
+    message(STATUS "FFMPEG, OpenAL and ALUT libraries found.")
+    set(AV_LIBRARIES ${FFMPEG_LIBRARIES} ${OPENAL_LIBRARIES} ${ALUT_LIBRARIES})
+    set(AV_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIRS} ${ALUT_INCLUDE_DIRS})
+    set(HAS_AV_LIBS 1)
+else()
+    message(STATUS "AV support disabled.")
+    set(HAS_AV_LIBS 0)
+endif()
 
 if(UNIX)
   find_library_path(LIBZ NAMES libz.a libz z)
@@ -128,9 +143,7 @@ message(STATUS "  Boost:${Boost_LIBRARIES};")
 message(STATUS "  DevIL:${DEVIL_LIBRARIES};")
 message(STATUS "  assimp:${ASSIMP_LIBRARIES};")
 message(STATUS "  Freetype:${FREETYPE_LIBRARIES};")
-message(STATUS "  OpenAL:${OPENAL_LIBRARIES};")
-message(STATUS "  alut:${ALUT_LIBRARIES};")
-message(STATUS "  FFmpeg:${FFMPEG_LIBRARIES};")
+message(STATUS "  AV:${AV_LIBRARIES};")
 message(STATUS "  Bullet:${BULLET_LIBRARIES};")
 message(STATUS "  PNG:${PNG_LIBRARIES};")
 message(STATUS "  STB:${STB_LIBRARIES};")
@@ -148,9 +161,7 @@ message(STATUS "  Boost:${Boost_INCLUDE_DIRS};")
 message(STATUS "  DevIL:${DEVIL_INCLUDE_DIRS};")
 message(STATUS "  assimp:${ASSIMP_INCLUDE_DIRS};")
 message(STATUS "  Freetype:${FREETYPE_INCLUDE_DIRS};")
-message(STATUS "  OpenAL:${OPENAL_INCLUDE_DIRS};")
-message(STATUS "  alut:${ALUT_INCLUDE_DIRS};")
-message(STATUS "  FFmpeg:${FFMPEG_INCLUDE_DIRS};")
+message(STATUS "  AV:${AV_INCLUDE_DIRS};")
 message(STATUS "  Bullet:${BULLET_INCLUDE_DIRS};")
 
 enable_testing()
@@ -170,9 +181,7 @@ set(REGEN_LIBRARIES
     ${STB_LIBRARIES}
     ${ASSIMP_LIBRARIES}
     ${FREETYPE_LIBRARIES} -lbrotlidec
-    ${OPENAL_LIBRARIES}
-    ${ALUT_LIBRARIES}
-    ${FFMPEG_LIBRARIES}
+    ${AV_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${BULLET_LIBRARIES}
     ${PNG_LIBRARIES}
@@ -257,11 +266,15 @@ if(UNIX)
     set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
     set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgl-dev, libboost-thread-dev, libboost-system-dev, libboost-timer-dev, \
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgl-dev, libboost-thread-dev, libboost-system-dev, \
                 libboost-date-time-dev, libboost-filesystem-dev, libboost-regex-dev, libassimp-dev, \
                 libopenal-dev, libdevil-dev, libfreetype-dev, libbullet-dev, libglew-dev, \
-                libglu1-mesa-dev, libgl1-mesa-dev, libavcodec-dev, libavformat-dev, libavutil-dev \
-                libswscale-dev, libpng-dev, libalut-dev")
+                libglu1-mesa-dev, libgl1-mesa-dev libpng-dev")
+    if (NOT REGEN_DISABLE_AV)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, \
+            libopenal-dev, libalut-dev, libavcodec-dev, libavformat-dev, \
+            libavutil-dev, libswscale-dev")
+    endif()
 endif()
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})

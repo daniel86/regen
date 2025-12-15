@@ -241,7 +241,6 @@ namespace regen {
 		/**
 		 * Get the camera velocity.
 		 * This returns the latest value. Only safe to call in animation thread.
-		 * @param idx the layer index.
 		 * @return the camera velocity for the specified layer.
 		 */
 		const Vec3f &velocity() const { return vel_.xyz(); }
@@ -455,16 +454,6 @@ namespace regen {
 		std::vector<Frustum> &frustum() { return frustum_; }
 
 		/**
-		 * @param useAudio true if this camera is the OpenAL audio listener.
-		 */
-		void set_isAudioListener(bool useAudio);
-
-		/**
-		 * @return true if this camera is the OpenAL audio listener.
-		 */
-		bool isAudioListener() const { return isAudioListener_; }
-
-		/**
 		 * Get the frustum planes as a UBO.
 		 * @return the UBO containing the frustum planes.
 		 */
@@ -522,7 +511,6 @@ namespace regen {
 		unsigned int numLayer_ = 1;
 		bool isOmni_ = false;
 		bool isOrtho_ = false;
-		bool isAudioListener_ = false;
 		unsigned int camStamp_ = 1u;
 		// flag is used to avoid multiple updates of the camera
 		// from multiple threads, e.g. window resize and usual
