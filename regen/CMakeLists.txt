@@ -25,7 +25,6 @@ set(SOURCE_DIRS
     external)
 
 if (HAS_AV_LIBS)
-    message(STATUS "Including AV source directories")
     list(APPEND SOURCE_DIRS av)
 else ()
     message(STATUS "AV libraries not found, excluding AV source directories")

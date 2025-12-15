@@ -98,7 +98,11 @@ find_package(Boost ${Boost_MIN_VERSION}
 	COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 # threading libs
 find_package(Threads REQUIRED)
-# check for Image loading libraries
+# Font lib: required for text rendering
+find_package(Freetype REQUIRED)
+
+# Image loading libraries: required for loading textures from files
+find_package(PNG REQUIRED)
 find_package(DevIL REQUIRED)
 if(STB_LIBRARIES)
     set(HAS_STB 1)
@@ -106,12 +110,14 @@ if(STB_LIBRARIES)
 else()
     message(STATUS "STB library not found.")
 endif()
-# check for Model loader library
-find_package(ASSIMP REQUIRED)
-# check for Font lib
-find_package(Freetype REQUIRED)
-find_package(Bullet REQUIRED)
-find_package(PNG REQUIRED)
+set(IMG_LIBRARIES
+        ${PNG_LIBRARIES}
+        ${DEVIL_LIBRARIES}
+        ${STB_LIBRARIES})
+set(IMG_INCLUDE_DIRS
+        ${PNG_INCLUDE_DIRS}
+        ${DEVIL_INCLUDE_DIRS}
+        ${STB_INCLUDE_DIRS})
 
 # check for Audio-Video libs
 find_package(OpenAL)
@@ -130,6 +136,11 @@ else()
     set(HAS_AV_LIBS 0)
 endif()
 
+# check for Model loader library
+find_package(ASSIMP REQUIRED)
+# check for Physics lib
+find_package(Bullet REQUIRED)
+
 if(UNIX)
   find_library_path(LIBZ NAMES libz.a libz z)
   find_library_path(LIBBZ2 NAMES libbz2.a libbz2 bz2)
@@ -137,16 +148,14 @@ endif()
 
 message(STATUS "")
 message(STATUS "regen will link against following libraries:")
-message(STATUS "  OpenGL:${OPENGL_LIBRARIES};")
-message(STATUS "  glew:${GLEW_LIBRARIES};")
-message(STATUS "  Boost:${Boost_LIBRARIES};")
-message(STATUS "  DevIL:${DEVIL_LIBRARIES};")
-message(STATUS "  assimp:${ASSIMP_LIBRARIES};")
-message(STATUS "  Freetype:${FREETYPE_LIBRARIES};")
-message(STATUS "  AV:${AV_LIBRARIES};")
-message(STATUS "  Bullet:${BULLET_LIBRARIES};")
-message(STATUS "  PNG:${PNG_LIBRARIES};")
-message(STATUS "  STB:${STB_LIBRARIES};")
+message(STATUS "  OpenGL: ${OPENGL_LIBRARIES};")
+message(STATUS "  glew: ${GLEW_LIBRARIES};")
+message(STATUS "  Boost: ${Boost_LIBRARIES};")
+message(STATUS "  Fonts: ${FREETYPE_LIBRARIES};")
+message(STATUS "  Images: ${IMG_LIBRARIES};")
+message(STATUS "  Audio+Video: ${AV_LIBRARIES};")
+message(STATUS "  Models: ${ASSIMP_LIBRARIES};")
+message(STATUS "  Physics: ${BULLET_LIBRARIES};")
 if(UNIX)
   message(STATUS "  libz:${LIBZ_LIBRARIES};")
   message(STATUS "  libbz2:${LIBBZ2_LIBRARIES};")
@@ -158,33 +167,31 @@ if (${OPENGL_INCLUDE_DIR})
 endif ()
 message(STATUS "  glew:${GLEW_INCLUDE_DIRS};")
 message(STATUS "  Boost:${Boost_INCLUDE_DIRS};")
-message(STATUS "  DevIL:${DEVIL_INCLUDE_DIRS};")
-message(STATUS "  assimp:${ASSIMP_INCLUDE_DIRS};")
-message(STATUS "  Freetype:${FREETYPE_INCLUDE_DIRS};")
-message(STATUS "  AV:${AV_INCLUDE_DIRS};")
-message(STATUS "  Bullet:${BULLET_INCLUDE_DIRS};")
+message(STATUS "  Images:${IMG_INCLUDE_DIRS};")
+message(STATUS "  Audio+Video:${AV_INCLUDE_DIRS};")
+message(STATUS "  Models:${ASSIMP_INCLUDE_DIRS};")
+message(STATUS "  Fonts:${FREETYPE_INCLUDE_DIRS};")
+message(STATUS "  Physics:${BULLET_INCLUDE_DIRS};")
 
 enable_testing()
 find_package(GTest REQUIRED)
 
-# allow includes without AL/ prefix. Some openAL versions require this.
-include_directories(
-    ${OPENAL_INCLUDE_DIRS}/AL
-    ${BULLET_INCLUDE_DIRS}
-)
+if (HAS_AV_LIBS)
+    # allow includes without AL/ prefix. Some openAL versions require this.
+    include_directories(${OPENAL_INCLUDE_DIRS}/AL)
+endif()
+include_directories(${BULLET_INCLUDE_DIRS})
 
 set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${DEVIL_LIBRARIES}
-    ${STB_LIBRARIES}
+    ${IMG_LIBRARIES}
+    ${AV_LIBRARIES}
     ${ASSIMP_LIBRARIES}
     ${FREETYPE_LIBRARIES} -lbrotlidec
-    ${AV_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${BULLET_LIBRARIES}
-    ${PNG_LIBRARIES}
 )
 if(UNIX)
   set(REGEN_LIBRARIES
