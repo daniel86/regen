@@ -85,9 +85,10 @@ add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 set(REGEN_DISABLE_AV OFF)
 
-# openGL libraries
+# GL libraries
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+
 # boost template library
 set(Boost_MIN_VERSION "1.5.0")
 set(BOOST_COMPONENTS thread date_time filesystem regex)
@@ -98,7 +99,7 @@ find_package(Boost ${Boost_MIN_VERSION}
 	COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 # threading libs
 find_package(Threads REQUIRED)
-# Font lib: required for text rendering
+# Font library: text rendering support
 find_package(Freetype REQUIRED)
 
 # Image loading libraries: required for loading textures from files
@@ -119,7 +120,7 @@ set(IMG_INCLUDE_DIRS
         ${DEVIL_INCLUDE_DIRS}
         ${STB_INCLUDE_DIRS})
 
-# check for Audio-Video libs
+# Audio-Video libraries: optional, audio/video playback support
 find_package(OpenAL)
 find_package(ALUT)
 find_package(FFmpeg)
@@ -136,9 +137,9 @@ else()
     set(HAS_AV_LIBS 0)
 endif()
 
-# check for Model loader library
+# Model loader library: 3D model loading support
 find_package(ASSIMP REQUIRED)
-# check for Physics lib
+# Physics library: physics simulation support
 find_package(Bullet REQUIRED)
 
 if(UNIX)
