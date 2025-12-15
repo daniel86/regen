@@ -283,7 +283,7 @@ if(UNIX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgl-dev, libboost-thread-dev, libboost-system-dev, \
                 libboost-date-time-dev, libboost-filesystem-dev, libboost-regex-dev, libassimp-dev, \
                 libopenal-dev, libdevil-dev, libfreetype-dev, libbullet-dev, libglew-dev, \
-                libglu1-mesa-dev, libgl1-mesa-dev libpng-dev")
+                libglu1-mesa-dev, libgl1-mesa-dev, libpng-dev")
     if (NOT REGEN_DISABLE_AV)
         set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, \
             libopenal-dev, libalut-dev, libavcodec-dev, libavformat-dev, \
