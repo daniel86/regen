@@ -221,7 +221,9 @@ void main() {
     // Note: shininess stored in specular buffer in the range [0,1].
     //       We map it back to [0,256] to get the shininess value.
     float sf = specularFactor(P,L,N.xyz);
-    float shininess = spec.a*256.0; // map from [0,1] to [0,256]
+    // map from [0,1] to [0.01,256]
+    // Note: seems there is some kind of instability when shininess is 0 on NVIDIA GPUs
+    float shininess = max(spec.a*256.0, 0.01);
     // multiple diffuse and specular material color with light color
     diff.rgb *= in_lightDiffuse;
     spec.rgb *= in_lightSpecular;
@@ -442,7 +444,9 @@ void main() {
     // Note: shininess stored in specular buffer in the range [0,1].
     //       We map it back to [0,256] to get the shininess value.
     float sf = specularFactor(P,L,N.xyz);
-    float shininess = spec.a*256.0; // map from [0,1] to [0,256]
+    // map from [0,1] to [0.01,256]
+    // Note: seems there is some kind of instability when shininess is 0 on NVIDIA GPUs
+    float shininess = max(spec.a*256.0, 0.01);
     //shininess = 1.0;
     // multiple diffuse and specular material color with light color
     diff.rgb *= in_lightDiffuse;
