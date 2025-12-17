@@ -65,7 +65,7 @@ namespace regen {
 		ref_ptr<ShaderInput> getFeedback(const std::string &name);
 
 	protected:
-		typedef std::list<ref_ptr<ShaderInput> > FeedbackList;
+		typedef std::vector<ref_ptr<ShaderInput> > FeedbackList;
 
 		uint32_t feedbackCount_;
 		GLenum feedbackMode_;

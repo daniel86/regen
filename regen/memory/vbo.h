@@ -22,15 +22,7 @@ namespace regen {
 		 * Note that as long as you keep a reference the allocated storage
 		 * is marked as used.
 		 */
-		ref_ptr<BufferReference> &alloc(const ref_ptr<ShaderInput> &att);
-
-		/**
-		 * Allocate a block in the VBO memory.
-		 * And copy the data from RAM to GPU.
-		 * Note that as long as you keep a reference the allocated storage
-		 * is marked as used.
-		 */
-		ref_ptr<BufferReference> &alloc(const std::list<ref_ptr<ShaderInput>> &attributes);
+		ref_ptr<BufferReference> &alloc(const std::vector<ref_ptr<ShaderInput>> &attributes);
 	};
 } // namespace
 

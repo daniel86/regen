@@ -176,7 +176,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange) {
 void MeshAnimation::loadFrame(uint32_t frameIndex, bool isPongFrame) {
 	MeshAnimation::KeyFrame &frame = frames_[frameIndex];
 
-	std::list<ref_ptr<ShaderInput> > atts;
+	std::vector<ref_ptr<ShaderInput> > atts;
 	for (auto & attribute : frame.attributes) {
 		atts.push_back(attribute.input);
 	}
@@ -628,14 +628,14 @@ void MeshAnimation::addBoxAttributes(
 		double factor;
 		// set the coordinate for the face to the cube size
 		if(xAbs > yAbs && xAbs > zAbs) { // left/right face
-		  factor = (v.x<0 ? -1 : 1);
-		  n = (Vec3f(1,0,0))*factor;
+			factor = (v.x<0 ? -1 : 1);
+			n = (Vec3f(1,0,0))*factor;
 		} else if(yAbs > zAbs) { // top/bottom face
-		  factor = (v.y<0 ? -1 : 1);
-		  n = (Vec3f(0,1,0))*factor;
+			factor = (v.y<0 ? -1 : 1);
+			n = (Vec3f(0,1,0))*factor;
 		} else { //front/back face
-		  factor = (v.z<0 ? -1 : 1);
-		  n = (Vec3f(0,0,1))*factor;
+			factor = (v.z<0 ? -1 : 1);
+			n = (Vec3f(0,0,1))*factor;
 		}
 
 		cubizePoint(vCopy);

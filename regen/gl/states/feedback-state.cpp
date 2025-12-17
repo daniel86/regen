@@ -22,7 +22,7 @@ ref_ptr<ShaderInput> FeedbackSpecification::addFeedback(const ref_ptr<ShaderInpu
 	feedback->set_inputSize(feedbackCount * feedback->elementSize());
 	feedback->set_numVertices(feedbackCount);
 	feedback->set_isVertexAttribute(true);
-	feedbackAttributes_.push_front(feedback);
+	feedbackAttributes_.push_back(feedback);
 	feedbackAttributeMap_[in->name()] = feedbackAttributes_.begin();
 
 	requiredBufferSize_ += feedback->inputSize();

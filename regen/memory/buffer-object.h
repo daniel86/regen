@@ -239,7 +239,7 @@ namespace regen {
 		/**
 		 * Calculates the struct size for the attributes in bytes.
 		 */
-		static uint32_t attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes);
+		static uint32_t attributeSize(const std::vector<ref_ptr<ShaderInput>> &attributes);
 
 		/**
 		 * Create memory pool instances for different usage hints.

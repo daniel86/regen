@@ -10,13 +10,7 @@ VBO::VBO(BufferTarget target, const BufferUpdateFlags &hints)
 	flags_.accessMode = BUFFER_CPU_WRITE;
 }
 
-ref_ptr<BufferReference> &VBO::alloc(const ref_ptr<ShaderInput> &att) {
-	std::list<ref_ptr<ShaderInput> > atts;
-	atts.push_back(att);
-	return alloc(atts);
-}
-
-ref_ptr<BufferReference> &VBO::alloc(const std::list<ref_ptr<ShaderInput>> &attributes) {
+ref_ptr<BufferReference> &VBO::alloc(const std::vector<ref_ptr<ShaderInput>> &attributes) {
 	const uint32_t numBytes = attributeSize(attributes);
 	ref_ptr<BufferReference> &ref = adoptBufferRange(numBytes);
 	if (ref->allocatedSize() < numBytes) return ref;

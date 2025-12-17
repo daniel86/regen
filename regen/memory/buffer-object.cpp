@@ -432,7 +432,7 @@ void BufferObject::unmap() const {
 	}
 }
 
-uint32_t BufferObject::attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes) {
+uint32_t BufferObject::attributeSize(const std::vector<ref_ptr<ShaderInput> > &attributes) {
 	if (!attributes.empty()) {
 		uint32_t structSize = 0;
 		for (const auto &attribute: attributes) {

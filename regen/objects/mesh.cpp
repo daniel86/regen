@@ -102,7 +102,7 @@ void Mesh::setMaterial(const ref_ptr<Material> &material) {
 
 ref_ptr<BufferReference> Mesh::updateVertexData() {
 	ref_ptr<BufferReference> ref;
-	std::list<ref_ptr<ShaderInput>> attributes;
+	std::vector<ref_ptr<ShaderInput>> attributes;
 
 	// collect all attribute inputs that are not already uploaded
 	for (auto &in : inputs()) {
@@ -210,7 +210,7 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 		}
 		if (!in->bufferIterator().get()) {
 			// allocate VBO memory if not already allocated
-			vertexBuffer_->alloc(in);
+			vertexBuffer_->alloc({in});
 		}
 
 		auto needle = vaoLocations_.find(loc);
