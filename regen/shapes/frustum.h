@@ -36,9 +36,9 @@ namespace regen {
 		/** The far plane distance. */
 		double far = 100.0;
 		/** Near plane size. */
-		Vec2f nearPlaneHalfSize;
+		Vec2f nearPlaneHalfSize = Vec2f::create(0.1f);
 		/** Far plane size. */
-		Vec2f farPlaneHalfSize;
+		Vec2f farPlaneHalfSize = Vec2f::create(1.0f);
 		/** Bounds of parallel projection */
 		Bounds<Vec2f> orthoBounds;
 		/** The 8 frustum points. 0-3 are the near plane points, 4-7 far plane. */

@@ -12,6 +12,7 @@ Frustum::Frustum() :
 		orthoBounds(Bounds<Vec2f>::create(Vec2f::zero(), Vec2f::zero())) {
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
+	std::memset(points, 0, sizeof(points));
 }
 
 void Frustum::setPerspective(double _aspect, double _fov, double _near, double _far) {
