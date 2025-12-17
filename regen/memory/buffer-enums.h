@@ -95,6 +95,16 @@ namespace regen {
 	};
 
 	/**
+	 * \brief Buffer compute modes.
+	 *
+	 * Defines how the buffer is used in compute shaders.
+	 */
+	enum BufferComputeMode {
+		BUFFER_NO_COMPUTE = 0,
+		BUFFER_COMPUTABLE
+	};
+
+	/**
 	 * \brief Buffer update hints.
 	 *
 	 * Defines how the buffer is updated.
@@ -112,6 +122,41 @@ namespace regen {
 		BufferUpdateFrequency frequency = BUFFER_UPDATE_NEVER;
 		// how much of the buffer is updated each time it is updated
 		BufferUpdateScope scope = BUFFER_UPDATE_FULLY;
+		// Whether the buffer is used in compute shaders
+		// this will only have an effect for certain buffer types, e.g. VBO
+		// which would use a packed format otherwise, but switches to a std430 format
+		// when used in compute shaders.
+		BufferComputeMode compute = BUFFER_COMPUTABLE;
+
+		/**
+		 * Combine update flags using bitwise OR operator.
+		 * @param freq the buffer update frequency.
+		 * @return the combined buffer update flags.
+		 */
+		BufferUpdateFlags& operator|(BufferUpdateFrequency freq) {
+			frequency = freq;
+			return *this;
+		}
+
+		/**
+		 * Combine update flags using bitwise OR operator.
+		 * @param scp the buffer update scope.
+		 * @return the combined buffer update flags.
+		 */
+		BufferUpdateFlags& operator|(BufferUpdateScope scp) {
+			scope = scp;
+			return *this;
+		}
+
+		/**
+		 * Combine update flags using bitwise OR operator.
+		 * @param cmode the buffer compute mode.
+		 * @return the combined buffer update flags.
+		 */
+		BufferUpdateFlags& operator|(BufferComputeMode cmode) {
+			compute = cmode;
+			return *this;
+		}
 	};
 
 	/**
