@@ -11,13 +11,10 @@ namespace regen {
 	public:
 		/**
 		 * Default-Constructor.
-		 * @param usage usage hint.
 		 */
-		VBO(BufferTarget target, const BufferUpdateFlags &hints, VertexLayout vertexLayout);
+		VBO(BufferTarget target, const BufferUpdateFlags &hints);
 
 		~VBO() override = default;
-
-		VertexLayout vertexLayout() const { return vertexLayout_; }
 
 		/**
 		 * Allocate a block in the VBO memory.
@@ -34,13 +31,6 @@ namespace regen {
 		 * is marked as used.
 		 */
 		ref_ptr<BufferReference> &alloc(const std::list<ref_ptr<ShaderInput>> &attributes);
-
-	protected:
-		const VertexLayout vertexLayout_;
-
-		ref_ptr<BufferReference> &allocInterleaved(const std::list<ref_ptr<ShaderInput> > &attributes);
-
-		ref_ptr<BufferReference> &allocSequential(const std::list<ref_ptr<ShaderInput> > &attributes);
 	};
 } // namespace
 

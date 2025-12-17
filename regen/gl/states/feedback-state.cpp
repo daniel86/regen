@@ -53,18 +53,13 @@ bool FeedbackSpecification::hasFeedback(const std::string &name) const {
 
 
 
-FeedbackState::FeedbackState(
-			GLenum feedbackPrimitive,
-			uint32_t feedbackCount,
-			VertexLayout vertexLayout)
+FeedbackState::FeedbackState(GLenum feedbackPrimitive, uint32_t feedbackCount)
 		: FeedbackSpecification(feedbackCount),
 		  feedbackPrimitive_(feedbackPrimitive) {
-	feedbackMode_ = vertexLayout == VERTEX_LAYOUT_INTERLEAVED ?
-					GL_INTERLEAVED_ATTRIBS : GL_SEPARATE_ATTRIBS;
+	feedbackMode_ = GL_SEPARATE_ATTRIBS;
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(
 			TRANSFORM_FEEDBACK_BUFFER,
-			BufferUpdateFlags::NEVER,
-			vertexLayout);
+			BufferUpdateFlags::NEVER);
 	allocatedBufferSize_ = 0;
 
 	bufferRange_.buffer_ = 0;

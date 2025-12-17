@@ -17,9 +17,7 @@ AttributeFeedbackAnimation::AttributeFeedbackAnimation(
 	feedbackMesh_ = ref_ptr<Mesh>::alloc(inputMesh_);
 	// create feedback state
 	feedbackState_ = ref_ptr<FeedbackState>::alloc(
-			inputMesh_->primitive(),
-			inputMesh_->numVertices(),
-			VERTEX_LAYOUT_INTERLEAVED);
+			inputMesh_->primitive(), inputMesh_->numVertices());
 	feedbackState_->set_feedbackStage(GL_VERTEX_SHADER);
 	animationNode_->state()->joinStates(feedbackState_);
 

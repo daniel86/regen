@@ -162,8 +162,6 @@ namespace regen {
 
 		uint32_t mapOffset_, mapSize_;
 
-		bool hasMeshInterleavedAttributes_;
-
 		void loadFrame(uint32_t frameIndex, bool isPongFrame);
 
 		ref_ptr<ShaderInput> findLastAttribute(const std::string &name);

@@ -24,7 +24,7 @@ struct Mesh::SharedData {
 	ref_ptr<ShaderInput> indices_;
 };
 
-Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints, VertexLayout vertexLayout)
+Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints)
 		: State(),
 		  primitive_(primitive),
 		  vao_(ref_ptr<VAO>::alloc()),
@@ -37,7 +37,7 @@ Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints, VertexLayout vertex
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
 	lodThresholds_->setUniformData(Vec3f::zero());
 	sharedState_ = ref_ptr<State>::alloc();
-	vertexBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, hints, vertexLayout);
+	vertexBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, hints);
 }
 
 Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)

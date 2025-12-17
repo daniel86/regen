@@ -105,11 +105,8 @@ namespace regen {
 		 * Constructor.
 		 * @param primitive the GL primitive type.
 		 * @param hints buffer update hints for the vertex buffer.
-		 * @param vertexLayout layout of the vertex buffer.
 		 */
-		Mesh(GLenum primitive,
-				const BufferUpdateFlags &hints,
-				VertexLayout vertexLayout = VERTEX_LAYOUT_INTERLEAVED);
+		Mesh(GLenum primitive, const BufferUpdateFlags &hints);
 
 		~Mesh() override;
 

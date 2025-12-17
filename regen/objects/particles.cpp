@@ -9,7 +9,7 @@ using namespace regen;
 ///////////
 
 Particles::Particles(uint32_t numParticles, const std::string &updateShaderKey)
-		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER, VERTEX_LAYOUT_INTERLEAVED),
+		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER),
 		  Animation(true, false),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
@@ -17,8 +17,7 @@ Particles::Particles(uint32_t numParticles, const std::string &updateShaderKey)
 	setClientAccessMode(BUFFER_CPU_WRITE);
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(
 			TRANSFORM_FEEDBACK_BUFFER,
-			BufferUpdateFlags::FULL_PER_FRAME,
-			VERTEX_LAYOUT_INTERLEAVED);
+			BufferUpdateFlags::FULL_PER_FRAME);
 	feedbackBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
 	set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
@@ -257,7 +256,7 @@ void Particles::createUpdateShader() {
 		if (!input.in_->isVertexAttribute()) continue;
 		shaderCfg.feedbackAttributes_.push_back(input.in_->name());
 	}
-	shaderCfg.feedbackMode_ = GL_INTERLEAVED_ATTRIBS;
+	shaderCfg.feedbackMode_ = GL_SEPARATE_ATTRIBS;
 	shaderCfg.feedbackStage_ = GL_VERTEX_SHADER;
 	updateState_->createShader(shaderCfg, updateShaderKey_);
 	shaderCfg.feedbackAttributes_.clear();

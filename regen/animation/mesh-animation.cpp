@@ -52,8 +52,6 @@ MeshAnimation::MeshAnimation(
 	std::list<std::string> transformFeedback;
 
 	shaderNames[GL_VERTEX_SHADER] = "regen.animation.morph.interpolate";
-	auto vertexLayout = mesh->vertexBuffer()->vertexLayout();
-	hasMeshInterleavedAttributes_ = (vertexLayout == VERTEX_LAYOUT_INTERLEAVED);
 
 	// find buffer size
 	bufferSize_ = 0u;
@@ -86,9 +84,9 @@ MeshAnimation::MeshAnimation(
 	shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
 	// used to save two frames
-	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BufferUpdateFlags::NEVER, vertexLayout);
+	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BufferUpdateFlags::NEVER);
 	animationBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::NEVER, vertexLayout);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::NEVER);
 	feedbackBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
 	feedbackRef_ = feedbackBuffer_->adoptBufferRange(bufferSize_);
 	if (!feedbackRef_.get()) {
@@ -109,16 +107,10 @@ MeshAnimation::MeshAnimation(
 		Shader::preProcess(preProcessed,
 						   PreProcessorConfig(330, shaderNames, shaderConfig));
 		interpolationShader_ = ref_ptr<Shader>::alloc(preProcessed);
-	}
-	if (hasMeshInterleavedAttributes_) {
 		interpolationShader_->setTransformFeedback(
-				transformFeedback, GL_INTERLEAVED_ATTRIBS, GL_VERTEX_SHADER);
-	} else {
-		interpolationShader_->setTransformFeedback(
-				transformFeedback, GL_SEPARATE_ATTRIBS, GL_VERTEX_SHADER);
+					transformFeedback, GL_SEPARATE_ATTRIBS, GL_VERTEX_SHADER);
 	}
-	if (interpolationShader_.get() != nullptr &&
-		interpolationShader_->compile() && interpolationShader_->link()) {
+	if (interpolationShader_->compile() && interpolationShader_->link()) {
 		ref_ptr<ShaderInput> in = interpolationShader_->createUniform("frameTimeNormalized");
 		frameTimeUniform_ = (ShaderInput1f *) in.get();
 		frameTimeUniform_->setUniformData(0.0f);
@@ -302,19 +294,15 @@ void MeshAnimation::gpuUpdate(RenderState *rs, double dt) {
 		rs->vao().apply(vao_->id());
 
 		// setup the transform feedback
-		if (hasMeshInterleavedAttributes_) {
-			rs->feedbackBufferRange().push(0, bufferRange_);
-		} else {
-			int index = inputs.size() - 1;
-			bufferRange_.offset_ = 0;
-			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
-				const ref_ptr<ShaderInput> &in = it->in_;
-				index -= 1;
-				if (!in->isVertexAttribute()) continue;
-				bufferRange_.size_ = in->inputSize();
-				rs->feedbackBufferRange().push(index+1, bufferRange_);
-				bufferRange_.offset_ += bufferRange_.size_;
-			}
+		int index = inputs.size() - 1;
+		bufferRange_.offset_ = 0;
+		for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
+			const ref_ptr<ShaderInput> &in = it->in_;
+			index -= 1;
+			if (!in->isVertexAttribute()) continue;
+			bufferRange_.size_ = in->inputSize();
+			rs->feedbackBufferRange().push(index+1, bufferRange_);
+			bufferRange_.offset_ += bufferRange_.size_;
 		}
 		rs->beginTransformFeedback(GL_POINTS);
 
@@ -322,16 +310,12 @@ void MeshAnimation::gpuUpdate(RenderState *rs, double dt) {
 		glDrawArrays(GL_POINTS, 0, mesh_->numVertices());
 
 		rs->endTransformFeedback();
-		if (hasMeshInterleavedAttributes_) {
-			rs->feedbackBufferRange().pop(0);
-		} else {
-			int index = inputs.size() - 1;
-			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
-				const ref_ptr<ShaderInput> &in = it->in_;
-				index -= 1;
-				if (!in->isVertexAttribute()) continue;
-				rs->feedbackBufferRange().pop(index+1);
-			}
+		index = inputs.size() - 1;
+		for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
+			const ref_ptr<ShaderInput> &in = it->in_;
+			index -= 1;
+			if (!in->isVertexAttribute()) continue;
+			rs->feedbackBufferRange().pop(index+1);
 		}
 		rs->depthMask().pop();
 		rs->toggles().pop(RenderState::RASTERIZER_DISCARD);

@@ -366,12 +366,6 @@ std::ostream &regen::operator<<(std::ostream &out, const BufferMemoryLayout &v) 
 		case BUFFER_MEMORY_PACKED:
 			out << "packed";
 			break;
-		case BUFFER_MEMORY_SHARED:
-			out << "shared";
-			break;
-		case BUFFER_MEMORY_INTERLEAVED:
-			out << "interleaved";
-			break;
 	}
 	return out;
 }
@@ -383,7 +377,6 @@ std::istream &regen::operator>>(std::istream &in, BufferMemoryLayout &v) {
 	if (val == "std140") v = BUFFER_MEMORY_STD140;
 	else if (val == "std430") v = BUFFER_MEMORY_STD430;
 	else if (val == "packed") v = BUFFER_MEMORY_PACKED;
-	else if (val == "shared") v = BUFFER_MEMORY_SHARED;
 	else {
 		REGEN_WARN("Unknown memory layout '" << val << "'. Using STD140.");
 		v = BUFFER_MEMORY_STD140;

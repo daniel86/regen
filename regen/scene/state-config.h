@@ -20,7 +20,7 @@ namespace regen {
 	struct StateConfig {
 	public:
 		StateConfig()
-				: feedbackMode_(GL_INTERLEAVED_ATTRIBS),
+				: feedbackMode_(GL_SEPARATE_ATTRIBS),
 				  feedbackStage_(GL_VERTEX_SHADER) {
 			version_ = 130;
 #ifdef GLEW_ARB_tessellation_shader
