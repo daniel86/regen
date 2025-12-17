@@ -226,25 +226,24 @@ namespace regen {
 		void cpuUpdate(double dt) override;
 
 	protected:
-		Mode cameraMode_;
-		Mat4f matVal_;
-		Vec3f camPos_;
-		Vec3f camDir_;
+		Mode cameraMode_ = FIRST_PERSON;
+		Mat4f matVal_ = Mat4f::identity();
+		Vec3f camPos_ = Vec3f::zero();
+		Vec3f camDir_ = Vec3f::front();
 
 		ref_ptr<ModelTransformation> attachedToTransform_;
 		ref_ptr<Mesh> attachedToMesh_;
-		Vec3f meshPos_;
-		float meshDistance_;
+		Vec3f meshPos_ = Vec3f::zero();
+		float meshDistance_ = 10.0f;
 
-		Vec3f pos_;
-		Vec3f step_;
-		//Vec3f dir_;
-		double horizontalOrientation_;
-		double verticalOrientation_;
+		Vec3f pos_ = Vec3f::zero();
+		Vec3f step_ = Vec3f::zero();
+		double horizontalOrientation_ = 0.0;
+		double verticalOrientation_ = 0.0;
 		float orientThreshold_;
-		Vec3f dirXZ_;
-		Vec3f dirSidestep_;
-		float moveAmount_;
+		Vec3f dirXZ_ = Vec3f::front();
+		Vec3f dirSidestep_ = Vec3f::right();
+		float moveAmount_ = 1.0;
 		Quaternion rot_;
 
 		bool moveForward_ = false;
@@ -257,8 +256,8 @@ namespace regen {
 		bool isRotating_ = false;
 		double lastOrientation_ = -1.0;
 
-		Vec3f meshEyeOffset_;
-		double meshHorizontalOrientation_;
+		Vec3f meshEyeOffset_ = Vec3f::zero();
+		double meshHorizontalOrientation_ = 0.0;
 		bool hasUpdated_ = false;
 
 		void updateStep(double dt);
