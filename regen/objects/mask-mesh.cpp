@@ -82,6 +82,11 @@ void MaskMesh::updateMask() {
 		maskUV.y += quadSize_ts.y;
 	}
 
+	if (numInstances==0) {
+		REGEN_WARN("No mask instances generated, creating one default instance.");
+		numInstances = 1; // at least one instance to avoid issues with zero-sized buffers
+	}
+
 	// update the model offset attribute
 	instanceData.resize(numInstances);
 	tf_->set_numInstances(numInstances);
