@@ -233,7 +233,6 @@ void ShaderInput::setInstanceData(uint32_t numInstances, uint32_t divisor, const
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_->writeLockAll();
 		isVertexAttribute_ = false;
-		numInstances_ = numInstances;
 		divisor_ = std::max(1u, divisor);
 		numVertices_ = 1u;
 		numElements_ui_ = numArrayElements_ * numInstances_;
