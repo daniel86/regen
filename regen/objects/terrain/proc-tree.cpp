@@ -503,6 +503,12 @@ void ProcTree::updateTrunkAttributes(TreeMesh &treeMesh, const std::vector<ProcM
 		ptr_texco += lod.mVertCount * 2;
 	}
 
+	indices.unmap();
+	v_pos.unmap();
+	v_nor.unmap();
+	v_tan.unmap();
+	v_texco.unmap();
+
 	updateAttributes_(treeMesh, lod0, lodLevels, numVertices);
 }
 
