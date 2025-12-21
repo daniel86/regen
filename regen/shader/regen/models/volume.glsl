@@ -16,6 +16,15 @@ out vec3 out_posEye;
 out vec3 out_rayOrigin;
 out vec3 out_rayDirection;
 
+#ifdef HAS_INSTANCES
+flat out int out_instanceID;
+#endif
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
+#define in_layer regen_RenderLayer()
+#endif
+#include regen.layered.VS_SelectLayer
+
 #include regen.states.camera.input
 
 #include regen.models.tf.transformModel
@@ -27,6 +36,7 @@ out vec3 out_rayDirection;
 #define HANDLE_IO()
 
 void main() {
+    int layer = regen_RenderLayer();
     vec4 posWorld = transformModel(vec4(in_pos,1.0));
 #ifdef HAS_modelMatrix
     out_rayOrigin = (
@@ -38,21 +48,20 @@ void main() {
     out_rayDirection = in_pos.xyz - out_rayOrigin;
 
 #ifdef VS_CAMERA_TRANSFORM
-    vec4 posEye  = transformWorldToEye(posWorld,0);
-    gl_Position  = transformEyeToScreen(posEye,0);
+    vec4 posEye  = transformWorldToEye(posWorld,layer);
+    gl_Position  = transformEyeToScreen(posEye,layer);
     out_posWorld = posWorld.xyz;
     out_posEye   = posEye.xyz;
 #else
     gl_Position = posWorld;
 #endif
+#ifdef HAS_INSTANCES
+    out_instanceID = gl_InstanceID + gl_BaseInstance;
+#endif // HAS_INSTANCES
+    VS_SelectLayer(layer);
 
     HANDLE_IO(gl_VertexID);
 }
-
--- tcs
-#include regen.models.mesh.tcs
--- tes
-#include regen.models.mesh.tes
 -- gs
 #include regen.models.mesh.gs
 -- fs
