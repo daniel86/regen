@@ -443,10 +443,10 @@
         <input type="float" name="lifetimeVariance" value="4.0"/>
         <!-- <input name="Camera" state="main-camera" component="Camera"/> -->
         <!-- Add particle attributes. -->
-        <input type="vec3" name="pos" is-attribute="1"/>
-        <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="float" name="mass" is-attribute="1" default="0.8" variance="0.1"/>
-        <input type="float" name="size" is-attribute="1" default="3.0" variance="0.15"/>
+        <input type="vec3" name="pos" layout="std430" is-attribute="1"/>
+        <input type="vec3" name="velocity" layout="std430" is-attribute="1"/>
+        <input type="float" name="mass" layout="std430" is-attribute="1" default="0.8" variance="0.1"/>
+        <input type="float" name="size" layout="std430" is-attribute="1" default="3.0" variance="0.15"/>
     </mesh>
 
     <node id="Fog-Update">

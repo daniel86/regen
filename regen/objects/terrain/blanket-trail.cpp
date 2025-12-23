@@ -121,6 +121,7 @@ ref_ptr<BlanketTrail> BlanketTrail::load(LoadingContext &ctx,
 	BufferUpdateFlags updateFlags;
 	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
 	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
+	updateFlags.compute = input.getValue<BufferComputeMode>("compute-mode", BUFFER_NO_COMPUTE);
 	BlanketTrail::TrailConfig meshCfg;
 	meshCfg.levelOfDetails = lodLevels;
 	meshCfg.texcoScale = input.getValue<Vec2f>("texco-scaling", Vec2f::one());

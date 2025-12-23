@@ -44,7 +44,7 @@ namespace regen {
 		 * @brief Sets the memory layout of the client buffer.
 		 * @param layout the memory layout to use.
 		 */
-		void setMemoryLayout(BufferMemoryLayout layout) { memoryLayout_ = layout; }
+		void setMemoryLayout(BufferMemoryLayout layout);
 
 		/**
 		 * @return the memory layout of the client buffer.
@@ -238,8 +238,9 @@ namespace regen {
 		 * Resize the client buffer.
 		 * @param bufferSize the new size of the buffer in bytes.
 		 * @param initialData optional initial data to fill the buffer with.
+		 * @return true if the resize was successful, false otherwise.
 		 */
-		void resize(size_t bufferSize, const byte *initialData = nullptr);
+		bool resize(size_t bufferSize, const byte *initialData = nullptr);
 
 		/**
 		 * Deallocates data pointer owned by this instance.
@@ -363,7 +364,7 @@ namespace regen {
 
 		void setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t slotIdx) const;
 
-		void ownerResize();
+		bool ownerResize();
 
 		static ClientBufferPool *getMemoryPool(bool reset);
 

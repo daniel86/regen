@@ -72,6 +72,7 @@ namespace regen {
 		float height_;
 		bool centerAtOrigin_;
 		uint32_t numCharacters_;
+		uint32_t lastNumCharacters_ = 0u;
 
 		ref_ptr<ShaderInput4f> textColor_;
 

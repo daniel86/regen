@@ -126,16 +126,17 @@ namespace regen {
 		// this will only have an effect for certain buffer types, e.g. VBO
 		// which would use a packed format otherwise, but switches to a std430 format
 		// when used in compute shaders.
-		BufferComputeMode compute = BUFFER_COMPUTABLE;
+		BufferComputeMode compute = BUFFER_NO_COMPUTE;
 
 		/**
 		 * Combine update flags using bitwise OR operator.
 		 * @param freq the buffer update frequency.
 		 * @return the combined buffer update flags.
 		 */
-		BufferUpdateFlags& operator|(BufferUpdateFrequency freq) {
-			frequency = freq;
-			return *this;
+		BufferUpdateFlags operator|(BufferUpdateFrequency freq) const {
+			BufferUpdateFlags newFlags = *this;
+			newFlags.frequency = freq;
+			return newFlags;
 		}
 
 		/**
@@ -143,9 +144,10 @@ namespace regen {
 		 * @param scp the buffer update scope.
 		 * @return the combined buffer update flags.
 		 */
-		BufferUpdateFlags& operator|(BufferUpdateScope scp) {
-			scope = scp;
-			return *this;
+		BufferUpdateFlags operator|(BufferUpdateScope scp) const {
+			BufferUpdateFlags newFlags = *this;
+			newFlags.scope = scp;
+			return newFlags;
 		}
 
 		/**
@@ -153,9 +155,10 @@ namespace regen {
 		 * @param cmode the buffer compute mode.
 		 * @return the combined buffer update flags.
 		 */
-		BufferUpdateFlags& operator|(BufferComputeMode cmode) {
-			compute = cmode;
-			return *this;
+		BufferUpdateFlags operator|(BufferComputeMode cmode) const {
+			BufferUpdateFlags newFlags = *this;
+			newFlags.compute = cmode;
+			return newFlags;
 		}
 	};
 
@@ -422,6 +425,10 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const BufferTarget &v);
 
 	std::istream &operator>>(std::istream &in, BufferTarget &v);
+
+	std::ostream &operator<<(std::ostream &out, const BufferComputeMode &v);
+
+	std::istream &operator>>(std::istream &in, BufferComputeMode &v);
 } // namespace
 
 #endif /* REGEN_BUFFER_ENUMS_H_ */

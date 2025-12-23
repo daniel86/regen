@@ -56,6 +56,8 @@ namespace regen {
 		 */
 		explicit SSBO(const StagedBuffer &other, std::string_view name="");
 
+		~SSBO() override = default;
+
 		/**
 		 * Sets the memory mask.
 		 * @param mask the memory mask.

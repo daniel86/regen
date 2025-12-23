@@ -22,6 +22,8 @@ BufferObject::BufferObject(const BufferObject &other) :
 }
 
 BufferObject::~BufferObject() {
+	// TODO: reconsider this
+	/**
 	while (!allocations_.empty()) {
 		ref_ptr<BufferReference> ref = *allocations_.begin();
 		orphanBufferRange(ref.get());
@@ -29,6 +31,7 @@ BufferObject::~BufferObject() {
 			allocations_.erase(allocations_.begin());
 		}
 	}
+	**/
 }
 
 void BufferObject::setClientAccessMode(ClientAccessMode mode) {

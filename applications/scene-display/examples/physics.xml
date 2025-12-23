@@ -123,6 +123,7 @@
     </camera>
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" surface-height="0.0">
+        <!-- FIXME: Something broken when lod=4 -->
         <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.05" lod="4"/>
         <stars catalog="res/sky/bright-stars.bin" scale="1.4"
                scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
@@ -138,6 +139,15 @@
             <input type="float" name="ditheringScale" value="100.0"/>
             <input type="float" name="cloudTimeFactor" value="0.3"/>
         </atmosphere>
+
+        <!--
+        <darkness/>
+        <stars catalog="res/sky/bright-stars.bin" scale="1.4"
+            scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+            glare-intensity="0.04" glare-scale="0.2"
+            color="0.66,0.78,1.0" color-ratio="0.66"/>
+        <atmosphere preset="venus" size="256" lod="0"/>
+        -->
     </sky>
 
     <!--**************************-->
@@ -315,7 +325,7 @@
     <mesh id="rain-particles"
           type="particles"
           num-vertices="50000"
-          update-shader="regen.weather.rain.update">
+          update-shader="regen.weather.rain.compute">
         <!-- Add shader input. -->
         <input type="vec3" name="gravity" value="-0.8,-4.5,0" min="-30,-30,-30" max="30,30,30" />
         <input type="vec3" name="initialVelocity" value="0.5,0.75,0.5" min="-30,-30,-30" max="30,30,30" />
@@ -323,10 +333,10 @@
         <input type="vec2" name="emitterCone" value="60.0,30.0"/>
         <input name="Camera" state="main-camera" component="Camera"/>
         <!-- Add particle attributes. -->
-        <input type="vec3" name="pos" is-attribute="1"/>
-        <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="int" name="type" is-attribute="1"/>
-        <input type="float" name="brightness" is-attribute="1"/>
+        <input type="vec3" name="pos" layout="std430" is-attribute="1"/>
+        <input type="vec3" name="velocity" layout="std430" is-attribute="1"/>
+        <input type="int" name="type" layout="std430" is-attribute="1"/>
+        <input type="float" name="brightness" layout="std430" is-attribute="1"/>
     </mesh>
 
     <node id="Rain">

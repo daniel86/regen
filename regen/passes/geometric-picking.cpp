@@ -65,11 +65,11 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 
 	// setup transform feedback specification, this is needed for shaders to know what to output
 	feedbackState_ = ref_ptr<FeedbackSpecification>::alloc(maxPickedObjects_);
-	feedbackState_->set_feedbackMode(GL_SEPARATE_ATTRIBS);
+	feedbackState_->set_feedbackMode(GL_INTERLEAVED_ATTRIBS);
 	feedbackState_->set_feedbackStage(GL_GEOMETRY_SHADER);
-	feedbackState_->addFeedback(pickDepth_);
-	feedbackState_->addFeedback(pickInstanceID_);
 	feedbackState_->addFeedback(pickObjectID_);
+	feedbackState_->addFeedback(pickInstanceID_);
+	feedbackState_->addFeedback(pickDepth_);
 	state_->joinStates(feedbackState_);
 }
 

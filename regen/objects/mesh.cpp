@@ -182,13 +182,13 @@ uint32_t Mesh::indexBuffer() const {
 void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in) {
 	if (!meshShader_.get()) return;
 
-	if (in->isBufferBlock()) {
-		auto *block = dynamic_cast<BufferBlock*>(in.get());
-		if (!block) {
-			REGEN_ERROR("Shader input '" << name << "' is not a BufferBlock.");
+	if (in->isStagedBuffer()) {
+		auto *bo = dynamic_cast<StagedBuffer*>(in.get());
+		if (!bo) {
+			REGEN_ERROR("Shader input '" << name << "' is not a StagedBuffer.");
 			return;
 		}
-		for (auto &blockUniform: block->stagedInputs()) {
+		for (auto &blockUniform: bo->stagedInputs()) {
 			if (blockUniform.in_->numInstances() > 1) {
 				set_numInstances(blockUniform.in_->numInstances());
 				set_numVisibleInstances(blockUniform.in_->numInstances());
@@ -208,19 +208,14 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 			// not used in shader
 			return;
 		}
-		if (!in->bufferIterator().get()) {
-			// allocate VBO memory if not already allocated
-			vertexBuffer_->alloc({in});
-		}
 
 		auto needle = vaoLocations_.find(loc);
 		if (needle == vaoLocations_.end()) {
 			vaoAttributes_.emplace_back(in, loc);
-			auto it = vaoAttributes_.end();
-			--it;
-			vaoLocations_[loc] = it;
+			vaoLocations_[loc] = static_cast<uint32_t>(vaoAttributes_.size() - 1);
 		} else {
-			*needle->second = InputLocation(in, loc);
+			const auto attIdx = needle->second;
+			vaoAttributes_[attIdx].input = in;
 		}
 	}
 }
@@ -334,6 +329,35 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	// Add Textures
 	for (const auto & texture : cfg.textures_) {
 		addShaderInput(texture.first, texture.second.first);
+	}
+
+	// In most cases the VBO is already allocated in updateVertexData(),
+	// but in case some attributes were not used in the shader,
+	// we need to ensure the VBO is allocated here.
+	bool allAttributesAllocated = true;
+	ref_ptr<BufferReference> vertexBufferRef;
+	for (const auto &vaoAttribute : vaoAttributes_) {
+		auto &attributeRef = vaoAttribute.input->bufferIterator();
+		if (!attributeRef) {
+			allAttributesAllocated = false;
+			break;
+		} else {
+			if (!vertexBufferRef) {
+				vertexBufferRef = attributeRef;
+			} else if (vertexBufferRef->bufferID() != attributeRef->bufferID()) {
+				// different buffer IDs, cannot handle this case here
+				allAttributesAllocated = false;
+				break;
+			}
+		}
+	}
+	if (!allAttributesAllocated) {
+		REGEN_WARN("Not all mesh attributes were allocated in VBO, reallocating VBO.");
+		std::vector<ref_ptr<ShaderInput>> attributes(vaoAttributes_.size());
+		for (size_t i = 0; i < vaoAttributes_.size(); ++i) {
+			attributes[i] = vaoAttributes_[i].input;
+		}
+		vertexBuffer_->alloc(attributes);
 	}
 
 	updateVAO();

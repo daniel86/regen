@@ -74,9 +74,9 @@ void StateConfigurer::addInput(const std::string &name,
 	} else {
 		*needle->second = NamedShaderInput(in, name, type, memberSuffix);
 	}
-	if (in->isBufferBlock()) {
-		auto block = dynamic_cast<BufferBlock*>(in.get());
-		for (auto& blockUniform : block->stagedInputs()) {
+	if (in->isStagedBuffer()) {
+		auto bo = dynamic_cast<StagedBuffer*>(in.get());
+		for (auto& blockUniform : bo->stagedInputs()) {
 			std::string memberName = (blockUniform.name_.empty() ? blockUniform.in_->name() : blockUniform.name_);
 			if (!memberSuffix.empty()) {
 				memberName += memberSuffix;
@@ -134,9 +134,9 @@ void StateConfigurer::addState(const State *s) {
 					cfg_.numInstances_ = in->numInstances();
 				}
 
-				if (in->isBufferBlock()) {
-					auto block = dynamic_cast<BufferBlock*>(in);
-					for (auto& blockUniform : block->stagedInputs()) {
+				if (in->isStagedBuffer()) {
+					auto bo = dynamic_cast<StagedBuffer*>(in);
+					for (auto& blockUniform : bo->stagedInputs()) {
 						if (!it.memberSuffix_.empty()) {
 							if (blockUniform.name_.empty()) {
 								queue.emplace(

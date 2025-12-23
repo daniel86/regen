@@ -114,7 +114,7 @@
     <mesh id="mesh-teapot" type="asset" asset="asset-teapot"
           asset-indices="*" asset-animation="0" asset-material="0"
           scaling="0.06,0.06,0.06" rotation="0.0,0.0,0.0" translation="0.0,0.0,0.0"
-          update-frequency="NEVER">
+          update-frequency="NEVER" compute-mode="COMPUTABLE">
         <material preset="silver" update-frequency="NEVER"/>
         <transform update-frequency="NEVER">
             <rotate value="3.14,0.0,0.0"/>
@@ -149,7 +149,7 @@
     <mesh id="mesh-dragon" type="asset" asset="asset-dragon"
           asset-indices="*" asset-animation="0" asset-material="0"
           scaling="0.1,0.1,0.1" rotation="0.0,0.0,0.0" translation="0.0,0.0,0.0"
-          update-frequency="NEVER">
+          update-frequency="NEVER" compute-mode="COMPUTABLE">
         <material preset="ruby" update-frequency="NEVER"/>
         <transform update-frequency="NEVER">
             <rotate value="3.14,0.0,0.0"/>

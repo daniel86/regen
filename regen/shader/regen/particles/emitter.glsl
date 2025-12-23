@@ -28,8 +28,7 @@ const float in_surfaceHeight = 0.0;
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
-in ${_TYPE} in_${_NAME};
-out ${_TYPE} out_${_NAME};
+buffer ${_TYPE} in_${_NAME}[NUM_PARTICLES];
 #endfor
 
 -- particleUpdate
@@ -49,30 +48,31 @@ out ${_TYPE} out_${_NAME};
 const float in_windStrength = 1.0;
 #endif
 
-void particleUpdateVelocity(float dt)
+void particleUpdateVelocity(uint idx, float dt)
 {
     vec3 velocityChange = vec3(0.0);
 #ifdef HAS_mass
-    velocityChange += in_gravity * in_mass;
+    velocityChange += in_gravity * in_mass[idx];
 #else
     #ifdef HAS_gravity
     velocityChange += in_gravity;
     #endif
 #endif
 #ifdef HAS_wind || HAS_windFlow
-    velocityChange.xz += windAtPosition(in_pos) * in_windStrength;
+    velocityChange.xz += windAtPosition(in_pos[idx]) * in_windStrength;
 #endif
 #ifdef HAS_dampingFactor
-    velocityChange -= out_velocity * in_dampingFactor;
+    vec3 currentVelocity = in_velocity[idx];
+    velocityChange -= currentVelocity * in_dampingFactor;
 #endif
-    out_velocity += velocityChange * dt;
+    in_velocity[idx] += velocityChange * dt;
 }
 
-void particleUpdate(float dt, inout uint seed) {
+void particleUpdate(uint idx, float dt, inout uint seed) {
     float dt_ms = dt*0.001;
 
-    out_lifetime -= dt_ms;
-    particleUpdateVelocity(dt_ms);
+    in_lifetime[idx] -= dt_ms;
+    particleUpdateVelocity(idx, dt_ms);
     // allow attributes to configure their advance function
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
     #ifdef PARTICLE_ATTRIBUTE${INDEX}_ADVANCE_FUNCTION
@@ -112,10 +112,10 @@ void particleUpdate(float dt, inout uint seed) {
     ${_TYPE} C${INDEX} = ${_TYPE}(1);
         #endif
     #endif
-    ${_ADVANCE}( C${INDEX}, out_${_NAME}, ${_FACTOR} );
+    ${_ADVANCE}( C${INDEX}, in_${_NAME}[idx], ${_FACTOR} );
     #endif
 #endfor
-    out_pos += out_velocity * dt_ms;
+    in_pos[idx] += in_velocity[idx] * dt_ms;
 }
 #endif
 
@@ -312,31 +312,31 @@ vec4 particleValue(vec4 value, vec4 maxVariance, inout uint seed)
 
 const float lifetimeFallback = 20;
 
-void particleEmit(inout uint seed)
-{
-    vec3 direction;
-    particleOffset(seed, out_pos, direction);
-    out_velocity = particleVelocity(seed, direction);
-    particlePosition(seed, out_pos);
+void particleEmit(uint particleIdx, inout uint seed) {
+    vec3 pos, dir;
+    particleOffset(seed, pos, dir);
+    in_velocity[particleIdx] = particleVelocity(seed, dir);
+    particlePosition(seed, pos);
+    in_pos[particleIdx] = pos;
     // set lifetime to default value, but can be randomized below!
-    out_lifetime = lifetimeFallback;
+    in_lifetime[particleIdx] = lifetimeFallback;
 
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
 #define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
 #ifdef HAS_${_NAME}Variance
-    out_${_NAME} = particleValue(in_${_NAME}Default, in_${_NAME}Variance, seed);
+    in_${_NAME}[particleIdx] = particleValue(in_${_NAME}Default, in_${_NAME}Variance, seed);
 #elif HAS_${_NAME}Default
-    out_${_NAME} = in_${_NAME}Default;
+    in_${_NAME}[particleIdx] = in_${_NAME}Default;
 #elif HAS_${_NAME}Value
-    out_${_NAME} = in_${_NAME}Value;
+    in_${_NAME}[particleIdx] = in_${_NAME}Value;
 #endif
 #endfor
 }
 #endif
 
-
--- vs
+-- compute.cs
+#include regen.stages.compute.defines
 #include regen.particles.emitter.inputs
 #include regen.particles.emitter.defines
 uniform vec4 in_cameraPosition;
@@ -344,30 +344,25 @@ uniform vec4 in_cameraPosition;
 #include regen.particles.emitter.particleUpdate
 #include regen.particles.emitter.particleEmit
 
-bool isParticleDead()
-{
-    if(out_lifetime<=0.0) return true; // not born yet
+bool isParticleDead(uint gid) {
+    if(in_lifetime[gid]<=0.0) return true; // not born yet
 #ifdef HAS_surfaceHeight
-    if(out_pos.y<in_surfaceHeight) return true; // below surface
+    if(in_pos[gid].y<in_surfaceHeight) return true; // below surface
 #endif
     return false;
 }
 
 void main() {
-    // NOTE: maxNumEmits per frame cannot be handled here!
-    // --> We could have a jumping window that moves each frame to emit particles
-    //       only in this window by testing if vertex index lies within,
-    //       but seems randomizing lifetime is enough for now.
-    //int remainingEmits = in_maxNumEmits;
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid > NUM_PARTICLES) return;
 
-    // init outputs to input values
-#for INDEX to NUM_PARTICLE_ATTRIBUTES
-#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
-    out_${_NAME} = in_${_NAME};
-#endfor
-    if (isParticleDead()) {
-        particleEmit(out_randomSeed);
+    uint seed = in_randomSeed[gid];
+
+    if (isParticleDead(gid)) {
+        particleEmit(gid, seed);
     } else {
-        particleUpdate(in_timeDeltaMS, out_randomSeed);
+        particleUpdate(gid, in_timeDeltaMS, seed);
     }
+
+    in_randomSeed[gid] = seed;
 }

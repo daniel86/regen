@@ -12,7 +12,7 @@
 namespace regen {
 	struct StateInput {
 		ref_ptr<ShaderInput> in;
-		ref_ptr<BufferBlock> block;
+		ref_ptr<StagedBuffer> bo;
 	};
 
 	/**

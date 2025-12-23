@@ -1,13 +1,13 @@
 #ifndef REGEN_VBO_H_
 #define REGEN_VBO_H_
 
-#include "buffer-object.h"
+#include "staged-buffer.h"
 
 namespace regen {
 	/**
 	 * \brief Buffer object that is used for vertex data.
 	 */
-	class VBO : public BufferObject {
+	class VBO : public StagedBuffer {
 	public:
 		/**
 		 * Default-Constructor.
@@ -23,6 +23,8 @@ namespace regen {
 		 * is marked as used.
 		 */
 		ref_ptr<BufferReference> &alloc(const std::vector<ref_ptr<ShaderInput>> &attributes);
+
+		void write(std::ostream &out) const override;
 	};
 } // namespace
 

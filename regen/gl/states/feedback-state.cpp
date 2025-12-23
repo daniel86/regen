@@ -5,7 +5,7 @@ using namespace regen;
 FeedbackSpecification::FeedbackSpecification(uint32_t feedbackCount)
 		: State(),
 		  feedbackCount_(feedbackCount),
-		  feedbackMode_(GL_SEPARATE_ATTRIBS),
+		  feedbackMode_(GL_INTERLEAVED_ATTRIBS),
 		  feedbackStage_(GL_VERTEX_SHADER),
 		  requiredBufferSize_(0) {
 }
@@ -71,8 +71,32 @@ void FeedbackState::initializeResources() {
 	if (requiredBufferSize_ != allocatedBufferSize_) {
 		// free previously allocated data
 		if (feedbackRef_.get()) { BufferObject::orphanBufferRange(feedbackRef_.get()); }
+
+		if (feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
+			GLsizei stride = 0;
+			for (auto & att : feedbackAttributes_) {
+				stride += static_cast<GLsizei>(att->inputSize());
+			}
+			uint32_t byteOffset = feedbackRef_->address();
+			for (auto & att : feedbackAttributes_) {
+				att->set_offset(byteOffset);
+				att->set_stride(stride);
+				att->set_buffer(feedbackRef_->bufferID(), feedbackRef_);
+				byteOffset += att->inputSize();
+			}
+		} else {
+			// set up separate attributes
+			uint32_t byteOffset = feedbackRef_->address();
+			for (auto & att : feedbackAttributes_) {
+				att->set_offset(byteOffset);
+				att->set_stride(att->alignedBaseSize());
+				att->set_buffer(feedbackRef_->bufferID(), feedbackRef_);
+				byteOffset += att->inputSize();
+			}
+		}
+
 		// allocate memory and upload to GL
-		feedbackRef_ = feedbackBuffer_->alloc(feedbackAttributes_);
+		feedbackRef_ = feedbackBuffer_->adoptBufferRange(requiredBufferSize_);
 		bufferRange_.buffer_ = feedbackRef_->bufferID();
 		bufferRange_.offset_ = feedbackRef_->address();
 		bufferRange_.size_ = requiredBufferSize_;

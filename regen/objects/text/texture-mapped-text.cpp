@@ -8,7 +8,7 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const float &height)
-		: Mesh(GL_TRIANGLES, BufferUpdateFlags::NEVER ),
+		: Mesh(GL_TRIANGLES, BufferUpdateFlags::FULL_RARELY),
 		  font_(font),
 		  value_(),
 		  height_(height),
@@ -64,11 +64,15 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 	uint32_t vertexCounter = 0u;
 
 	float actualMaxLineWidth = 0.0;
+	const bool numCharactersChanged = (numCharacters_ != lastNumCharacters_);
 
-	posAttribute_->setVertexData(numCharacters_ * 6);
-	texcoAttribute_->setVertexData(numCharacters_ * 6);
-	norAttribute_->setVertexData(numCharacters_ * 6);
-	set_numVertices(numCharacters_ * 6);
+	if (numCharactersChanged) {
+		posAttribute_->setVertexData(numCharacters_ * 6);
+		texcoAttribute_->setVertexData(numCharacters_ * 6);
+		norAttribute_->setVertexData(numCharacters_ * 6);
+		set_numVertices(numCharacters_ * 6);
+		lastNumCharacters_ = numCharacters_;
+	}
 	// map client data for writing
 	auto v_pos = posAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
@@ -166,11 +170,15 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 	v_nor.unmap();
 	v_texco.unmap();
 
-	setInput(posAttribute_);
-	setInput(norAttribute_);
-	setInput(texcoAttribute_);
-	updateVertexData();
-	updateVAO();
+	if (numCharactersChanged) {
+		// If num characters did not change, we can just overwrite
+		// data in previously allocated memory region.
+		setInput(posAttribute_);
+		setInput(norAttribute_);
+		setInput(texcoAttribute_);
+		updateVertexData();
+		updateVAO();
+	}
 
 	// set center and extends for bounding box
 	minPosition_ = v_pos.w[0];

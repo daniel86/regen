@@ -441,3 +441,26 @@ std::istream &regen::operator>>(std::istream &in, BufferSizeClass &v) {
 	}
 	return in;
 }
+
+std::ostream &regen::operator<<(std::ostream &out, const BufferComputeMode &v) {
+	switch (v) {
+		case BUFFER_NO_COMPUTE:
+			return out << "NO_COMPUTE";
+		case BUFFER_COMPUTABLE:
+			return out << "COMPUTABLE";
+	}
+	return out;
+}
+
+std::istream &regen::operator>>(std::istream &in, BufferComputeMode &v) {
+	std::string val;
+	in >> val;
+	boost::to_upper(val);
+	if (val == "NO_COMPUTE") v = BUFFER_NO_COMPUTE;
+	else if (val == "COMPUTABLE") v = BUFFER_COMPUTABLE;
+	else {
+		REGEN_WARN("Unknown buffer compute mode '" << val << "'. Using NO_COMPUTE.");
+		v = BUFFER_NO_COMPUTE;
+	}
+	return in;
+}

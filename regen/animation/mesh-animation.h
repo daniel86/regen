@@ -54,11 +54,6 @@ namespace regen {
 		MeshAnimation(const ref_ptr<Mesh> &mesh, const std::list<Interpolation> &interpolations);
 
 		/**
-		 * @return the shader used for interpolationg beteen frames.
-		 */
-		const ref_ptr<Shader> &interpolationShader() const { return interpolationShader_; }
-
-		/**
 		 * Set the active tick range.
 		 * This resets some internal states and the animation will continue
 		 * next step with the start tick of the given range.
@@ -127,26 +122,25 @@ namespace regen {
 			double startTick;
 			double endTick;
 			ref_ptr<BufferReference> ref;
+			ref_ptr<SSBO> buffer;
 		};
 
-		ref_ptr<Shader> interpolationShader_;
-		ref_ptr<VAO> vao_;
 		ShaderInput1f *frameTimeUniform_;
 		ShaderInput1f *frictionUniform_;
 		ShaderInput1f *frequencyUniform_;
 		ref_ptr<State> meshAnimState_;
+		ref_ptr<State> interpolationState_;
 
 		ref_ptr<Mesh> mesh_;
-		uint32_t meshBufferOffset_;
+
+		int32_t lastFrameBindingPoint_ = -1;
+		int32_t nextFrameBindingPoint_ = -1;
 
 		int lastFrame_, nextFrame_;
 		uint32_t bufferSize_;
 
-		ref_ptr<VBO> feedbackBuffer_;
-		ref_ptr<BufferReference> feedbackRef_;
-		BufferRange bufferRange_;
-
-		ref_ptr<VBO> animationBuffer_;
+		ref_ptr<VBO> pingBuffer_;
+		ref_ptr<VBO> pongBuffer_;
 		int pingFrame_, pongFrame_;
 		ref_ptr<BufferReference> pingIt_;
 		ref_ptr<BufferReference> pongIt_;

@@ -85,6 +85,7 @@ ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNod
 	BufferUpdateFlags updateFlags;
 	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
 	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
+	updateFlags.compute = input.getValue<BufferComputeMode>("compute-mode", BUFFER_NO_COMPUTE);
 
 	ref_ptr<BufferBlock> block;
 	if (blockType == "ubo") {

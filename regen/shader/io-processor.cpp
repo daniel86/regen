@@ -334,6 +334,11 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 						blockUniform.in_->name() : blockUniform.name_);
 				memberIO.ioType = "";
 
+				if (blockUniform.in_->isVertexAttribute()) {
+					// Enforce array of num vertices elements
+					memberIO.numElements = REGEN_STRING(blockUniform.in_->numVertices());
+				}
+
 				bool needsPaddingHack = false;
 #if 0
 				bool isArray = blockUniform.in_->numElements() > 1 || blockUniform.in_->forceArray();

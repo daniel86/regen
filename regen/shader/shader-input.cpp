@@ -77,6 +77,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  transpose_(o.transpose_),
 		  isConstant_(o.isConstant_),
 		  isBufferBlock_(o.isBufferBlock_),
+		  isStagedBuffer_(o.isStagedBuffer_),
 		  forceArray_(o.forceArray_),
 		  active_(o.active_),
 		  schema_(o.schema_) {
@@ -85,15 +86,17 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 	// copy client data, if any
 	if (o.hasClientData()) {
 		auto mapped = o.clientBuffer_->mapRange(BUFFER_GPU_READ, 0, o.inputSize_);
-		clientBuffer_->resize(inputSize_, mapped.r);
+		if (!clientBuffer_->resize(inputSize_, mapped.r)) {
+			REGEN_ERROR("Failed to copy client data for " << name());
+		}
 		o.clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, inputSize_, mapped.r_index);
 	}
 }
 
 ShaderInput::~ShaderInput() {
-	if (bufferIterator_.get()) {
-		BufferObject::orphanBufferRange(bufferIterator_.get());
-	}
+	//if (bufferIterator_.get()) {
+	//	BufferObject::orphanBufferRange(bufferIterator_.get());
+	//}
 	bufferIterator_ = {};
 	if (clientBuffer_->isDataOwner()) {
 		clientBuffer_->deallocateClientData();
@@ -105,28 +108,22 @@ void ShaderInput::updateAlignment() {
 	baseAlignment_ = baseSize_;
 	alignedBaseSize_ = baseSize_;
 	alignmentCount_ = 1u;
-	if (baseSize_ == 12u) { // vec3
-		baseAlignment_ = 16u;
-	} else if (baseSize_ == 48u) { // mat3
-		baseAlignment_ = 16u;
-		alignmentCount_ = 3u;
-	} else if (baseSize_ == 64u) { // mat4
-		baseAlignment_ = 16u;
-		alignmentCount_ = 4u;
-	} else if (numElements() > 1u) {
-		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
+	if (memoryLayout_ != BUFFER_MEMORY_PACKED) {
+		if (baseSize_ == 12u) { // vec3
+			baseAlignment_ = 16u;
+		} else if (baseSize_ == 48u) { // mat3
+			baseAlignment_ = 16u;
+			alignmentCount_ = 3u;
+		} else if (baseSize_ == 64u) { // mat4
+			baseAlignment_ = 16u;
+			alignmentCount_ = 4u;
+		} else if (numElements() > 1u && memoryLayout_ == BUFFER_MEMORY_STD140) {
 			// with STD140, each array element must be padded to a multiple of 16 bytes
 			baseAlignment_ = 16u;
 		}
-		// only vec3 and mat3 array types need to be aligned to 16 bytes with STD430.
-		// note: covered above already.
-		//else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
-		//	if (baseSize_ == 12u || baseSize_ == 48u) {
-		//		baseAlignment_ = 16u;
-		//	}
-		//}
 	}
 	if (numElements() > 1u) {
+		// TODO: Why only if numElements()?
 		alignedBaseSize_ = baseAlignment_ * alignmentCount_;
 	}
 	alignedInputSize_ = alignedBaseSize_ * numElements_ui_;
@@ -204,12 +201,13 @@ void ShaderInput::setUniformUntyped(const byte *data) {
 }
 
 void ShaderInput::updateAlignedSize() {
-	inputSize_ = unalignedSize_;
 	// Check if we need to apply padding per element.
 	// e.g. in case of STD140, each array element must be padded to a multiple of 16 bytes,
 	// so if we have an array of 3 vec3f, the size will be 3 * 16 = 48 bytes,
 	// but the unaligned size will be 3 * 12 = 36 bytes.
-	if (numElements() > 1 && !isVertexAttribute_ && alignedInputSize_ != unalignedSize_) {
+	if (memoryLayout_ != BUFFER_MEMORY_PACKED &&
+			numElements() > 1 &&
+			alignedInputSize_ != unalignedSize_) {
 		// allocate space in client buffer for aligned data.
 		// note: this will make it more difficult to update the data on the client side,
 		// but it enables us to form contiguous buffers for the GPU.
@@ -218,6 +216,10 @@ void ShaderInput::updateAlignedSize() {
 		inputSize_ = alignedInputSize_;
 		// use strided data access in mapClient* functions
 		mapClientStride_ = alignedBaseSize_;
+	}
+	else {
+		// no re-alignment needed
+		inputSize_ = unalignedSize_;
 	}
 }
 
@@ -237,7 +239,10 @@ void ShaderInput::setInstanceData(uint32_t numInstances, uint32_t divisor, const
 		updateAlignment();
 		updateAlignedSize();
 
-		clientBuffer_->resize(inputSize_, data);
+		if (!clientBuffer_->resize(inputSize_, data)) {
+			REGEN_ERROR("Failed to resize client buffer for " << name()
+				<< " to " << inputSize_ << " bytes.");
+		}
 		clientBuffer_->writeUnlockAll(0u, 0u);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_WRITE);
@@ -261,7 +266,10 @@ void ShaderInput::setVertexData(uint32_t numVertices, const byte *data) {
 		updateAlignment();
 		updateAlignedSize();
 
-		clientBuffer_->resize(inputSize_, data);
+		if (!clientBuffer_->resize(inputSize_, data)) {
+			REGEN_ERROR("Failed to resize client buffer for " << name()
+				<< " to " << inputSize_ << " bytes.");
+		}
 		clientBuffer_->writeUnlockAll(0u, 0u);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_WRITE);
@@ -322,21 +330,24 @@ void ShaderInput::readServerData() {
 
 ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 	if (in->isBufferBlock()) {
-		auto oldBlock = dynamic_cast<BufferBlock *>(in.get());
-		if (oldBlock->isUBO()) {
-			auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
-			for (auto &namedInput: oldBlock->stagedInputs()) {
-				newBlock->addStagedInput(create(namedInput.in_), namedInput.name_);
+		if (auto oldBlock = dynamic_cast<BufferBlock *>(in.get())) {
+			if (oldBlock->isUBO()) {
+				auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
+				for (auto &namedInput: oldBlock->stagedInputs()) {
+					newBlock->addStagedInput(create(namedInput.in_), namedInput.name_);
+				}
+				return newBlock;
 			}
-			return newBlock;
-		}
-		if (oldBlock->isSSBO()) {
-			auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
-			for (auto &namedInput: oldBlock->stagedInputs()) {
-				newBlock->addStagedInput(create(namedInput.in_), namedInput.name_);
+			if (oldBlock->isSSBO()) {
+				auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
+				for (auto &namedInput: oldBlock->stagedInputs()) {
+					newBlock->addStagedInput(create(namedInput.in_), namedInput.name_);
+				}
+				return newBlock;
 			}
-			return newBlock;
 		}
+		REGEN_WARN("Unknown BufferBlock type for ShaderInput::create: " << in->name());
+		return {};
 	}
 
 	const std::string &name = in->name();
@@ -414,6 +425,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 	cp->normalize_ = in->normalize_;
 	cp->isVertexAttribute_ = in->isVertexAttribute_;
 	cp->isBufferBlock_ = in->isBufferBlock_;
+	cp->isStagedBuffer_ = in->isStagedBuffer_;
 	cp->isConstant_ = in->isConstant_;
 	cp->transpose_ = in->transpose_;
 	cp->forceArray_ = in->forceArray_;
@@ -423,10 +435,14 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 		// allocate memory for one slot, copy most recent data
 		if (copyData) {
 			auto mapped = in->clientBuffer_->mapRange(BUFFER_GPU_READ, 0, in->inputSize_);
-			cp->clientBuffer_->resize(in->inputSize_, mapped.r);
+			if (!cp->clientBuffer_->resize(in->inputSize_, mapped.r)) {
+				REGEN_ERROR("Failed to copy client data for " << in->name());
+			}
 			in->clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, in->inputSize_, mapped.r_index);
 		} else {
-			cp->clientBuffer_->resize(in->inputSize_);
+			if (!cp->clientBuffer_->resize(in->inputSize_)) {
+				REGEN_ERROR("Failed to allocate client data for " << in->name());
+			}
 		}
 	}
 	return cp;

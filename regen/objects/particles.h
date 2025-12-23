@@ -63,7 +63,7 @@ namespace regen {
 		 * @param updateShaderKey shader for updating particles.
 		 */
 		explicit Particles(uint32_t numParticles,
-			const std::string &updateShaderKey="regen.particles.emitter");
+			const std::string &updateShaderKey="regen.particles.emitter.compute");
 
 		/**
 		 * Set the maximum number of particles to emit per frame.
@@ -80,6 +80,7 @@ namespace regen {
 		template <class InputType, class ValueType>
 		void setDefault(std::string_view attributeName, const ValueType &value) {
 			auto x = ref_ptr<InputType>::alloc(REGEN_STRING(attributeName << "Default"));
+			x->setMemoryLayout(BUFFER_MEMORY_STD430);
 			x->setUniformData(value);
 			setInput(x);
 		}
@@ -92,6 +93,7 @@ namespace regen {
 		template <class InputType, class ValueType>
 		void setVariance(std::string_view attributeName, const ValueType &value) {
 			auto x = ref_ptr<InputType>::alloc(REGEN_STRING(attributeName << "Variance"));
+			x->setMemoryLayout(BUFFER_MEMORY_STD430);
 			x->setUniformData(value);
 			setInput(x);
 		}
@@ -107,6 +109,7 @@ namespace regen {
 		template <class InputType, class ValueType>
 		void setAdvanceConstant(std::string_view attributeName, const ValueType &value) {
 			auto x = ref_ptr<InputType>::alloc(REGEN_STRING(attributeName << "AdvanceConstant"));
+			x->setMemoryLayout(BUFFER_MEMORY_STD430);
 			x->setUniformData(value);
 			setInput(x);
 		}
@@ -159,13 +162,9 @@ namespace regen {
 
 	protected:
 		const std::string updateShaderKey_;
-		ref_ptr<VBO> feedbackBuffer_;
-		ref_ptr<BufferReference> vboRef_[2];
-		uint32_t updateIdx_ = 0;
+		ref_ptr<BufferReference> vboRef_;
 		BufferRange bufferRange_;
-		std::list<InputLocation> particleAttributes_;
-		ref_ptr<ShaderState> updateState_;
-		VAO particleVAO_;
+		ref_ptr<State> updateState_;
 
 		uint32_t numParticles_;
 		uint32_t maxEmits_;

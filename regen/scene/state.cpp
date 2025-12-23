@@ -130,9 +130,9 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, co
 		shared_->numInstances_ = static_cast<int>(in->numInstances());
 	}
 	// check for instances of attributes within UBO
-	if (in->isBufferBlock()) {
-		auto *block = dynamic_cast<BufferBlock *>(in.get());
-		for (auto &namedInput: block->stagedInputs()) {
+	if (in->isStagedBuffer()) {
+		auto *bo = dynamic_cast<StagedBuffer *>(in.get());
+		for (auto &namedInput: bo->stagedInputs()) {
 			if (namedInput.in_->isVertexAttribute() &&
 			    namedInput.in_->numVertices() > static_cast<uint32_t>(shared_->numVertices_)) {
 				shared_->numVertices_ = static_cast<int>(namedInput.in_->numVertices());
@@ -143,7 +143,7 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, co
 		}
 	}
 
-	if (inputMap_.count(inputName) > 0) {
+	if (inputMap_.contains(inputName)) {
 		removeInput(inputName);
 	} else {
 		// insert into map of known attributes
@@ -165,7 +165,6 @@ void State::removeInput(const std::string &name) {
 		if (it->name_ == name) { break; }
 	}
 	if (it == inputs_.end()) { return; }
-	//it->in_->set_buffer(0u, {});
 	inputs_.erase(it);
 }
 
@@ -183,14 +182,14 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 	for (const auto &inNamed: l) {
 		if (name == inNamed.name_ || name == inNamed.in_->name()) {
 			ret.in = inNamed.in_;
-			ret.block = {};
+			ret.bo = {};
 			return ret;
 		}
-		if (inNamed.in_->isBufferBlock()) {
-			auto block = ref_ptr<BufferBlock>::dynamicCast(inNamed.in_);
-			for (auto &blockUniform: block->stagedInputs()) {
+		if (inNamed.in_->isStagedBuffer()) {
+			auto bo = ref_ptr<StagedBuffer>::dynamicCast(inNamed.in_);
+			for (auto &blockUniform: bo->stagedInputs()) {
 				if (name == blockUniform.name_ || name == blockUniform.in_->name()) {
-					ret.block = block;
+					ret.bo = bo;
 					ret.in = blockUniform.in_;
 					return ret;
 				}

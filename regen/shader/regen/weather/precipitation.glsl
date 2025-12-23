@@ -1,43 +1,40 @@
 
 -- spawnParticle
-void spawnParticle(inout uint seed)
+void spawnParticle(uint idx, inout uint seed)
 {
-    out_pos = variance(in_emitterCone.xyx, seed) + in_cameraPosition.xyz;
-    out_velocity = variance(in_initialVelocity, seed);
-    out_velocity.y = -abs(out_velocity.y);
+    in_pos[idx] = variance(in_emitterCone.xyx, seed) + in_cameraPosition.xyz;
+    in_velocity[idx] = variance(in_initialVelocity, seed);
+    in_velocity[idx].y = -abs(in_velocity[idx].y);
 #ifdef HAS_brightness
-    out_brightness = in_initialBrightness.x + variance(in_initialBrightness.y, seed);
+    in_brightness[idx] = in_initialBrightness.x + variance(in_initialBrightness.y, seed);
 #endif
-    out_lifetime = 1.0;
+    in_lifetime[idx] = 1.0;
 }
 
 -- updateParticle
-void updateParticle(inout uint seed)
+void updateParticle(uint idx, inout uint seed)
 {
     float dt = in_timeDeltaMS*0.01;
     vec3 force = in_gravity;
 #ifdef HAS_wind || HAS_windFlow
-    force.xz += windAtPosition(in_pos) * in_windFactor;
+    force.xz += windAtPosition(in_pos[idx]) * in_windFactor;
 #endif
-    out_pos = in_pos + in_velocity*dt;
-    out_velocity = in_velocity + force*dt/in_mass;
-#ifdef HAS_brightness
-    out_brightness = in_brightness;
-#endif
-    out_lifetime = in_lifetime+dt;
+    in_pos[idx] += in_velocity[idx]*dt;
+    in_velocity[idx] += force*dt/in_mass;
+    in_lifetime[idx] += dt;
 }
 
 -- isRespawnRequired
-bool isRespawnRequired() {
-    bool isDead = (in_lifetime<0.01) ||
-        (in_pos.y<in_cameraPosition.y-in_emitterCone.y);
+bool isRespawnRequired(uint idx) {
+    bool isDead = (in_lifetime[idx]<0.01) ||
+        (in_pos[idx].y<in_cameraPosition.y-in_emitterCone.y);
 #ifdef HAS_mapCenter
-    vec2 mapUV = (in_pos.xz - in_mapCenter) / in_mapSize + 0.5;
+    vec2 mapUV = (in_pos[idx].xz - in_mapCenter) / in_mapSize + 0.5;
     float heightAtPos = texture(in_heightMap, mapUV).r * in_mapFactor - in_mapFactor*0.5;
-    isDead = isDead || (in_pos.y < heightAtPos);
+    isDead = isDead || (in_pos[idx].y < heightAtPos);
 #endif
 #ifdef HAS_surfaceHeight
-    isDead = isDead || (in_pos.y < in_surfaceHeight);
+    isDead = isDead || (in_pos[idx].y < in_surfaceHeight);
 #endif
     return isDead;
 }
@@ -63,21 +60,25 @@ const float in_windFactor = 10.0;
     #include regen.weather.wind.windAtPosition
 #endif
 
--- update.vs
+-- update.cs
+#include regen.stages.compute.defines
 #include regen.weather.precipitation.update.includes
 #include regen.weather.precipitation.isRespawnRequired
 #include regen.weather.precipitation.spawnParticle
 #include regen.weather.precipitation.updateParticle
 
 void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid > NUM_PARTICLES) return;
+
     uint seed = in_randomSeed;
-    if(isRespawnRequired()) {
-        spawnParticle(seed);
+    if(isRespawnRequired(gid)) {
+        spawnParticle(gid, seed);
     }
     else {
-        updateParticle(seed);
+        updateParticle(gid, seed);
     }
-    out_randomSeed = seed;
+    in_randomSeed[gid] = seed;
 }
 
 -- draw.vs

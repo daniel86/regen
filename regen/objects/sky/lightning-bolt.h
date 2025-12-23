@@ -100,28 +100,30 @@ namespace regen {
 		// per-strike alpha parameter
 		ref_ptr<ShaderInput1f> alpha_;
 
-		struct Vertex {
-			Vec3f pos;
-			float brightness;
-			uint32_t strikeIdx;
+		struct SegmentData {
+			// segment vertex data in pairs for start and end point of line segments.
+			std::vector<Vec3f> pos_;
+			std::vector<float> brightness_;
+			std::vector<uint32_t> strikeIdx_;
 
-			explicit Vertex(const Vec3f &pos, uint32_t strikeIdx, float brightness = 1.0f)
-					: pos(pos), brightness(brightness), strikeIdx(strikeIdx) {}
-		};
+			void clear() {
+				pos_.clear();
+				brightness_.clear();
+				strikeIdx_.clear();
+			}
 
-		struct Segment {
-			Vertex start;
-			Vertex end;
-
-			Segment(const Vec3f &start, const Vec3f &end, uint32_t strikeIdx, float brightness = 1.0f)
-					: start(start, strikeIdx, brightness), end(end, strikeIdx, brightness) {}
+			void push_back(
+					const Vec3f &start,
+					const Vec3f &end,
+					uint32_t strikeIdx,
+					float brightness = 1.0f);
 		};
 
 		// We use triple buffering for the segment data to avoid synchronization issues.
 		// Two segments are used for building the L-system, while the third segment is used for rendering.
 		// The rendering picks the last updated segment, leaving the other two segments for building the next frame
 		// while rendering can use the last completed frame in parallel.
-		std::vector<Segment> segments_[3];
+		SegmentData segments_[3];
 		// The index of the segment currently being used for drawing.
 		// It is atomically updated when a new segment is ready for drawing,
 		// however it is not safe to update the draw index while a draw is in progress
@@ -175,9 +177,7 @@ namespace regen {
 
 		bool isActive_ = false;
 
-		unsigned int bufferOffset_ = 0;
 		unsigned int bufferSize_ = 0;
-		unsigned int elementSize_ = 0;
 
 		std::vector<ref_ptr<LightningStrike>> strikes_;
 	};

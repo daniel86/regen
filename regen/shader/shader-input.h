@@ -356,6 +356,11 @@ namespace regen {
 		bool isBufferBlock() const { return isBufferBlock_; }
 
 		/**
+		 * @return true if this input is a staged buffer.
+		 */
+		bool isStagedBuffer() const { return isStagedBuffer_; }
+
+		/**
 		 * @return true if this input is a struct (array).
 		 */
 		bool isStruct() const { return isStruct_; }
@@ -671,6 +676,7 @@ namespace regen {
 		bool transpose_ = false;
 		bool isConstant_ = false;
 		bool isBufferBlock_ = false;
+		bool isStagedBuffer_ = false;
 		bool isStruct_ = false;
 		bool forceArray_ = false;
 		bool active_ = true;

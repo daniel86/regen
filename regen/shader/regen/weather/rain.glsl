@@ -3,27 +3,31 @@
 /* UPDATE SHADER             */
 /*****************************/
 
--- update.vs
+-- compute.cs
+#include regen.stages.compute.defines
 #include regen.weather.precipitation.update.includes
 #include regen.weather.precipitation.isRespawnRequired
 #include regen.weather.precipitation.spawnParticle
 #include regen.weather.precipitation.updateParticle
 
 void main() {
-    uint seed = in_randomSeed;
-    if(isRespawnRequired()) {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid > NUM_PARTICLES) return;
+
+    uint seed = in_randomSeed[gid];
+    if(isRespawnRequired(gid)) {
 #ifdef USE_RAIN_DB_RAND
-        out_type = int(random(seed)*369.0);
+        in_type[gid] = int(random(seed)*369.0);
 #else
-        out_type = int(floor(random(seed)*8.0));
+        in_type[gid] = int(floor(random(seed)*8.0));
 #endif
-        spawnParticle(seed);
+        spawnParticle(gid, seed);
     }
     else {
-        updateParticle(seed);
-        out_type = in_type;
+        updateParticle(gid, seed);
+        in_type[gid] = in_type[gid];
     }
-    out_randomSeed = seed;
+    in_randomSeed[gid] = seed;
 }
 
 /*****************************/

@@ -21,9 +21,9 @@ BufferContainer::BufferContainer(std::string_view bufferName, const BufferUpdate
 }
 
 void BufferContainer::addStagedInput(const ref_ptr<ShaderInput> &input, std::string_view name) {
-	if (input->isBufferBlock()) {
-		auto block = ref_ptr<BufferBlock>::dynamicCast(input);
-		for (auto &blockUniform: block->stagedInputs()) {
+	if (input->isStagedBuffer()) {
+		auto bo = ref_ptr<StagedBuffer>::dynamicCast(input);
+		for (auto &blockUniform: bo->stagedInputs()) {
 			namedInputs_.emplace_back(blockUniform.in_, blockUniform.name_);
 		}
 	} else {

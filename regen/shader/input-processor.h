@@ -194,7 +194,7 @@ namespace regen {
 					if (in->isVertexAttribute()) {
 						in->setVertexData(in->numVertices(), nullptr);
 						setInput(input, in.get(), in->numVertices());
-					} else if (in->isBufferBlock()) {
+					} else if (in->isStagedBuffer()) {
 						setInput(input, in.get(), in->numInstances());
 					} else {
 						in->setInstanceData(in->numInstances(), 1, nullptr);
@@ -358,6 +358,9 @@ namespace regen {
 				}
 				ref_ptr<U> v = ref_ptr<U>::alloc(input.getValue("name"));
 				v->set_isConstant(input.getValue<bool>("is-constant", false));
+				if (input.hasAttribute("layout")) {
+					v->setMemoryLayout(input.getValue<BufferMemoryLayout>("layout", BUFFER_MEMORY_STD430));
+				}
 
 				auto numInstances = input.getValue<uint32_t>("num-instances", 1u);
 				auto numVertices = input.getValue<uint32_t>("num-vertices", 1u);
@@ -383,8 +386,8 @@ namespace regen {
 
 				// Handle Attribute values.
 				if (isInstanced || isAttribute) {
-					auto values = v->mapClientDataRaw(BUFFER_GPU_WRITE);
-					auto typedValues = (T *) values.w;
+					auto values = v->template mapClientData<T>(BUFFER_GPU_WRITE);
+					auto typedValues = values.w;
 					for (uint32_t i = 0; i < count; i += 1) typedValues[i] = defaultValue;
 					values.unmap();
 					setInput(input, v.get(), count);

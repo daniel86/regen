@@ -73,6 +73,19 @@ void LightningStrike::updateSegmentData() {
 	updateSegmentData(source, target);
 }
 
+void LightningStrike::SegmentData::push_back(
+		const Vec3f &start,
+		const Vec3f &end,
+		uint32_t strikeIdx,
+		float brightness) {
+	pos_.push_back(start);
+	pos_.push_back(end);
+	brightness_.push_back(brightness);
+	brightness_.push_back(brightness);
+	strikeIdx_.push_back(strikeIdx);
+	strikeIdx_.push_back(strikeIdx);
+}
+
 void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target) {
 	// update CPU segment data.
 	// we use two std::vectors in the process which are swapped for each subdivision.
@@ -88,14 +101,14 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 		(currentDrawIdx == 0u) ? 1u : 0u,
 		(currentDrawIdx == 2u) ? 1u : 2u
 	};
-	std::vector<Segment> *updateSegments[2] = {
+	SegmentData *updateSegments[2] = {
 		&segments_[updateIdx[0]],
 		&segments_[updateIdx[1]]
 	};
 
 	updateSegments[1]->clear();
 	updateSegments[0]->clear();
-	updateSegments[0]->emplace_back(source, target, strikeIdx_);
+	updateSegments[0]->push_back(source, target, strikeIdx_);
 	uint32_t lastIndex = 0, nextIndex = 1;
 	float offsetAmount = jitterOffset_;
 	float heightRange = source.y - target.y;
@@ -104,43 +117,56 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 	int numSubBranchVertices = numMainBranchVertices;
 	int numRemainingVertices = numMainBranchVertices * static_cast<int>(maxBranches_ - 1);
 
-	Vec3f midPoint, direction;
 	for (unsigned int i = 0u; i < maxSubDivisions_; ++i) {
 		numSubBranchVertices /= 2;
 
-		for (auto &segment: *updateSegments[lastIndex]) {
-			midPoint = (segment.start.pos + segment.end.pos) * 0.5f;
-			direction = segment.end.pos - segment.start.pos;
+		auto &segmentData = updateSegments[lastIndex];
+		for (uint32_t segmentIdx = 0u; segmentIdx < segmentData->pos_.size() / 2; ++segmentIdx) {
+			const uint32_t startIdx = segmentIdx * 2;
+			const uint32_t endIdx = startIdx + 1;
+
+			const Vec3f &startPos = segmentData->pos_[startIdx];
+			const Vec3f &endPos = segmentData->pos_[endIdx];
+
+			const float startBrightness = segmentData->brightness_[startIdx];
+			const float endBrightness = segmentData->brightness_[endIdx]; // TODO: NEEDED??
+
+			const uint32_t startStrikeIdx = segmentData->strikeIdx_[startIdx];
+			const uint32_t endStrikeIdx = segmentData->strikeIdx_[endIdx]; // TODO: NEEDED??
+
+			Vec3f midPoint = (startPos + endPos) * 0.5f;
+			Vec3f direction = endPos - startPos;
 			direction.normalize();
 			midPoint += getPerpendicular(direction) * (offsetAmount * (math::random<float>() * 2.0f - 1.0f));
-			updateSegments[nextIndex]->emplace_back(
-				segment.start.pos, midPoint,
-				segment.start.strikeIdx,
-				segment.start.brightness);
-			updateSegments[nextIndex]->emplace_back(
-				midPoint, segment.end.pos,
-				segment.end.strikeIdx,
-				segment.end.brightness);
+			updateSegments[nextIndex]->push_back(
+				startPos, midPoint,
+				startStrikeIdx,
+				startBrightness);
+			updateSegments[nextIndex]->push_back(
+				midPoint, endPos,
+				endStrikeIdx,
+				endBrightness);
 
-			direction = midPoint - segment.start.pos;
+			direction = midPoint - startPos;
 			// with some probability create a new branch.
 			if (numRemainingVertices > numSubBranchVertices &&
 				math::random<float>() < branchProbability_ *
 										// decrease the probability for sub-branches
-										std::min(1.0f, segment.start.brightness + 0.25f) *
+										std::min(1.0f, startBrightness + 0.25f) *
 										// decrease the probability further away from the target
 										std::min(1.0f, (1.0f - (midPoint.y - target.y) / heightRange) + 0.25f)) {
-				updateSegments[nextIndex]->emplace_back(
+				updateSegments[nextIndex]->push_back(
 						midPoint,
-						branch(midPoint, direction, segment.end.pos,
+						branch(midPoint, direction, endPos,
 							   offsetAmount * branchOffset_,
 							   branchLength_),
-						segment.start.strikeIdx,
+						startStrikeIdx,
 						// decrease brightness for sub-branches
-						segment.start.brightness * branchDarkening_);
+						startBrightness * branchDarkening_);
 				numRemainingVertices -= numSubBranchVertices;
 			}
 		}
+
 		updateSegments[lastIndex]->clear();
 		nextIndex = lastIndex;
 		lastIndex = 1 - lastIndex;
@@ -188,7 +214,7 @@ bool LightningStrike::updateStrike(double dt_s) {
 }
 
 LightningBolt::LightningBolt()
-		: Mesh(GL_LINES, BufferUpdateFlags::FULL_PER_FRAME),
+		: Mesh(GL_LINES, BufferUpdateFlags::PARTIAL_PER_FRAME),
 		  Animation(true, true) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	brightness_ = ref_ptr<ShaderInput1f>::alloc(ATTRIBUTE_NAME_BRIGHTNESS);
@@ -396,12 +422,6 @@ void LightningBolt::createResources() {
 		auto &lod = meshLODs_.emplace_back();
 		lod.d->numVertices = numVertices;
 		lod.d->vertexOffset = 0;
-
-		// note: pos is first attribute in the interleaved buffer
-		bufferOffset_ = pos_->offset();
-		elementSize_ = pos_->elementSize() +
-				brightness_->elementSize() +
-				strikeIdx_->elementSize();
 	}
 
 	{
@@ -439,29 +459,52 @@ void LightningBolt::gpuUpdate(RenderState *rs, double dt) {
 	if (!isActive_) return;
 
 	const uint32_t maxVertices = pos_->numVertices();
-	uint32_t numVertices = 0u, strikeVertices, strikeBytes;
-	uint32_t offset = bufferOffset_;
+	uint32_t numVertices = 0u;
+
+	auto m_pos = pos_->mapClientDataRaw(BUFFER_GPU_WRITE);
+	auto m_brightness = brightness_->mapClientDataRaw(BUFFER_GPU_WRITE);
+	auto m_strikeIdx = strikeIdx_->mapClientDataRaw(BUFFER_GPU_WRITE);
+
+	auto* posData = (Vec3f*)m_pos.w;
+	auto* brightnessData = (float*)m_brightness.w;
+	auto* strikeIdxData = (uint32_t*)m_strikeIdx.w;
+
 	for (auto &strike : strikes_) {
 		// Load the index of last updated segment.
 		// NOTE: This is safe because draw and update thread are frame-synced, i.e. update will swap
 		// the draw idx only after writing, and won't write again until draw is definitely done.
 		// Draw will either use update data of last frame, or if it is slower it may also pick
 		// up the data just written, which is also fine.
-		auto drawIdx = strike->drawIndex_.load(std::memory_order_acquire);
-		auto &segment = strike->segments_[drawIdx];
-		strikeVertices = segment.size() * 2;
+		const uint32_t drawIdx = strike->drawIndex_.load(std::memory_order_acquire);
+		LightningStrike::SegmentData &segment = strike->segments_[drawIdx];
+		const uint32_t strikeVertices = segment.pos_.size();
 		if (strikeVertices == 0 || numVertices + strikeVertices > maxVertices) { continue; }
-		strikeBytes = strikeVertices * elementSize_;
 
-		// Copy segment data to GPU buffer.
-		glNamedBufferSubData(
-			pos_->buffer(),
-			offset,
-			strikeBytes,
-			segment.data());
+		// Copy position data
+		std::memcpy(
+			posData + numVertices,
+			segment.pos_.data(),
+			strikeVertices * pos_->elementSize());
+
+		// Copy brightness data
+		std::memcpy(
+			brightnessData + numVertices,
+			segment.brightness_.data(),
+			strikeVertices * brightness_->elementSize());
+
+		// Copy strikeIdx data
+		std::memcpy(
+			strikeIdxData + numVertices,
+			segment.strikeIdx_.data(),
+			strikeVertices * strikeIdx_->elementSize());
+
 		numVertices += strikeVertices;
-		offset += strikeBytes;
 	}
+
+	m_pos.unmap();
+	m_brightness.unmap();
+	m_strikeIdx.unmap();
+
 	// update the number of vertices
 	set_numVertices(numVertices);
 	if (!meshLODs_.empty()) {

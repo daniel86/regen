@@ -51,7 +51,71 @@ void posWavingTransfer(inout vec3 pos)
 ----- function.
 ----- The interpolated value can be captured using trnasform feedback.
 --------------
--- interpolate
+-- interpolate.cs
+#include regen.stages.compute.defines
+#define M_PI 3.141592653589
+
+uniform float in_frameTimeNormalized;
+uniform float in_friction;
+uniform float in_frequency;
+
+//layout(std430, binding = 0) buffer VertexData {
+//    #for INDEX to NUM_ATTRIBUTES
+//    #define2 _NAME ${ATTRIBUTE${INDEX}_NAME}
+//    #define2 _TYPE ${ATTRIBUTE${INDEX}_TYPE}
+//    ${_TYPE} in_${_NAME}[NUM_VERTICES];
+//    #endfor
+//};
+
+layout(std430, binding = 1) buffer LastFrame {
+    #for INDEX to NUM_ATTRIBUTES
+    #define2 _NAME ${ATTRIBUTE${INDEX}_NAME}
+    #define2 _TYPE ${ATTRIBUTE${INDEX}_TYPE}
+    ${_TYPE} in_last_${_NAME}[NUM_VERTICES];
+    #endfor
+};
+
+layout(std430, binding = 2) buffer NextFrame {
+    #for INDEX to NUM_ATTRIBUTES
+    #define2 _NAME ${ATTRIBUTE${INDEX}_NAME}
+    #define2 _TYPE ${ATTRIBUTE${INDEX}_TYPE}
+    ${_TYPE} in_next_${_NAME}[NUM_VERTICES];
+    #endfor
+};
+
+// flat
+#define interpolate_flat(X,Y,T) (X)
+// linear
+#define interpolate_linear(X,Y,T) (T*X + (1.0-T)*Y)
+// nearest
+#define interpolate_nearest(X,Y,T) (T<0.5 ? X : Y)
+// elastic
+#define REGEN_ELASTIC(T) abs( exp(-in_friction*T)*cos(in_frequency*T*2.5*M_PI) )
+#define interpolate_elastic(X,Y,T) interpolate_linear(Y,X,REGEN_ELASTIC(T))
+
+// include interpolation functions
+#for INDEX to NUM_ATTRIBUTES
+  #ifdef ${ATTRIBUTE${INDEX}_INTERPOLATION_KEY}
+#include ${ATTRIBUTE${INDEX}_INTERPOLATION_KEY}
+  #endif
+#endfor
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= NUM_VERTICES) {
+        return;
+    }
+#for INDEX to NUM_ATTRIBUTES
+#define2 _NAME ${ATTRIBUTE${INDEX}_NAME}
+#define2 _TYPE ${ATTRIBUTE${INDEX}_NAME}
+    in_${_NAME}[idx] = ${ATTRIBUTE${INDEX}_INTERPOLATION_NAME}(
+        in_last_${_NAME}[idx],
+        in_next_${_NAME}[idx],
+        in_frameTimeNormalized);
+#endfor
+}
+
+-- interpolate.old
 #define M_PI 3.141592653589
 
 uniform float in_frameTimeNormalized;
