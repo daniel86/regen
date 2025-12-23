@@ -528,19 +528,19 @@
     </node>
 
     <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
-        <input type="vec3" name="pos" is-attribute="1"/>
-        <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
-        <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
+        <input type="vec3" name="pos" layout="std430" is-attribute="1"/>
+        <input type="vec3" name="velocity" layout="std430" is-attribute="1"/>
+        <input type="float" name="mass" layout="std430" is-attribute="1" default="1.4" variance="0.4"/>
+        <input type="float" name="size" layout="std430" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
                advance-constant="2.0"/>
         <transform id="platform1-tf"/>
     </mesh>
 
     <mesh id="test-particles0" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
-        <input type="vec3" name="pos" is-attribute="1"/>
-        <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
-        <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
+        <input type="vec3" name="pos" layout="std430" is-attribute="1"/>
+        <input type="vec3" name="velocity" layout="std430" is-attribute="1"/>
+        <input type="float" name="mass" layout="std430" is-attribute="1" default="1.4" variance="0.4"/>
+        <input type="float" name="size" layout="std430" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
                advance-constant="2.0"/>
         <transform id="platform0-tf"/>
     </mesh>
