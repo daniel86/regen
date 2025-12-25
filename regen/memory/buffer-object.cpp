@@ -22,16 +22,9 @@ BufferObject::BufferObject(const BufferObject &other) :
 }
 
 BufferObject::~BufferObject() {
-	// TODO: reconsider this
-	/**
 	while (!allocations_.empty()) {
-		ref_ptr<BufferReference> ref = *allocations_.begin();
-		orphanBufferRange(ref.get());
-		if (!allocations_.empty() && allocations_.front().get() == ref.get()) {
-			allocations_.erase(allocations_.begin());
-		}
+		orphanBufferRange(allocations_.back().get());
 	}
-	**/
 }
 
 void BufferObject::setClientAccessMode(ClientAccessMode mode) {
@@ -67,7 +60,7 @@ void BufferObject::createMemoryPools() {
 		int poolIndex;
 
 		poolIndex = (int) ARRAY_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
-		pools[poolIndex]->set_alignment(4);
+		pools[poolIndex]->set_alignment(PACKED_BASE_ALIGNMENT);
 
 		// Element array buffers need to be aligned to 4 bytes such that binding offsets
 		// are multiple of 4 bytes (which is needed for u_32 data)

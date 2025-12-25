@@ -79,18 +79,16 @@ void FeedbackState::initializeResources() {
 			}
 			uint32_t byteOffset = feedbackRef_->address();
 			for (auto & att : feedbackAttributes_) {
-				att->set_offset(byteOffset);
-				att->set_stride(stride);
-				att->set_buffer(feedbackRef_->bufferID(), feedbackRef_);
-				byteOffset += att->inputSize();
+				att->setMainBuffer(feedbackRef_, byteOffset);
+				att->setVertexStride(stride);
+				byteOffset += att->inputSize(); // FIXME: this does not look right or?
 			}
 		} else {
 			// set up separate attributes
 			uint32_t byteOffset = feedbackRef_->address();
 			for (auto & att : feedbackAttributes_) {
-				att->set_offset(byteOffset);
-				att->set_stride(att->alignedBaseSize());
-				att->set_buffer(feedbackRef_->bufferID(), feedbackRef_);
+				att->setMainBuffer(feedbackRef_, byteOffset);
+				att->setVertexStride(static_cast<GLsizei>(att->alignedElementSize()));
 				byteOffset += att->inputSize();
 			}
 		}
@@ -115,7 +113,7 @@ void FeedbackState::enable(RenderState *rs) {
 		if (!rs->isTransformFeedbackAcive()) {
 			int bufferIndex = 0;
 			for (auto & att : feedbackAttributes_) {
-				bufferRange_.offset_ = att->offset();
+				bufferRange_.offset_ = att->mainBufferOffset();
 				bufferRange_.size_ = att->inputSize();
 				rs->feedbackBufferRange().push(bufferIndex, bufferRange_);
 				bufferIndex += 1;

@@ -41,6 +41,14 @@ namespace regen {
 		BUFFER_MEMORY_PACKED
 	};
 
+	// We use 16-byte base alignment for packed data, i.e. every
+	// block starts at a multiple of 16 bytes.
+	// This is not required with OpenGL, Vulkan requires at least 4 bytes.
+	// This does not mean that every element is aligned to 16 bytes,
+	// but that the start of the block is aligned to 16 bytes.
+	// IMPORTANT: Must be a power of two.
+	static constexpr uint32_t PACKED_BASE_ALIGNMENT = 16;
+
 	/**
 	  * The buffering mode, i.e. how many buffers are used
 	  * (usually by the staging system).

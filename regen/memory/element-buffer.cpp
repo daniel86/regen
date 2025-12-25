@@ -16,9 +16,7 @@ ref_ptr<BufferReference> &ElementBuffer::alloc(const ref_ptr<ShaderInput> &att) 
 	if (elementRef_->allocatedSize() < numBytes) return elementRef_;
 	const uint32_t startByte = elementRef_->address();
 
-	att->set_offset(startByte);
-	att->set_stride(att->elementSize());
-	att->set_buffer(elementRef_->bufferID(), elementRef_);
+	att->setMainBuffer(elementRef_, startByte);
 	// copy data
 	if (att->hasClientData()) {
 		auto mapped = att->mapClientDataRaw(BUFFER_GPU_READ);

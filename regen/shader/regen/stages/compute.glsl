@@ -24,6 +24,8 @@ vec3 readPosition(uint i) {
     return fetch_modelMatrix(i)[3].xyz;
     #elif HAS_modelOffset
     return fetch_modelOffset(i).xyz;
+    #elif HAS_VERTEX_pos
+    return in_pos[i];
     #else
     i *= 3;
     return vec3(in_pos[i], in_pos[i + 1], in_pos[i + 2]);

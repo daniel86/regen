@@ -345,7 +345,7 @@ StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType
 		REGEN_DEBUG("Moved \"" << block->name()
 			<< "\" to \"" << targetArena->type << "\" arena.");
 	} else {
-		REGEN_DEBUG("Added \"" << block->name()
+		REGEN_INFO("Added \"" << block->name()
 			<< "\" to \"" << targetArena->type << "\" arena.");
 	}
 	return targetArena;

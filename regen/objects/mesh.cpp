@@ -124,7 +124,9 @@ ref_ptr<BufferReference> Mesh::setIndices(const ref_ptr<ShaderInput> &indices, u
 	shared_->numIndices_ = static_cast<int32_t>(shared_->indices_->numVertices());
 	shared_->maxIndex_ = maxIndex;
 	elementBuffer_ = ref_ptr<ElementBuffer>::alloc(BufferUpdateFlags::NEVER);
-	return elementBuffer_->alloc(shared_->indices_);
+	ref_ptr<BufferReference> ref = elementBuffer_->alloc(shared_->indices_);
+	indices->setMainBuffer(ref, ref->address());
+	return ref;
 }
 
 void Mesh::set_vertexOffset(int32_t v) {
@@ -164,7 +166,7 @@ uint32_t Mesh::maxIndex() const {
 }
 
 uint32_t Mesh::indexOffset() const {
-	return shared_->indices_.get() ? shared_->indices_->offset() : 0u;
+	return shared_->indices_.get() ? shared_->indices_->mainBufferOffset() : 0u;
 }
 
 const ref_ptr<ShaderInput> &Mesh::indices() const {
@@ -172,7 +174,9 @@ const ref_ptr<ShaderInput> &Mesh::indices() const {
 }
 
 void Mesh::set_indexOffset(uint32_t v) {
-	if (shared_->indices_.get()) { shared_->indices_->set_offset(v); }
+	if (shared_->indices_.get()) {
+		shared_->indices_->setMainBufferOffset(v);
+	}
 }
 
 uint32_t Mesh::indexBuffer() const {
@@ -337,7 +341,7 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	bool allAttributesAllocated = true;
 	ref_ptr<BufferReference> vertexBufferRef;
 	for (const auto &vaoAttribute : vaoAttributes_) {
-		auto &attributeRef = vaoAttribute.input->bufferIterator();
+		auto &attributeRef = vaoAttribute.input->mainBufferRef();
 		if (!attributeRef) {
 			allAttributesAllocated = false;
 			break;
@@ -391,7 +395,7 @@ void Mesh::updateVAO() {
 
 void Mesh::updateVAO_() {
 	if (vaoAttributes_.empty()) return;
-	updateVAO(vaoAttributes_.front().input->buffer());
+	updateVAO(vaoAttributes_.front().input->mainBufferName());
 
 	// group together LODs that can be drawn with multi draw calls,
 	// i.e. those that do not have impostor meshes.
@@ -670,7 +674,7 @@ void Mesh::setIndirectDrawBuffer(
 	if (indirectDrawBuffer_.get()) {
 		const uint32_t numDrawCommands = indirectDrawBuffer->inputSize() / sizeof(DrawCommand);
 		numDrawLODs_ = numDrawCommands / numDrawLayers;
-		indirectOffset_ = indirectDrawBuffer_->offset() + baseDrawIdx_ * sizeof(DrawCommand);
+		indirectOffset_ = indirectDrawBuffer_->mainBufferOffset() + baseDrawIdx_ * sizeof(DrawCommand);
 	} else {
 		indirectOffset_ = 0u;
 	}
@@ -941,7 +945,7 @@ void Mesh::drawIndexed(GLenum primitive) const {
 			primitive,
 			shared_->numIndices_,
 			shared_->indices_->baseType(),
-			REGEN_BUFFER_OFFSET(shared_->indices_->offset()));
+			REGEN_BUFFER_OFFSET(shared_->indices_->mainBufferOffset()));
 }
 
 void Mesh::drawInstances(GLenum primitive) const {
@@ -957,7 +961,7 @@ void Mesh::drawInstancesIndexed(GLenum primitive) const {
 			primitive,
 			shared_->numIndices_,
 			shared_->indices_->baseType(),
-			REGEN_BUFFER_OFFSET(shared_->indices_->offset()),
+			REGEN_BUFFER_OFFSET(shared_->indices_->mainBufferOffset()),
 			shared_->numVisibleInstances_);
 }
 
@@ -975,7 +979,7 @@ void Mesh::drawBaseInstancesIndexed(GLenum primitive) const {
 			primitive,
 			shared_->numIndices_,
 			shared_->indices_->baseType(),
-			REGEN_BUFFER_OFFSET(shared_->indices_->offset()),
+			REGEN_BUFFER_OFFSET(shared_->indices_->mainBufferOffset()),
 			shared_->numVisibleInstances_,
 			shared_->baseInstance_);
 }

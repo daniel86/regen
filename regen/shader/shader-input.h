@@ -160,14 +160,14 @@ namespace regen {
 		 * This is e.g. the offset between two Vec3f elements in a Vec3f array.
 		 * @return the byte offset between consecutive elements of the shader data.
 		 */
-		inline uint32_t stride() const { return stride_; }
+		inline uint32_t vertexStride() const { return vertexStride_; }
 
 		/**
 		 * Specifies the byte offset between consecutive elements of the shader data.
 		 * This is e.g. the offset between two Vec3f elements in a Vec3f array.
 		 * @param stride the byte offset between consecutive elements of the shader data.
 		 */
-		void set_stride(GLsizei stride) { stride_ = stride; }
+		void setVertexStride(GLsizei stride) { vertexStride_ = stride; }
 
 		/**
 		 * Specifies the data type of each component in the array.
@@ -199,11 +199,11 @@ namespace regen {
 		inline uint32_t baseAlignment() const { return baseAlignment_; }
 
 		/**
-		 * Aligned base size of the input.
+		 * Aligned element size of the input.
 		 * This is the size of a single element with alignment applied.
 		 * @return the aligned base size of the input in bytes.
 		 */
-		inline uint32_t alignedBaseSize() const { return alignedBaseSize_; }
+		inline uint32_t alignedElementSize() const { return alignedElementSize_; }
 
 		/**
 		 * Aligned size of the input.
@@ -273,37 +273,38 @@ namespace regen {
 		void set_inputSize(uint32_t size) { inputSize_ = size; }
 
 		/**
-		 * VBO that contains this vertex data.
-		 * Iterator should be exclusively owned by this instance.
+		 * Set the main VBO that contains this vertex data.
+		 * @param ref the buffer reference.
+		 * @param offset the offset in the buffer in bytes.
 		 */
-		void set_buffer(uint32_t buffer, const ref_ptr<BufferReference> &ref);
+		void setMainBuffer(const ref_ptr<BufferReference> &ref, uint32_t offset);
+
+		/**
+		 * Set the offset in the main VBO that contains this vertex data.
+		 * @param offset the offset in the buffer in bytes.
+		 */
+		void setMainBufferOffset(uint32_t offset);
 
 		/**
 		 * VBO that contains this vertex data.
 		 */
-		uint32_t buffer() const { return buffer_; }
+		uint32_t mainBufferName() const { return buffer_; }
 
 		/**
 		 * data with stamp was uploaded to GL.
 		 */
-		uint32_t bufferStamp() const { return bufferStamp_; }
+		uint32_t mainBufferStamp() const { return bufferStamp_; }
 
 		/**
 		 * Iterator to allocated VBO block.
 		 */
-		auto &bufferIterator() const { return bufferIterator_; }
+		auto &mainBufferRef() const { return bufferRef_; }
 
 		/**
 		 * Offset in the VBO to the first
 		 * attribute element.
 		 */
-		void set_offset(uint32_t offset) { offset_ = offset; }
-
-		/**
-		 * Offset in the VBO to the first
-		 * attribute element.
-		 */
-		uint32_t offset() const { return offset_; }
+		uint32_t mainBufferOffset() const { return offset_; }
 
 		/**
 		 * Specify the number of instances that will pass between updates
@@ -641,11 +642,11 @@ namespace regen {
 
 		uint32_t baseAlignment_;
 		uint32_t alignmentCount_;
-		uint32_t alignedBaseSize_;
+		uint32_t alignedElementSize_;
 		uint32_t alignedInputSize_ = 0u;
 		uint32_t unalignedSize_ = 0u;
 
-		uint32_t stride_ = 0u;
+		uint32_t vertexStride_ = 0u;
 		uint32_t offset_ = 0u;
 		uint32_t inputSize_ = 0u;
 		// This is the size in bytes of one element in the vertex buffer.
@@ -664,7 +665,7 @@ namespace regen {
 		BufferMemoryLayout memoryLayout_ = BUFFER_MEMORY_PACKED;
 		uint32_t buffer_ = 0;
 		mutable uint32_t bufferStamp_;
-		ref_ptr<BufferReference> bufferIterator_;
+		ref_ptr<BufferReference> bufferRef_;
 
 		ref_ptr<ClientBuffer> clientBuffer_;
 		// stride in bytes for typed client data in the client buffer.

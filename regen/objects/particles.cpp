@@ -49,6 +49,7 @@ void Particles::begin() {
 
 ref_ptr<BufferReference> Particles::end() {
 	vboRef_ = Mesh::updateVertexData();
+	particleBuffer_ = ref_ptr<SSBO>::alloc(*vertexBuffer_.get(), "ParticleBlock");
 	bufferRange_.size_ = vboRef_->allocatedSize();
 
 	// Create shader defines.
@@ -74,19 +75,17 @@ ref_ptr<BufferReference> Particles::end() {
 	// start with zero emitted particles
 	//set_numVertices(0);
 
-	// create an atomic counter for computing the bounding box
-	/**
+	// create bounding box compute pass
 	bboxBuffer_ = ref_ptr<BBoxBuffer>::alloc(Bounds<Vec3f>());
 	bboxPass_ = ref_ptr<ComputePass>::alloc("regen.compute.bbox");
 	bboxPass_->computeState()->setNumWorkUnits(numParticles_, 1, 1);
 	bboxPass_->computeState()->setGroupSize(256, 1, 1);
-	bboxPass_->setInput(ref_ptr<SSBO>::alloc(feedbackBuffer_, vboRef_));
+	bboxPass_->setInput(particleBuffer_);
 	bboxPass_->setInput(bboxBuffer_);
 	StateConfigurer shaderConfigurer;
 	shaderConfigurer.define("NUM_ELEMENTS", REGEN_STRING(numParticles_));
 	shaderConfigurer.addState(bboxPass_.get());
 	bboxPass_->createShader(shaderConfigurer.cfg());
-	**/
 
 	return vboRef_;
 }
@@ -233,17 +232,14 @@ void Particles::configureAdvancing(
 
 void Particles::createUpdateShader() {
 	StateConfigurer shaderConfigurer;
-
-	ref_ptr<SSBO> particleBuffer = ref_ptr<SSBO>::alloc(*vertexBuffer_.get(), "ParticleBlock");
-	updateState_->setInput(particleBuffer);
-
 	auto particleCompute = ref_ptr<ComputePass>::alloc(updateShaderKey_);
 	particleCompute->computeState()->setNumWorkUnits(numParticles_, 1, 1);
 	particleCompute->computeState()->setGroupSize(256, 1, 1);
+
+	updateState_->setInput(particleBuffer_);
 	updateState_->joinStates(particleCompute);
 
 	shaderConfigurer.define("NUM_PARTICLES", REGEN_STRING(numParticles_));
-
 	shaderConfigurer.addState(animationState_.get());
 	shaderConfigurer.addState(this);
 	shaderConfigurer.addState(updateState_.get());
@@ -252,27 +248,26 @@ void Particles::createUpdateShader() {
 }
 
 void Particles::gpuUpdate(RenderState *rs, double dt) {
-	// TODO only emit a limited number of particles per frame
 	updateState_->enable(rs);
 	updateState_->disable(rs);
 
-	// TODO: Update bounding box every ~166 ms.
-	//      Problem: No support yet for binding VBO as SSBO.
-	//      The current interface requires StagedBuffer.
-	// bbox_time_ += dt;
-	// if (bbox_time_ > 166.0) {
-	// 	bboxBuffer_->clear();
-	// 	bboxPass_->enable(rs);
-	// 	bboxPass_->disable(rs);
-	// 	// update the grid in case the bounding box around the boids changed.
-	// 	if(bboxBuffer_->updateBoundingBox()) {
-	// 		auto &newBounds = bboxBuffer_->bbox();
-	// 		if (newBounds.max != newBounds.min) {
-	// 			set_bounds(newBounds.min, newBounds.max);
-	// 		}
-	// 	}
-	// 	bbox_time_ = 0.0;
-	// }
+	if (useGPUBoundingBox_) {
+		// Update bounding box every ~166 ms.
+		bbox_time_ += dt;
+		if (bbox_time_ > 166.0) {
+			bboxBuffer_->clear();
+			bboxPass_->enable(rs);
+			bboxPass_->disable(rs);
+			// update the grid in case the bounding box around the boids changed.
+			if(bboxBuffer_->updateBoundingBox()) {
+				auto &newBounds = bboxBuffer_->bbox();
+				if (newBounds.max != newBounds.min) {
+					set_bounds(newBounds.min, newBounds.max);
+				}
+			}
+			bbox_time_ = 0.0;
+		}
+	}
 }
 
 namespace regen {

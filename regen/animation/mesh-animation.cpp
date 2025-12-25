@@ -50,14 +50,33 @@ MeshAnimation::MeshAnimation(
 	const uint32_t numVertices = mesh->numVertices();
 	StateConfigurer shaderConfigurer;
 
+	for (auto jt = interpolations.begin(); jt != interpolations.end(); ++jt) {
+		animAttributes_.insert(jt->attributeName);
+	}
+
+	// used to save two frames
+	pingBuffer_ = ref_ptr<SSBO>::alloc("PingFrame",
+		BufferUpdateFlags::FULL_RARELY | BUFFER_COMPUTABLE);
+	pongBuffer_ = ref_ptr<SSBO>::alloc("PongFrame",
+		BufferUpdateFlags::FULL_RARELY | BUFFER_COMPUTABLE);
+
 	// find buffer size
 	bufferSize_ = 0u;
 	uint32_t i = 0u;
 	for (auto it = mesh->inputs().begin(); it != mesh->inputs().end(); ++it) {
 		const ref_ptr<ShaderInput> &in = it->in_;
 		if (!in->isVertexAttribute()) continue;
-		bufferSize_ += in->inputSize();
-		//transformFeedback.push_back(in->name());
+		if (!animAttributes_.contains(in->name())) continue;
+
+		bufferSize_ += in->alignedInputSize();
+
+		auto pingAtt = ShaderInput::copy(in, false);
+		pingAtt->setVertexData(numVertices, nullptr);
+		pingBuffer_->addStagedInput(pingAtt);
+
+		auto pongAtt = ShaderInput::copy(in, false);
+		pongAtt->setVertexData(numVertices, nullptr);
+		pongBuffer_->addStagedInput(pongAtt);
 
 		std::string interpolationName = "interpolate_linear";
 		std::string interpolationKey;
@@ -81,14 +100,8 @@ MeshAnimation::MeshAnimation(
 	}
 	shaderConfigurer.define("NUM_ATTRIBUTES", REGEN_STRING(i));
 
-	// used to save two frames
-	pingBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER,
-		BufferUpdateFlags::NEVER | BUFFER_COMPUTABLE);
-	pingBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
-
-	pongBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER,
-		BufferUpdateFlags::NEVER | BUFFER_COMPUTABLE);
-	pongBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
+	pingBuffer_->update();
+	pongBuffer_->update();
 
 	// create initial frame
 	addMeshFrame(0.0);
@@ -175,30 +188,35 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange) {
 void MeshAnimation::loadFrame(uint32_t frameIndex, bool isPongFrame) {
 	KeyFrame &frame = frames_[frameIndex];
 
-	std::vector<ref_ptr<ShaderInput> > atts;
+	auto &dataBuffer = (isPongFrame ? pongBuffer_ : pingBuffer_);
+	auto m_staged = dataBuffer->mapClientDataRaw(BUFFER_GPU_WRITE);
+	byte* d_staged = m_staged.w;
+
+	uint32_t offset = 0u;
 	for (auto & attribute : frame.attributes) {
-		atts.push_back(attribute.input);
+		const ref_ptr<ShaderInput> &input = attribute.input;
+		const uint32_t numBytes = input->alignedInputSize();
+		const auto m_frame = input->mapClientDataRaw(BUFFER_GPU_READ);
+		// align to base alignment
+		offset = (offset + input->baseAlignment() - 1) & ~(input->baseAlignment() - 1);
+		std::memcpy(
+			d_staged + offset,
+			m_frame.r, numBytes);
+		offset += numBytes;
 	}
 
 	if (isPongFrame) {
-		if (pongFrame_ != -1) { BufferObject::orphanBufferRange(pongIt_.get()); }
 		pongFrame_ = frameIndex;
-		pongIt_ = pongBuffer_->alloc(atts);
-		frame.ref = pongIt_;
-		frame.buffer = ref_ptr<SSBO>::alloc(*pongBuffer_.get(), "PongFrame");
+		frame.buffer = pongBuffer_;
 	} else {
-		if (pingFrame_ != -1) { BufferObject::orphanBufferRange(pingIt_.get()); }
 		pingFrame_ = frameIndex;
-		pingIt_ = pingBuffer_->alloc(atts);
-		frame.ref = pingIt_;
-		frame.buffer = ref_ptr<SSBO>::alloc(*pingBuffer_.get(), "PingFrame");
+		frame.buffer = pingBuffer_;
 	}
 }
 
 void MeshAnimation::gpuUpdate(RenderState *rs, double dt) {
 	if (dt <= 0.00001) return;
 
-	const auto &inputs = mesh_->inputs();
 	elapsedTime_ += dt;
 
 	// map into anim's duration
@@ -215,7 +233,6 @@ void MeshAnimation::gpuUpdate(RenderState *rs, double dt) {
 		return;
 	}
 
-	bool framesChanged = false;
 	// Look for present frame number.
 	int lastFrame = lastFramePosition_;
 	int frame = (timeInTicks >= lastTime_ ? lastFrame : startFramePosition_);
@@ -228,42 +245,31 @@ void MeshAnimation::gpuUpdate(RenderState *rs, double dt) {
 	KeyFrame &frame0 = frames_[lastFrame];
 	if (lastFrame != pingFrame_ && lastFrame != pongFrame_) {
 		loadFrame(lastFrame, frame == pingFrame_);
-		framesChanged = true;
 	}
 	if (lastFrame != lastFrame_) {
 		lastFrame_ = lastFrame;
-		framesChanged = true;
 	}
 
 	KeyFrame &frame1 = frames_[frame];
 	if (frame != pingFrame_ && frame != pongFrame_) {
 		loadFrame(frame, lastFrame == pingFrame_);
-		framesChanged = true;
 	}
 	if (frame != nextFrame_) {
 		nextFrame_ = frame;
-		framesChanged = true;
 		REGEN_DEBUG("Next frame: " << nextFrame_ << " (time: " << timeInTicks << ")");
 	}
 
-	if (framesChanged) {
-		// TODO Switch BOs, they have fixed binding points in the compute shader:
-		// current data: 0, last frame: 1, next frame: 2
-	}
-
-	// TODO: maybe just keep three SSBOs, and re-allocate two of them when needed?
-	// TODO: or else need to figure out how to bind shader buffer to correct binding point
-	//frame0.buffer->bind(lastFrameBindingPoint_);
-	//frame1.buffer->bind(nextFrameBindingPoint_);
-
 	frameTimeUniform_->setVertex(0,
-								 (timeInTicks - frame1.startTick) / frame1.timeInTicks);
+		(timeInTicks - frame1.startTick) / frame1.timeInTicks);
+
+	// bind frame data buffers
+	frame0.buffer->bind(lastFrameBindingPoint_);
+	frame1.buffer->bind(nextFrameBindingPoint_);
 
 	// Compute next vertex data
-	//interpolationState_->enable(rs);
-	//interpolationState_->disable(rs);
+	interpolationState_->enable(rs);
+	interpolationState_->disable(rs);
 
-	GL_ERROR_LOG();
 	lastTime_ = tickRange_.x + timeInTicks;
 }
 
@@ -288,7 +294,9 @@ void MeshAnimation::addFrame(
 	for (const auto & input : mesh_->inputs()) {
 		const ref_ptr<ShaderInput> &in0 = input.in_;
 		if (!in0->isVertexAttribute()) continue;
+		if (!animAttributes_.contains(in0->name())) continue;
 		ref_ptr<ShaderInput> att;
+
 		// find specified attribute
 		for (const auto & in1 : attributes) {
 				if (in0->name() == in1->name()) {
@@ -314,6 +322,7 @@ void MeshAnimation::addMeshFrame(double timeInTicks) {
 	std::list<ref_ptr<ShaderInput> > meshAttributes;
 	for (auto &it : mesh_->inputs()) {
 		if (!it.in_->isVertexAttribute()) continue;
+		if (!animAttributes_.contains(it.in_->name())) continue;
 		meshAttributes.push_back(ShaderInput::copy(it.in_, true));
 	}
 	addFrame(meshAttributes, timeInTicks);
@@ -351,12 +360,12 @@ void MeshAnimation::addSphereAttributes(
 	ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->positions());
 	ref_ptr<ShaderInput3f> norAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->normals());
 	// allocate memory for the animation attributes
-	ref_ptr<ShaderInput3f> spherePos = ref_ptr<ShaderInput3f>::dynamicCast(
-			ShaderInput::copy(posAtt, false));
-	ref_ptr<ShaderInput3f> sphereNor = ref_ptr<ShaderInput3f>::dynamicCast(
-			ShaderInput::copy(norAtt, false));
+	ref_ptr<ShaderInput3f> spherePos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+	ref_ptr<ShaderInput3f> sphereNor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	spherePos->setMemoryLayout(BUFFER_MEMORY_STD430);
 	sphereNor->setMemoryLayout(BUFFER_MEMORY_STD430);
+	spherePos->setVertexData(posAtt->numVertices(), nullptr);
+	sphereNor->setVertexData(norAtt->numVertices(), nullptr);
 
 	// find the centroid of the mesh
 	Vec3f minPos = posAtt->getVertex(0).r;
@@ -538,12 +547,12 @@ void MeshAnimation::addBoxAttributes(
 	ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->positions());
 	ref_ptr<ShaderInput3f> norAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->normals());
 	// allocate memory for the animation attributes
-	ref_ptr<ShaderInput3f> boxPos = ref_ptr<ShaderInput3f>::dynamicCast(
-			ShaderInput::copy(posAtt, false));
-	ref_ptr<ShaderInput3f> boxNor = ref_ptr<ShaderInput3f>::dynamicCast(
-			ShaderInput::copy(norAtt, false));
+	ref_ptr<ShaderInput3f> boxPos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+	ref_ptr<ShaderInput3f> boxNor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	boxPos->setMemoryLayout(BUFFER_MEMORY_STD430);
 	boxNor->setMemoryLayout(BUFFER_MEMORY_STD430);
+	boxPos->setVertexData(posAtt->numVertices(), nullptr);
+	boxNor->setVertexData(norAtt->numVertices(), nullptr);
 
 	// set cube vertex data
 	for (uint32_t i = 0; i < boxPos->numVertices(); ++i) {

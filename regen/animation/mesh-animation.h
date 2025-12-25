@@ -121,7 +121,6 @@ namespace regen {
 			double timeInTicks;
 			double startTick;
 			double endTick;
-			ref_ptr<BufferReference> ref;
 			ref_ptr<SSBO> buffer;
 		};
 
@@ -139,12 +138,13 @@ namespace regen {
 		int lastFrame_, nextFrame_;
 		uint32_t bufferSize_;
 
-		ref_ptr<VBO> pingBuffer_;
-		ref_ptr<VBO> pongBuffer_;
+		ref_ptr<SSBO> pingBuffer_;
+		ref_ptr<SSBO> pongBuffer_;
 		int pingFrame_, pongFrame_;
 		ref_ptr<BufferReference> pingIt_;
 		ref_ptr<BufferReference> pongIt_;
 		std::vector<KeyFrame> frames_;
+		std::set<std::string> animAttributes_;
 
 		// milliseconds from start of animation
 		double elapsedTime_;

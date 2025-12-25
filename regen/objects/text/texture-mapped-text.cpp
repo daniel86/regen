@@ -73,6 +73,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 		set_numVertices(numCharacters_ * 6);
 		lastNumCharacters_ = numCharacters_;
 	}
+
 	// map client data for writing
 	auto v_pos = posAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
@@ -166,6 +167,14 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 		}
 	}
 
+	// set center and extends for bounding box
+	minPosition_ = v_pos.w[0];
+	maxPosition_ = v_pos.w[0];
+	for (uint32_t i = 1; i < vertexCounter; ++i) {
+		minPosition_.setMin(v_pos.w[i]);
+		maxPosition_.setMax(v_pos.w[i]);
+	}
+
 	v_pos.unmap();
 	v_nor.unmap();
 	v_texco.unmap();
@@ -178,14 +187,6 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 		setInput(texcoAttribute_);
 		updateVertexData();
 		updateVAO();
-	}
-
-	// set center and extends for bounding box
-	minPosition_ = v_pos.w[0];
-	maxPosition_ = v_pos.w[0];
-	for (uint32_t i = 1; i < vertexCounter; ++i) {
-		minPosition_.setMin(v_pos.w[i]);
-		maxPosition_.setMax(v_pos.w[i]);
 	}
 }
 

@@ -804,8 +804,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 				index += 1;
 			}
 		}
-		auto ref = meshState->setIndices(indices, maxIndex);
-		indices->set_offset(ref->address());
+		meshState->setIndices(indices, maxIndex);
 	}
 
 	const auto *aiTransform = (const aiMatrix4x4 *) &transform.x;
@@ -969,28 +968,31 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			boneIndices->setMemoryLayout(layout);
 			boneWeights->setVertexData(numVertices);
 			boneIndices->setVertexData(numVertices);
-			auto m_weights = boneWeights->mapClientDataRaw(BUFFER_GPU_WRITE);
-			auto m_indices = boneIndices->mapClientDataRaw(BUFFER_GPU_WRITE);
-			auto v_weights = (float*) m_weights.w;
-			auto v_indices = (uint32_t*) m_indices.w;
+			auto m_weights = boneWeights->mapClientData<float>(BUFFER_GPU_WRITE);
+			auto m_indices = boneIndices->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
+			auto &v_weights = m_weights.w;
+			auto &v_indices = m_indices.w;
 
+			uint32_t offset = 0;
 			for (uint32_t j = 0; j < numVertices; j++) {
 				WeightList &vWeights = vertexToWeights[j];
 
 				uint32_t k = 0;
 				for (auto & vWeight : vWeights) {
-					v_weights[k] = vWeight.first;
-					v_indices[k] = vWeight.second;
+					v_weights[offset+k] = vWeight.first;
+					v_indices[offset+k] = vWeight.second;
 					++k;
 				}
 				for (; k < maxNumWeights; ++k) {
-					v_weights[k] = 0.0f;
-					v_indices[k] = 0u;
+					v_weights[offset+k] = 0.0f;
+					v_indices[offset+k] = 0u;
 				}
 
-				v_weights += maxNumWeights;
-				v_indices += maxNumWeights;
+				offset += maxNumWeights;
 			}
+
+			m_weights.unmap();
+			m_indices.unmap();
 
 			if (maxNumWeights > 1) {
 				meshState->setInput(boneWeights);

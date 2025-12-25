@@ -11,7 +11,6 @@ static std::string getVBO_Name() {
 
 static BufferMemoryLayout getVBO_Layout(const BufferUpdateFlags &hints) {
 	return hints.compute == BUFFER_NO_COMPUTE ? BUFFER_MEMORY_PACKED : BUFFER_MEMORY_STD430;
-	//return BUFFER_MEMORY_PACKED;
 }
 
 VBO::VBO(BufferTarget target, const BufferUpdateFlags &hints)
@@ -31,44 +30,25 @@ ref_ptr<BufferReference> &VBO::alloc(const std::vector<ref_ptr<ShaderInput>> &at
 		for (const auto &att: stagedInputs_) {
 			clientBuffer_->removeSegment(att.input->clientBuffer());
 		}
-		estimatedSize_ = 0;
-		hasClientData_ = true;
-		inputs_.clear();
-		stagedInputs_.clear();
 	}
+	estimatedSize_ = 0;
+	hasClientData_ = true;
+	inputs_.clear();
+	stagedInputs_.clear();
+	allocations_.clear();
+
 	// Populate the VBO with the given attributes.
 	for (const auto &att: attributes) {
 		addStagedInput(att);
 	}
 	updateStagedInputs();
-	REGEN_INFO("VBO staged inputs:");
-	for (const auto &att: stagedInputs_) {
-		REGEN_INFO(" - '" << att.input->name() << "' size: " << att.input->alignedInputSize() <<
-			" has data: " << (att.input->hasClientData() ? "yes" : "no") <<
-			" is owner: " << (att.input->clientBuffer()->isDataOwner() ? "yes" : "no"));
-	}
-	REGEN_INFO(" - has segemnts: " << (clientBuffer_->hasSegments() ? "yes" : "no"));
+
 	// Add the VBO to the staging system, create a StagingBuffer instance.
 	createStagingBuffer();
+
 	// Create or adopt a buffer range for the total size of all attributes
 	// used as a buffer sourced in draw calls.
 	updateDrawBuffer();
-
-	// Start offset in allocated range
-	uint32_t bufferByteOffset = drawBufferRef_->address();
-	for (auto &att: attributes) {
-		// TODO: this is needed in some cases?
-		//bufferByteOffset = (bufferByteOffset + att->baseAlignment() - 1) & ~(att->baseAlignment() - 1);
-
-		// TODO: should be done by staging system maybe?
-		att->set_offset(bufferByteOffset);
-		//att->set_stride(att->alignedBaseSize());
-		att->set_stride(att->baseAlignment());
-		//att->set_stride(0);
-		// TODO: maybe not needed
-		att->set_buffer(drawBufferRef_->bufferID(), drawBufferRef_);
-		bufferByteOffset += att->alignedInputSize();
-	}
 
 	REGEN_INFO("Allocated VBO with "
 		<< drawBufferRef_->allocatedSize() / 1024.0 << " KiB at buffer "

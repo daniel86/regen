@@ -504,6 +504,20 @@ void StagedBuffer::updateDrawBuffer() {
 		setBufferData(mapped.r);
 	}
 
+	// set up the inputs to point to the correct offsets in the draw buffer
+	const uint32_t drawBufferOffset = drawBufferRef_->address();
+	uint32_t bufferByteOffset = 0u;
+	for (auto &staged: stagedInputs_) {
+		ShaderInput &att = *staged.input;
+		// Fulfill requirement for alignment of starting offset of attribute data,
+		// i.e. the start byte of the data must be a multiple of the base alignment.
+		const uint32_t nextAlignment = att.baseAlignment() - 1;
+		bufferByteOffset = (bufferByteOffset + nextAlignment) & ~nextAlignment;
+		// set the main buffer reference for the input
+		att.setMainBuffer(drawBufferRef_, drawBufferOffset + bufferByteOffset);
+		bufferByteOffset += att.alignedInputSize();
+	}
+
 	REGEN_DEBUG("Created "
 					   << StagingBuffer::getBufferSizeClass(requiredSize_)
 					   << " " << stagingFlags_.target

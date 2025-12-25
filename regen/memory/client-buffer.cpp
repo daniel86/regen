@@ -68,6 +68,7 @@ void ClientBuffer::setFrameLocked(bool frameLocked) {
 
 void ClientBuffer::setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments) {
 	writeLockAll();
+	// TODO: what if segments have different alignment?
 	// clear the current segments.
 	for (auto &segment: bufferSegments_) {
 		segment->parentBuffer_ = nullptr;
@@ -515,15 +516,13 @@ void ClientBuffer::updateBufferSize() {
 			segment->dataOffset_ = dataOffset_ + offset;
 
 			segment->updateBufferSize();
-			// FIXME: USE ALIGNED SIZE HERE? dataSize_ could be unaligned allocation
-			// then segment was added to parent with alignment
 			offset += segment->dataSize_;
 		}
 		dataSize_ = offset + bufferSegments_.back()->dataSize_;
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)
 		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
-			static constexpr size_t std140Alignment = 16;
-			dataSize_ = (dataSize_ + std140Alignment - 1) & ~(std140Alignment - 1);
+			static constexpr size_t std140Alignment = (16 - 1);
+			dataSize_ = (dataSize_ + std140Alignment) & ~std140Alignment;
 		}
 	}
 }
@@ -637,10 +636,26 @@ void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataP
 		} else {
 			// FIXME: In case of adding segments, where is the initial data copied? cannot see it here...
 			for (auto &segment: bufferSegments_) {
+				if (oldDataPtr) {
+					segment->resize_SingleBuffer(
+							owner, oldDataPtr + segment->lastOffset_,
+							newDataPtr + segment->dataOffset_);
+				} else if (segment->hasClientData()) {
+					REGEN_INFO("Copy local segment data!");
+					segment->resize_SingleBuffer(
+							owner, segment->dataSlots_[0],
+							newDataPtr + segment->dataOffset_);
+				} else {
+					segment->resize_SingleBuffer(
+							owner, nullptr,
+							newDataPtr + segment->dataOffset_);
+				}
+				/**
 				segment->resize_SingleBuffer(
 						owner,
 						oldDataPtr ? oldDataPtr + segment->lastOffset_ : oldDataPtr,
 						newDataPtr + segment->dataOffset_);
+						**/
 			}
 		}
 		allocatedSize_ = dataSize_;
@@ -700,12 +715,37 @@ void ClientBuffer::resize_DoubleBuffer(
 		} else {
 			// FIXME: In case of adding segments, where is the initial data copied? cannot see it here...
 			for (auto &segment: bufferSegments_) {
+				if (oldDataPtr0) {
+					segment->resize_DoubleBuffer(
+							owner,
+							oldDataPtr0 + segment->lastOffset_,
+							(oldDataPtr1 ? oldDataPtr1 : oldDataPtr0) + segment->lastOffset_,
+							newDataPtr0 + segment->dataOffset_,
+							newDataPtr1 + segment->dataOffset_);
+				} else if (segment->hasClientData()) {
+					REGEN_INFO("Copy local segment data!");
+					segment->resize_DoubleBuffer(
+							owner,
+							segment->dataSlots_[0],
+							segment->hasTwoSlots() ? segment->dataSlots_[1] : segment->dataSlots_[0],
+							newDataPtr0 + segment->dataOffset_,
+							newDataPtr1 + segment->dataOffset_);
+				} else {
+					segment->resize_DoubleBuffer(
+							owner,
+							nullptr,
+							nullptr,
+							newDataPtr0 + segment->dataOffset_,
+							newDataPtr1 + segment->dataOffset_);
+				}
+				/**
 				segment->resize_DoubleBuffer(
 						owner,
 						oldDataPtr0 ? oldDataPtr0 + segment->lastOffset_ : oldDataPtr0,
 						oldDataPtr1 ? oldDataPtr1 + segment->lastOffset_ : oldDataPtr1,
 						newDataPtr0 + segment->dataOffset_,
 						newDataPtr1 + segment->dataOffset_);
+						**/
 			}
 		}
 		allocatedSize_ = dataSize_;

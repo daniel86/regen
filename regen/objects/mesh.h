@@ -661,6 +661,7 @@ namespace regen {
 	protected:
 		GLenum primitive_;
 		ref_ptr<VBO> vertexBuffer_;
+		ref_ptr<SSBO> particleBuffer_;
 		ref_ptr<ElementBuffer> elementBuffer_;
 		ref_ptr<Material> material_;
 

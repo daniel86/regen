@@ -129,10 +129,7 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 			const Vec3f &endPos = segmentData->pos_[endIdx];
 
 			const float startBrightness = segmentData->brightness_[startIdx];
-			const float endBrightness = segmentData->brightness_[endIdx]; // TODO: NEEDED??
-
-			const uint32_t startStrikeIdx = segmentData->strikeIdx_[startIdx];
-			const uint32_t endStrikeIdx = segmentData->strikeIdx_[endIdx]; // TODO: NEEDED??
+			const float endBrightness = segmentData->brightness_[endIdx];
 
 			Vec3f midPoint = (startPos + endPos) * 0.5f;
 			Vec3f direction = endPos - startPos;
@@ -140,11 +137,11 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 			midPoint += getPerpendicular(direction) * (offsetAmount * (math::random<float>() * 2.0f - 1.0f));
 			updateSegments[nextIndex]->push_back(
 				startPos, midPoint,
-				startStrikeIdx,
+				strikeIdx_,
 				startBrightness);
 			updateSegments[nextIndex]->push_back(
 				midPoint, endPos,
-				endStrikeIdx,
+				strikeIdx_,
 				endBrightness);
 
 			direction = midPoint - startPos;
@@ -160,7 +157,7 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 						branch(midPoint, direction, endPos,
 							   offsetAmount * branchOffset_,
 							   branchLength_),
-						startStrikeIdx,
+						strikeIdx_,
 						// decrease brightness for sub-branches
 						startBrightness * branchDarkening_);
 				numRemainingVertices -= numSubBranchVertices;
