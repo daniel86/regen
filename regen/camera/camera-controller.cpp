@@ -10,15 +10,8 @@ namespace regen {
 
 CameraController::CameraController(const ref_ptr<Camera> &cam)
 		: Animation(false, true),
-		  CameraControllerBase(cam),
-		  cameraMode_(FIRST_PERSON),
-		  meshDistance_(10.0f) {
+		  CameraControllerBase(cam) {
 	setAnimationName("controller");
-	horizontalOrientation_ = 0.0;
-	verticalOrientation_ = 0.0;
-	meshHorizontalOrientation_ = 0.0;
-	moveAmount_ = 1.0;
-	matVal_ = Mat4f::identity();
 	orientThreshold_ = 0.5 * M_PI + CAMERA_ORIENT_THRESHOLD;
 	pos_ = cam->position(0);
 }
@@ -129,6 +122,7 @@ void CameraController::updateStep(double dt) {
 		dirXZ_ = Vec3f(d.x, 0.0f, d.z);
 		dirXZ_.normalize();
 		dirSidestep_ = dirXZ_.cross(Vec3f::up());
+		dirSidestep_.normalize();
 	}
 
 	if (moveForward_) {

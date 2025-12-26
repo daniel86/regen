@@ -235,13 +235,17 @@ void ShaderInput::updateAlignedSize() {
 }
 
 void ShaderInput::setInstanceData(uint32_t numInstances, uint32_t divisor, const byte *data) {
-	auto dataSize_bytes = elementSize_ * numInstances / divisor;
+	numInstances_ = numInstances;
+	if (numInstances == 0u) {
+		REGEN_WARN("Requested zero instances for input '" << name() << "', setting to one to avoid issues.");
+		numInstances_ = 1u;
+	}
 
+	auto dataSize_bytes = elementSize_ * numInstances / divisor;
 	if (dataSize_bytes != unalignedSize_ || isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_->writeLockAll();
 		isVertexAttribute_ = false;
-		numInstances_ = std::max(1u, numInstances);
 		divisor_ = std::max(1u, divisor);
 		numVertices_ = 1u;
 		numElements_ui_ = numArrayElements_ * numInstances_;

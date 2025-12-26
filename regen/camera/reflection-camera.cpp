@@ -53,6 +53,9 @@ ReflectionCamera::ReflectionCamera(
 	sh_clipPlane_->setUniformData(Vec4f::zero());
 	cameraBlock_->addStagedInput(sh_clipPlane_);
 
+	updateReflection();
+	updateShaderData(0.0f);
+
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
 	reflectionUpdater_->startAnimation();
 }
@@ -89,6 +92,9 @@ ReflectionCamera::ReflectionCamera(
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	sh_clipPlane_->setUniformData(clipPlane_[0]);
 	cameraBlock_->addStagedInput(sh_clipPlane_);
+
+	updateReflection();
+	updateShaderData(0.0f);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
 	reflectionUpdater_->startAnimation();
