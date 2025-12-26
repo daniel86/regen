@@ -107,7 +107,6 @@ void main() {
     }
 #for INDEX to NUM_ATTRIBUTES
 #define2 _NAME ${ATTRIBUTE${INDEX}_NAME}
-#define2 _TYPE ${ATTRIBUTE${INDEX}_NAME}
     in_${_NAME}[idx] = ${ATTRIBUTE${INDEX}_INTERPOLATION_NAME}(
         in_last_${_NAME}[idx],
         in_next_${_NAME}[idx],

@@ -23,7 +23,7 @@ ref_ptr<ShaderInput> FeedbackSpecification::addFeedback(const ref_ptr<ShaderInpu
 	feedback->set_numVertices(feedbackCount);
 	feedback->set_isVertexAttribute(true);
 	feedbackAttributes_.push_back(feedback);
-	feedbackAttributeMap_[in->name()] = feedbackAttributes_.begin();
+	feedbackAttributeMap_[in->name()] = std::prev(feedbackAttributes_.end());
 
 	requiredBufferSize_ += feedback->inputSize();
 
@@ -72,6 +72,12 @@ void FeedbackState::initializeResources() {
 		// free previously allocated data
 		if (feedbackRef_.get()) { BufferObject::orphanBufferRange(feedbackRef_.get()); }
 
+		feedbackRef_ = feedbackBuffer_->adoptBufferRange(requiredBufferSize_);
+		bufferRange_.buffer_ = feedbackRef_->bufferID();
+		bufferRange_.offset_ = feedbackRef_->address();
+		bufferRange_.size_ = requiredBufferSize_;
+		allocatedBufferSize_ = requiredBufferSize_;
+
 		if (feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
 			GLsizei vertexSize = 0;
 			for (auto & att : feedbackAttributes_) {
@@ -93,12 +99,6 @@ void FeedbackState::initializeResources() {
 			}
 		}
 
-		// allocate memory and upload to GL
-		feedbackRef_ = feedbackBuffer_->adoptBufferRange(requiredBufferSize_);
-		bufferRange_.buffer_ = feedbackRef_->bufferID();
-		bufferRange_.offset_ = feedbackRef_->address();
-		bufferRange_.size_ = requiredBufferSize_;
-		allocatedBufferSize_ = requiredBufferSize_;
 	}
 }
 

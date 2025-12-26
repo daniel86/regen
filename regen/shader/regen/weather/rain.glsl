@@ -25,7 +25,6 @@ void main() {
     }
     else {
         updateParticle(gid, seed);
-        in_type[gid] = in_type[gid];
     }
     in_randomSeed[gid] = seed;
 }
