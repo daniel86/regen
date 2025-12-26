@@ -123,7 +123,6 @@
     </camera>
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" surface-height="0.0">
-        <!-- FIXME: Something broken when lod=4 -->
         <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.05" lod="4"/>
         <stars catalog="res/sky/bright-stars.bin" scale="1.4"
                scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"

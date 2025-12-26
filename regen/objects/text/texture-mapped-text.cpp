@@ -28,6 +28,12 @@ TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const float &hei
 	posAttribute_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	norAttribute_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	texcoAttribute_ = ref_ptr<ShaderInput3f>::alloc("texco0");
+	posAttribute_->setVertexData(6, nullptr);
+	norAttribute_->setVertexData(6, nullptr);
+	texcoAttribute_->setVertexData(6, nullptr);
+	setInput(posAttribute_);
+	setInput(norAttribute_);
+	setInput(texcoAttribute_);
 }
 
 void TextureMappedText::set_color(const Vec4f &color) {
@@ -60,32 +66,29 @@ void TextureMappedText::set_value(
 }
 
 void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth) {
-	Vec3f translation, glyphTranslation;
 	uint32_t vertexCounter = 0u;
 
 	float actualMaxLineWidth = 0.0;
 	const bool numCharactersChanged = (numCharacters_ != lastNumCharacters_);
+	const uint32_t numRequiredVertices = numCharacters_ * 6;
 
-	if (numCharactersChanged) {
-		posAttribute_->setVertexData(numCharacters_ * 6);
-		texcoAttribute_->setVertexData(numCharacters_ * 6);
-		norAttribute_->setVertexData(numCharacters_ * 6);
-		set_numVertices(numCharacters_ * 6);
-		lastNumCharacters_ = numCharacters_;
+	if (numRequiredVertices > posData_.size()) {
+		posData_.resize(numRequiredVertices + 36);
+		norData_.resize(numRequiredVertices + 36);
+		texcoData_.resize(numRequiredVertices + 36);
 	}
 
 	// map client data for writing
-	auto v_pos = posAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
-	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
-	auto v_nor = norAttribute_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	Vec3f* v_pos = posData_.data();
+	Vec3f* v_texco = texcoData_.data();
+	Vec3f* v_nor = norData_.data();
 
-	translation = Vec3f(0.0, 0.0, 0.0);
-	glyphTranslation = Vec3f(0.0, 0.0, 0.0);
+	auto translation = Vec3f::zero();
+	auto glyphTranslation = Vec3f::zero();
 
 	for (auto it = value_.begin(); it != value_.end(); ++it) {
 		translation.y -= font_->lineHeight() * height_;
 
-		float buf;
 		// actual width for this line
 		float lineWidth = 0.0;
 		// remember space for splitting string at words
@@ -96,7 +99,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 		// where it exceeds the width limit
 		for (uint32_t i = 0; i < it->size(); ++i) {
 			const wchar_t &ch = (*it)[i];
-			buf = lineWidth + font_->faceData(ch).advanceX * height_;
+			const float buf = lineWidth + font_->faceData(ch).advanceX * height_;
 			if (maxLineWidth > 0.0 && buf > maxLineWidth && lastSpaceIndex != 0) {
 				// maximal line length reached
 				// split string at remembered space
@@ -144,8 +147,9 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 			const Font::FaceData &data = font_->faceData(ch);
 
 			glyphTranslation = Vec3f(
-					data.left * height_, (data.top - data.height) * height_, 0.001 * (i + 1)
-			);
+					data.left * height_,
+					(data.top - data.height) * height_,
+					0.001 * (i + 1));
 			makeGlyphGeometry(data, translation + glyphTranslation, (float) ch,
 							  v_pos,
 							  v_nor,
@@ -163,40 +167,49 @@ void TextureMappedText::updateAttributes(Alignment alignment, float maxLineWidth
 	if (centerAtOrigin_) {
 		float centerOffset = actualMaxLineWidth * 0.5f;
 		for (uint32_t i = 0; i < vertexCounter; ++i) {
-			v_pos.w[i].x -= centerOffset;
+			v_pos[i].x -= centerOffset;
 		}
 	}
 
 	// set center and extends for bounding box
-	minPosition_ = v_pos.w[0];
-	maxPosition_ = v_pos.w[0];
+	minPosition_ = v_pos[0];
+	maxPosition_ = v_pos[0];
 	for (uint32_t i = 1; i < vertexCounter; ++i) {
-		minPosition_.setMin(v_pos.w[i]);
-		maxPosition_.setMax(v_pos.w[i]);
+		minPosition_.setMin(v_pos[i]);
+		maxPosition_.setMax(v_pos[i]);
 	}
-
-	v_pos.unmap();
-	v_nor.unmap();
-	v_texco.unmap();
 
 	if (numCharactersChanged) {
-		// If num characters did not change, we can just overwrite
-		// data in previously allocated memory region.
-		setInput(posAttribute_);
-		setInput(norAttribute_);
-		setInput(texcoAttribute_);
-		updateVertexData();
+		if (bufferRef_.get()) {
+			BufferObject::orphanBufferRange(bufferRef_.get());
+		}
+		posAttribute_->setVertexData(numRequiredVertices, (const byte*)v_pos);
+		texcoAttribute_->setVertexData(numRequiredVertices, (const byte*)v_texco);
+		norAttribute_->setVertexData(numRequiredVertices, (const byte*)v_nor);
+		set_numVertices(numRequiredVertices);
+		lastNumCharacters_ = numCharacters_;
+		bufferRef_ = updateVertexData();
 		updateVAO();
 	}
+
+	auto m_pos = posAttribute_->mapClientDataRaw(BUFFER_GPU_WRITE);
+	auto m_nor = norAttribute_->mapClientDataRaw(BUFFER_GPU_WRITE);
+	auto m_texco = texcoAttribute_->mapClientDataRaw(BUFFER_GPU_WRITE);
+	std::memcpy(m_pos.w, v_pos, numRequiredVertices * sizeof(Vec3f));
+	std::memcpy(m_nor.w, v_nor, numRequiredVertices * sizeof(Vec3f));
+	std::memcpy(m_texco.w, v_texco, numRequiredVertices * sizeof(Vec3f));
+	m_pos.unmap();
+	m_nor.unmap();
+	m_texco.unmap();
 }
 
 void TextureMappedText::makeGlyphGeometry(
 		const Font::FaceData &data,
 		const Vec3f &translation,
 		float layer,
-		ClientData_rw<Vec3f> &posAttribute,
-		ClientData_rw<Vec3f> &norAttribute,
-		ClientData_rw<Vec3f> &texcoAttribute,
+		Vec3f *posAttribute,
+		Vec3f *norAttribute,
+		Vec3f *texcoAttribute,
 		uint32_t *vertexCounter) {
 	uint32_t &i = *vertexCounter;
 	Vec3f p0 = translation + Vec3f(0.0, data.height * height_, 0.0);
@@ -209,26 +222,26 @@ void TextureMappedText::makeGlyphGeometry(
 	Vec3f texco2(data.uvX, data.uvY, layer);
 	Vec3f texco3(data.uvX, 0.0, layer);
 
-	posAttribute.w[i] = p0;
-	posAttribute.w[i + 1] = p1;
-	posAttribute.w[i + 2] = p2;
-	posAttribute.w[i + 3] = p2;
-	posAttribute.w[i + 4] = p3;
-	posAttribute.w[i + 5] = p0;
+	posAttribute[i] = p0;
+	posAttribute[i + 1] = p1;
+	posAttribute[i + 2] = p2;
+	posAttribute[i + 3] = p2;
+	posAttribute[i + 4] = p3;
+	posAttribute[i + 5] = p0;
 
-	norAttribute.w[i] = n;
-	norAttribute.w[i + 1] = n;
-	norAttribute.w[i + 2] = n;
-	norAttribute.w[i + 3] = n;
-	norAttribute.w[i + 4] = n;
-	norAttribute.w[i + 5] = n;
+	norAttribute[i] = n;
+	norAttribute[i + 1] = n;
+	norAttribute[i + 2] = n;
+	norAttribute[i + 3] = n;
+	norAttribute[i + 4] = n;
+	norAttribute[i + 5] = n;
 
-	texcoAttribute.w[i] = texco0;
-	texcoAttribute.w[i + 1] = texco1;
-	texcoAttribute.w[i + 2] = texco2;
-	texcoAttribute.w[i + 3] = texco2;
-	texcoAttribute.w[i + 4] = texco3;
-	texcoAttribute.w[i + 5] = texco0;
+	texcoAttribute[i] = texco0;
+	texcoAttribute[i + 1] = texco1;
+	texcoAttribute[i + 2] = texco2;
+	texcoAttribute[i + 3] = texco2;
+	texcoAttribute[i + 4] = texco3;
+	texcoAttribute[i + 5] = texco0;
 
 	*vertexCounter += 6;
 }

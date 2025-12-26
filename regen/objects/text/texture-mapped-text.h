@@ -80,15 +80,21 @@ namespace regen {
 		ref_ptr<ShaderInput3f> norAttribute_;
 		ref_ptr<ShaderInput3f> texcoAttribute_;
 
+		std::vector<Vec3f> posData_;
+		std::vector<Vec3f> norData_;
+		std::vector<Vec3f> texcoData_;
+
+		ref_ptr<BufferReference> bufferRef_;
+
 		void updateAttributes(Alignment alignment, float maxLineWidth);
 
 		void makeGlyphGeometry(
 				const Font::FaceData &data,
 				const Vec3f &translation,
 				float layer,
-				ClientData_rw<Vec3f> &posAttribute,
-				ClientData_rw<Vec3f> &norAttribute,
-				ClientData_rw<Vec3f> &texcoAttribute,
+				Vec3f *posAttribute,
+				Vec3f *norAttribute,
+				Vec3f *texcoAttribute,
 				uint32_t *vertexCounter);
 	};
 } // namespace

@@ -73,15 +73,15 @@ void FeedbackState::initializeResources() {
 		if (feedbackRef_.get()) { BufferObject::orphanBufferRange(feedbackRef_.get()); }
 
 		if (feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
-			GLsizei stride = 0;
+			GLsizei vertexSize = 0;
 			for (auto & att : feedbackAttributes_) {
-				stride += static_cast<GLsizei>(att->inputSize());
+				vertexSize += static_cast<GLsizei>(att->elementSize());
 			}
 			uint32_t byteOffset = feedbackRef_->address();
 			for (auto & att : feedbackAttributes_) {
 				att->setMainBuffer(feedbackRef_, byteOffset);
-				att->setVertexStride(stride);
-				byteOffset += att->inputSize(); // FIXME: this does not look right or?
+				att->setVertexStride(vertexSize);
+				byteOffset += att->elementSize();
 			}
 		} else {
 			// set up separate attributes
