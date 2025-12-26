@@ -12,6 +12,7 @@ Frustum::Frustum() :
 		orthoBounds(Bounds<Vec2f>::create(Vec2f::zero(), Vec2f::zero())) {
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
+	update(Vec3f::zero(), Vec3f::front());
 }
 
 void Frustum::setPerspective(double _aspect, double _fov, double _near, double _far) {
@@ -61,7 +62,13 @@ unsigned int Frustum::directionStamp() const {
 
 void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	Vec3f d = dir;
-	d.normalize();
+	const float dLength = d.length();
+	if (dLength < 1e-6f) {
+		d = Vec3f::front();
+		REGEN_WARN("Invalid frustum direction " << dir);
+	} else {
+		d /= dLength;
+	}
 	localTransform_.setPosition(pos);
 	direction_->setVertex(0, d);
 	tfOrigin_ = pos;
