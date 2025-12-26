@@ -81,7 +81,7 @@ void Box::generateLODLevel(
 		uint32_t sideIndex,
 		uint32_t lodLevel,
 		const std::vector<Tessellation> &tessellations) {
-	static const Vec3f cubeNormals[] = {
+	static constexpr Vec3f cubeNormals[] = {
 			Vec3f(0.0f, 0.0f, 1.0f), // Front
 			Vec3f(0.0f, 0.0f, -1.0f), // Back
 			Vec3f(0.0f, 1.0f, 0.0f), // Top

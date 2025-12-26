@@ -82,7 +82,7 @@ void Rectangle::generateLODLevel(const Config &cfg,
 	uint32_t triIndices[3];
 	Vec3f triVertices[3];
 	Vec2f triTexco[3];
-	Vec3f normal = rotMat.transformVector(Vec3f(0.0, -1.0, 0.0));
+	Vec3f normal = rotMat.transformVector(Vec3f{0.0f, -1.0f, 0.0f});
 	Vec3f startPos;
 	if (cfg.centerAtOrigin) {
 		startPos = Vec3f(-cfg.posScale.x * 0.5f, 0.0f, -cfg.posScale.z * 0.5f);
