@@ -432,7 +432,7 @@ namespace regen {
 		 * @return vector length.
 		 */
 		constexpr float length() const {
-			return sqrt(x * x + y * y + z * z);
+			return sqrtf(x * x + y * y + z * z);
 		}
 
 		/**
