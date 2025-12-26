@@ -68,7 +68,6 @@ void ClientBuffer::setFrameLocked(bool frameLocked) {
 
 void ClientBuffer::setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments) {
 	writeLockAll();
-	// TODO: what if segments have different alignment?
 	// clear the current segments.
 	for (auto &segment: bufferSegments_) {
 		segment->parentBuffer_ = nullptr;
@@ -634,14 +633,12 @@ void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataP
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr;
 		} else {
-			// FIXME: In case of adding segments, where is the initial data copied? cannot see it here...
 			for (auto &segment: bufferSegments_) {
 				if (oldDataPtr) {
 					segment->resize_SingleBuffer(
 							owner, oldDataPtr + segment->lastOffset_,
 							newDataPtr + segment->dataOffset_);
 				} else if (segment->hasClientData()) {
-					REGEN_INFO("Copy local segment data!");
 					segment->resize_SingleBuffer(
 							owner, segment->dataSlots_[0],
 							newDataPtr + segment->dataOffset_);
@@ -650,12 +647,6 @@ void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataP
 							owner, nullptr,
 							newDataPtr + segment->dataOffset_);
 				}
-				/**
-				segment->resize_SingleBuffer(
-						owner,
-						oldDataPtr ? oldDataPtr + segment->lastOffset_ : oldDataPtr,
-						newDataPtr + segment->dataOffset_);
-						**/
 			}
 		}
 		allocatedSize_ = dataSize_;
@@ -713,7 +704,6 @@ void ClientBuffer::resize_DoubleBuffer(
 			dataSlots_[1] = newDataPtr1;
 			markWrittenTo(currentWriteSlot(), 0, dataSize_);
 		} else {
-			// FIXME: In case of adding segments, where is the initial data copied? cannot see it here...
 			for (auto &segment: bufferSegments_) {
 				if (oldDataPtr0) {
 					segment->resize_DoubleBuffer(
@@ -723,7 +713,6 @@ void ClientBuffer::resize_DoubleBuffer(
 							newDataPtr0 + segment->dataOffset_,
 							newDataPtr1 + segment->dataOffset_);
 				} else if (segment->hasClientData()) {
-					REGEN_INFO("Copy local segment data!");
 					segment->resize_DoubleBuffer(
 							owner,
 							segment->dataSlots_[0],
@@ -738,14 +727,6 @@ void ClientBuffer::resize_DoubleBuffer(
 							newDataPtr0 + segment->dataOffset_,
 							newDataPtr1 + segment->dataOffset_);
 				}
-				/**
-				segment->resize_DoubleBuffer(
-						owner,
-						oldDataPtr0 ? oldDataPtr0 + segment->lastOffset_ : oldDataPtr0,
-						oldDataPtr1 ? oldDataPtr1 + segment->lastOffset_ : oldDataPtr1,
-						newDataPtr0 + segment->dataOffset_,
-						newDataPtr1 + segment->dataOffset_);
-						**/
 			}
 		}
 		allocatedSize_ = dataSize_;
@@ -814,7 +795,6 @@ void ClientBuffer::writeLockAll() const {
 
 		// First try to acquire write lock on current write slot.
 		// This will prevent any *new* attempts to write to this slot.
-		// TODO: Could add a check if this thread already owns the write lock on this slot?
 		if (writeFlag.test_and_set(std::memory_order_acquire)) {
 			// Failed, meaning there is another active writer on this slot.
 			CPU_PAUSE();
