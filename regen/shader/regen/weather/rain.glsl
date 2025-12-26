@@ -12,7 +12,7 @@
 
 void main() {
     uint gid = gl_GlobalInvocationID.x;
-    if (gid > NUM_PARTICLES) return;
+    if (gid >= NUM_PARTICLES) return;
 
     uint seed = in_randomSeed[gid];
     if(isRespawnRequired(gid)) {

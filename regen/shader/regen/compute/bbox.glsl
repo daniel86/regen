@@ -25,7 +25,7 @@ int biasedBits(float f) {
 void main() {
     uint gid = gl_GlobalInvocationID.x;
     uint lid = gl_LocalInvocationID.x;
-    if (gid > NUM_ELEMENTS) return;
+    if (gid >= NUM_ELEMENTS) return;
     // read position data
     vec3 pos = readPosition(gid);
     // initialize shared memory
@@ -111,7 +111,7 @@ float getBBoxMin(int neg, int pos, int hasNeg) {
 void main() {
     uint gid = gl_GlobalInvocationID.x;
     uint lid = gl_LocalInvocationID.x;
-    if (gid > NUM_ELEMENTS) return;
+    if (gid >= NUM_ELEMENTS) return;
     // read position data
     vec3 pos = readPosition(gid);
 

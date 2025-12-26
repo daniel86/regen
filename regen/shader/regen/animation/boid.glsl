@@ -433,7 +433,7 @@ vec3 simulateBoid(BoidData boid, uint boidID, float dt) {
 
 void main() {
     uint gid = gl_GlobalInvocationID.x;
-    if (gid > NUM_BOIDS) return;
+    if (gid >= NUM_BOIDS) return;
 
 #ifdef HAS_boidData
     BoidData boid = in_boidData[gid];

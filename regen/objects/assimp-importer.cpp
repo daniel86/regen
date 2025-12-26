@@ -904,7 +904,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			auto &v_texco = m_texco.w;
 			for (uint32_t n = 0; n < numVertices; ++n) {
 				const aiVector3D &at = aiTexcos[n];
-				v_texco[n] = Vec2f(at.x, at.y);;
+				v_texco[n] = Vec2f(at.x, at.y);
 			}
 		}
 		meshState->setInput(texco);
