@@ -218,7 +218,6 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 		if (bufferContainer != nullptr) {
 			for (auto &stagedBuffer: bufferContainer->stagedBuffers()) {
 				if (boost::starts_with(stagedBuffer->name(), name)) {
-					// TODO: could be we need to return a list of inputs here!
 					ret.bo = {};
 					ret.in = stagedBuffer;
 					return ret;

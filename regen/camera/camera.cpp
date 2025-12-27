@@ -120,8 +120,6 @@ void Camera::updateShaderData(float dt) {
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
 
-	// The client buffer of the UBO was not initialized.
-	// So we need to write the data to individual shader inputs.
 	if (viewChanged) {
 		auto m_v = sh_view_->mapClientDataRaw(BUFFER_GPU_WRITE);
 		auto m_v_i = sh_viewInv_->mapClientDataRaw(BUFFER_GPU_WRITE);

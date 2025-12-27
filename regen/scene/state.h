@@ -89,7 +89,7 @@ namespace regen {
 		/**
 		 * @param in the shader input data.
 		 * @param name the shader input name.
-		 * @return iterator of data container
+		 * @param memberSuffix optional member suffix to append to name.
 		 */
 		void setInput(const ref_ptr<ShaderInput> &in,
 				const std::string &name = "",
@@ -98,7 +98,7 @@ namespace regen {
 		/**
 		 * @param in the buffer container.
 		 * @param name the shader input name.
-		 * @return iterator of data container
+		 * @param memberSuffix optional member suffix to append to name.
 		 */
 		void setBufferContainer(const ref_ptr<BufferContainer> &in,
 				const std::string &name = "",
