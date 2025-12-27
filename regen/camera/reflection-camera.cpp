@@ -41,20 +41,29 @@ ReflectionCamera::ReflectionCamera(
 	if (isReflectorValid_) {
 		posStamp_ = pos_->stampOfReadData() - 1;
 		norStamp_ = nor_->stampOfReadData() - 1;
+		posWorld_ = pos_->mapClientData<Vec3f>(BUFFER_GPU_READ).r[vertexIndex_];
+		norWorld_ = nor_->mapClientData<Vec3f>(BUFFER_GPU_READ).r[vertexIndex_];
 	}
 
 	auto modelMat = mesh->findShaderInput("modelMatrix");
 	transform_ = modelMat.value().in;
 	if (transform_.get() != nullptr) {
 		transformStamp_ = transform_->stampOfReadData() - 1;
+		const Mat4f &M = transform_->mapClientData<Mat4f>(BUFFER_GPU_READ).r[0];
+		posWorld_ = M.mul_t31(posWorld_);
+		norWorld_ = M.mul_t30(norWorld_);
+		norWorld_.normalize();
 	}
 
+	clipPlane_[0] = Vec4f(
+			norWorld_.x, norWorld_.y, norWorld_.z,
+			norWorld_.dot(posWorld_));
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
-	sh_clipPlane_->setUniformData(Vec4f::zero());
+	sh_clipPlane_->setUniformData(clipPlane_[0]);
 	cameraBuffer_->addStagedInput(sh_clipPlane_);
 
-	updateReflection();
 	updateBuffers();
+	updateReflection();
 	updateShaderData(0.0f);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
@@ -94,8 +103,8 @@ ReflectionCamera::ReflectionCamera(
 	sh_clipPlane_->setUniformData(clipPlane_[0]);
 	cameraBuffer_->addStagedInput(sh_clipPlane_);
 
-	updateReflection();
 	updateBuffers();
+	updateReflection();
 	updateShaderData(0.0f);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
@@ -143,6 +152,11 @@ bool ReflectionCamera::updateReflection() {
 				norWorld_ = M.mul_t30(norWorld_);
 				norWorld_.normalize();
 			}
+
+			// update clip plane
+			clipPlane_[0].xyz() = norWorld_;
+			clipPlane_[0].w = norWorld_.dot(posWorld_);
+			sh_clipPlane_->setVertex(0, clipPlane_[0]);
 		}
 	}
 
