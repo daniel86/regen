@@ -221,6 +221,28 @@ void ImpostorBillboard::createResources() {
 			drawAttachments });
 	}
 
+	{ // add textures to the billboard state
+		auto albedo = ref_ptr<TextureState>::alloc(snapshotAlbedo_, "impostorAlbedo");
+		albedo->set_mapping(TextureState::MAPPING_TEXCO);
+		// note: map to color is used for alpha discard to work
+		albedo->set_mapTo(TextureState::MAP_TO_COLOR);
+		albedo->set_blendMode(BLEND_MODE_MULTIPLY);
+		joinStates(albedo);
+
+		if (useNormalCorrection_) {
+			auto normal = ref_ptr<TextureState>::alloc(snapshotNormal_, "impostorNormal");
+			normal->set_mapping(TextureState::MAPPING_TEXCO);
+			normal->set_mapTo(TextureState::MAP_TO_NORMAL);
+			// note: we store normal in eye space, so we need to use special transfer function
+			normal->set_texelTransfer(TextureState::TEXEL_TRANSFER_WORLD_NORMAL);
+			normal->set_blendMode(BLEND_MODE_SRC);
+			joinStates(normal);
+		}
+	}
+	GL_ERROR_LOG();
+}
+
+void ImpostorBillboard::createUpdateShader() {
 	for (auto &viewMesh : meshes_) {
 		if (viewMesh.meshOrig->hasMaterial()) {
 			viewMesh.meshCopy->setMaterial(viewMesh.meshOrig->material());
@@ -241,26 +263,6 @@ void ImpostorBillboard::createResources() {
 		viewMesh.meshCopy->joinStates(viewMesh.shaderState);
 		viewMesh.meshCopy->updateVAO(meshConfigurer.cfg(), viewMesh.shaderState->shader());
 	}
-
-	{ // add textures to the billboard state
-		auto albedo = ref_ptr<TextureState>::alloc(snapshotAlbedo_, "impostorAlbedo");
-		albedo->set_mapping(TextureState::MAPPING_TEXCO);
-		// note: map to color is used for alpha discard to work
-		albedo->set_mapTo(TextureState::MAP_TO_COLOR);
-		albedo->set_blendMode(BLEND_MODE_MULTIPLY);
-		joinStates(albedo);
-
-		if (useNormalCorrection_) {
-			auto normal = ref_ptr<TextureState>::alloc(snapshotNormal_, "impostorNormal");
-			normal->set_mapping(TextureState::MAPPING_TEXCO);
-			normal->set_mapTo(TextureState::MAP_TO_NORMAL);
-			// note: we store normal in eye space, so we need to use special transfer function
-			normal->set_texelTransfer(TextureState::TEXEL_TRANSFER_WORLD_NORMAL);
-			normal->set_blendMode(BLEND_MODE_SRC);
-			joinStates(normal);
-		}
-	}
-	GL_ERROR_LOG();
 }
 
 void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, const Vec3f &up) {
@@ -399,10 +401,13 @@ void ImpostorBillboard::updateSnapshotViews() {
 	mappedBuffer2.unmap();
 	mappedBuffer3.unmap();
 	impostorBuffer_->clientBuffer()->swapData();
-
 	impostorBuffer_->update();
+
 	snapshotCamera_->updateViewProjection1();
 	snapshotCamera_->updateShaderData(0.0f);
+	snapshotCamera_->updateBuffers();
+
+	createUpdateShader();
 }
 
 void ImpostorBillboard::createSnapshot() {

@@ -341,7 +341,7 @@ void particleEmit(uint particleIdx, inout uint seed) {
 -- compute.cs
 #include regen.compute.compute.defines
 #include regen.objects.particles.emitter.inputs
-#include regen.pobjects.articles.emitter.defines
+#include regen.objects.particles.emitter.defines
 uniform vec4 in_cameraPosition;
 
 #include regen.objects.particles.emitter.particleUpdate

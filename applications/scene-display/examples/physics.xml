@@ -330,7 +330,7 @@
         <input type="vec3" name="initialVelocity" value="0.5,0.75,0.5" min="-30,-30,-30" max="30,30,30" />
         <input type="vec2" name="initialBrightness" value="3.0,1.0"/>
         <input type="vec2" name="emitterCone" value="60.0,30.0"/>
-        <input name="Camera" state="main-camera" component="Camera"/>
+        <input name="Camera_0" state="main-camera" component="Camera"/>
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" layout="std430" is-attribute="1"/>
         <input type="vec3" name="velocity" layout="std430" is-attribute="1"/>

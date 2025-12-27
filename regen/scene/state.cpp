@@ -214,6 +214,25 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 		if (joinedRet.has_value()) {
 			return joinedRet.value();
 		}
+		auto *bufferContainer = dynamic_cast<BufferContainer *>(joined.get());
+		if (bufferContainer != nullptr) {
+			for (auto &stagedBuffer: bufferContainer->stagedBuffers()) {
+				if (boost::starts_with(stagedBuffer->name(), name)) {
+					// TODO: could be we need to return a list of inputs here!
+					ret.bo = {};
+					ret.in = stagedBuffer;
+					return ret;
+				}
+
+				for (auto &blockUniform: stagedBuffer->stagedInputs()) {
+					if (name == blockUniform.name_ || name == blockUniform.in_->name()) {
+						ret.bo = stagedBuffer;
+						ret.in = blockUniform.in_;
+						return ret;
+					}
+				}
+			}
+		}
 	}
 
 	return std::nullopt;

@@ -544,7 +544,6 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 			cam = ref_ptr<ReflectionCamera>::alloc(userCamera, normal, position, hasBackFace);
 		}
 		if (cam.get()) {
-			cam->updateBuffers();
 			ctx.scene()->putState(input.getName(), cam);
 		}
 		return cam;

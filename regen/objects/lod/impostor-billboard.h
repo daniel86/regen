@@ -225,6 +225,8 @@ namespace regen {
 
 		void createResources();
 
+		void createUpdateShader();
+
 		void ensureResourcesExist();
 
 		void updateNumberOfViews();

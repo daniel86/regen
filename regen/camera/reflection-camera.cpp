@@ -54,6 +54,7 @@ ReflectionCamera::ReflectionCamera(
 	cameraBuffer_->addStagedInput(sh_clipPlane_);
 
 	updateReflection();
+	updateBuffers();
 	updateShaderData(0.0f);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
@@ -94,6 +95,7 @@ ReflectionCamera::ReflectionCamera(
 	cameraBuffer_->addStagedInput(sh_clipPlane_);
 
 	updateReflection();
+	updateBuffers();
 	updateShaderData(0.0f);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
