@@ -120,7 +120,18 @@ ref_ptr<ShaderInput> State::getInput(const std::string &name) const {
 	return {};
 }
 
-void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, const std::string &memberSuffix) {
+void State::setBufferContainer(const ref_ptr<BufferContainer> &inputContainer,
+			const std::string &name, const std::string &memberSuffix) {
+	uint32_t boCount = 0;
+	for (auto &bo : inputContainer->stagedBuffers()) {
+		std::string boName = REGEN_STRING(name << '_' << (boCount++));
+		ref_ptr<ShaderInput> boInput = bo;
+		setInput(boInput, boName, memberSuffix);
+	}
+}
+
+void State::setInput(const ref_ptr<ShaderInput> &in,
+			const std::string &name, const std::string &memberSuffix) {
 	const std::string &inputName = (name.empty() ? in->name() : name);
 
 	if (in->isVertexAttribute() && in->numVertices() != static_cast<uint32_t>(shared_->numVertices_)) {

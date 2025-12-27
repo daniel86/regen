@@ -61,6 +61,13 @@ namespace regen {
 			const std::string &memberSuffix = "");
 
 		/**
+		 * Adds BufferContainer instance to StateConfig.
+		 */
+		void addBufferContainer(
+			const ref_ptr<BufferContainer> &boContainer,
+			const std::string &memberSuffix = "");
+
+		/**
 		 * Add each key-value pair from given map to shader defines.
 		 */
 		void addDefines(const std::map<std::string, std::string> &defines);

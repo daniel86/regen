@@ -7,6 +7,7 @@
 #include <regen/utility/ref-ptr.h>
 #include "regen/shader/shader-input.h"
 #include <regen/gl/render-state.h>
+
 #include "regen/memory/ubo.h"
 
 namespace regen {
@@ -14,6 +15,8 @@ namespace regen {
 		ref_ptr<ShaderInput> in;
 		ref_ptr<StagedBuffer> bo;
 	};
+
+	class BufferContainer; // forward declaration
 
 	/**
 	 * \brief Base class for states.
@@ -89,6 +92,15 @@ namespace regen {
 		 * @return iterator of data container
 		 */
 		void setInput(const ref_ptr<ShaderInput> &in,
+				const std::string &name = "",
+				const std::string &memberSuffix = "");
+
+		/**
+		 * @param in the buffer container.
+		 * @param name the shader input name.
+		 * @return iterator of data container
+		 */
+		void setBufferContainer(const ref_ptr<BufferContainer> &in,
 				const std::string &name = "",
 				const std::string &memberSuffix = "");
 
@@ -240,6 +252,8 @@ namespace regen {
 		ref_ptr<StateShared> shared_;
 	};
 } // namespace
+
+#include "regen/memory/buffer-container.h"
 
 namespace regen {
 	/**

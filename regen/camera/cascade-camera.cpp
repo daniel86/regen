@@ -71,7 +71,7 @@ LightCamera_CSM::LightCamera_CSM(
 	setInput(shadowBuffer_);
 	// these are needed to compute the CSM layer given a position
 	setInput(sh_projParams_, "lightProjParams");
-	setInput(userCamera_->cameraBlock(), "UserCamera", "_User");
+	setBufferContainer(userCamera_->cameraBuffer(), "UserCamera", "_User");
 
 	updateDirectionalLight();
 }

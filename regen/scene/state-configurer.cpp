@@ -61,6 +61,14 @@ void StateConfigurer::addNode(const StateNode *node) {
 	hasFBO_ = hasFBO;
 }
 
+void StateConfigurer::addBufferContainer(
+		const ref_ptr<BufferContainer> &bc,
+		const std::string &memberSuffix) {
+	for (const auto &ni : bc->namedInputs()) {
+		addInput(ni.name_, ni.in_, ni.type_, memberSuffix);
+	}
+}
+
 void StateConfigurer::addInput(const std::string &name,
 		const ref_ptr<ShaderInput> &in,
 		const std::string &type,

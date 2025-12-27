@@ -48,6 +48,7 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 	ubo->update();
 	setInput(ubo);
 	ubos_.push_back(ubo);
+	stagedBuffers_.push_back(ubo);
 }
 
 void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInputs) {
@@ -62,6 +63,7 @@ void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInput
 	ssbo->update();
 	setInput(ssbo);
 	ssbos_.push_back(ssbo);
+	stagedBuffers_.push_back(ssbo);
 }
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
@@ -71,6 +73,7 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 			namedInput.in_->dataType(),
 			bufferUpdateHints_);
 	tbos_.push_back(tbo);
+	stagedBuffers_.push_back(tbo);
 	textureBuffers_.push_back(tbo->tboTexture());
 	tbo->addStagedInput(namedInput.in_, namedInput.name_);
 	tbo->update();

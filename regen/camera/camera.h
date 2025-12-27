@@ -130,9 +130,9 @@ namespace regen {
 		void setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer);
 
 		/**
-		 * @return the camera uniform block.
+		 * @return the camera buffer container.
 		 */
-		const ref_ptr<UBO> &cameraBlock() const { return cameraBlock_; }
+		const ref_ptr<BufferContainer> &cameraBuffer() const { return cameraBuffer_; }
 
 		/**
 		 * Get vector of most recent projection parameters.
@@ -498,6 +498,11 @@ namespace regen {
 		}
 
 		/**
+		 * Adopt memory for camera buffers.
+		 */
+		void updateBuffers();
+
+		/**
 		 * Recompute the camera parameters.
 		 * @return true if the camera was updated.
 		 */
@@ -524,7 +529,7 @@ namespace regen {
 		ref_ptr<UBO> frustumBuffer_;
 		ref_ptr<ShaderInput4f> frustumData_;
 
-		ref_ptr<UBO> cameraBlock_;
+		ref_ptr<BufferContainer> cameraBuffer_;
 		ref_ptr<ShaderInputMat4> sh_view_;
 		ref_ptr<ShaderInputMat4> sh_viewInv_;
 		ref_ptr<ShaderInputMat4> sh_viewProj_;

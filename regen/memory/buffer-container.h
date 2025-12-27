@@ -1,11 +1,11 @@
 #ifndef REGEN_BUFFER_CONTAINER_H_
 #define REGEN_BUFFER_CONTAINER_H_
 
-#include "regen/scene/state.h"
 #include "ubo.h"
 #include "tbo.h"
 #include "regen/textures/texture-buffer.h"
 #include "regen/memory/ssbo.h"
+#include "regen/scene/state.h"
 
 namespace regen {
 	/**
@@ -45,6 +45,11 @@ namespace regen {
 		BufferContainer(const BufferContainer &other) = delete;
 
 		/**
+		 * @return the buffer update hints.
+		 */
+		BufferUpdateFlags bufferUpdateHints() const { return bufferUpdateHints_; }
+
+		/**
 		 * @param mode the buffering mode to set.
 		 */
 		void setBufferingMode(BufferingMode mode) { bufferingMode_ = mode; }
@@ -60,6 +65,42 @@ namespace regen {
 		 * Must be called after all inputs have been added.
 		 */
 		void updateBuffer();
+
+		/**
+		 * Get the list of named shader inputs in this container.
+		 * @return the named shader input list.
+		 */
+		const std::vector<NamedShaderInput> &namedInputs() const { return namedInputs_; }
+
+		/**
+		 * Get the list of UBOs in this container.
+		 * @return the UBO list.
+		 */
+		const std::vector<ref_ptr<UBO>> &ubos() const { return ubos_; }
+
+		/**
+		 * Get the list of SSBOs in this container.
+		 * @return the SSBO list.
+		 */
+		const std::vector<ref_ptr<SSBO>> &ssbos() const { return ssbos_; }
+
+		/**
+		 * Get the list of TBOs in this container.
+		 * @return the TBO list.
+		 */
+		const std::vector<ref_ptr<TBO>> &tbos() const { return tbos_; }
+
+		/**
+		 * Get the list of TextureBuffers in this container.
+		 * @return the TextureBuffer list.
+		 */
+		const std::vector<ref_ptr<TextureBuffer>> &textureBuffers() const { return textureBuffers_; }
+
+		/**
+		 * Get the list of all staged buffers in this container.
+		 * @return the staged buffer list.
+		 */
+		const std::vector<ref_ptr<StagedBuffer>> &stagedBuffers() const { return stagedBuffers_; }
 
 		/**
 		 * Get the UBO or TBO for a given shader input.
@@ -80,6 +121,7 @@ namespace regen {
 		std::vector<ref_ptr<SSBO>> ssbos_;
 		std::vector<ref_ptr<TBO>> tbos_;
 		std::vector<ref_ptr<TextureBuffer>> textureBuffers_;
+		std::vector<ref_ptr<StagedBuffer>> stagedBuffers_;
 		std::map<ShaderInput*, ref_ptr<StagedBuffer>> bufferObjectOfInput_;
 		bool isAllocated_ = true;
 		BufferUpdateFlags bufferUpdateHints_;

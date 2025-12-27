@@ -88,32 +88,19 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	sh_viewProjInv_->setUniformData(Mat4f::identity());
 	sh_viewProjInv_->setSchema(InputSchema::transform());
 
-	// TODO: I think we really need t use buffer container here!
-	cameraBlock_ = ref_ptr<UBO>::alloc("Camera", updateFlags);
-	cameraBlock_->addStagedInput(sh_view_);
-	cameraBlock_->addStagedInput(sh_viewInv_);
-	cameraBlock_->addStagedInput(sh_viewProj_);
-	cameraBlock_->addStagedInput(sh_viewProjInv_);
-	cameraBlock_->addStagedInput(sh_direction_);
-	cameraBlock_->addStagedInput(sh_position_);
-	cameraBlock_->addStagedInput(sh_vel_);
+	cameraBuffer_ = ref_ptr<BufferContainer>::alloc("Camera", updateFlags);
+	cameraBuffer_->addStagedInput(sh_view_);
+	cameraBuffer_->addStagedInput(sh_viewInv_);
+	cameraBuffer_->addStagedInput(sh_viewProj_);
+	cameraBuffer_->addStagedInput(sh_viewProjInv_);
+	cameraBuffer_->addStagedInput(sh_direction_);
+	cameraBuffer_->addStagedInput(sh_position_);
+	cameraBuffer_->addStagedInput(sh_vel_);
 	// these change less frequent:
-	cameraBlock_->addStagedInput(sh_projParams_);
-	cameraBlock_->addStagedInput(sh_proj_);
-	cameraBlock_->addStagedInput(sh_projInv_);
-	setInput(cameraBlock_);
-}
-
-static inline void markWrittenTo(
-		ClientBuffer &clientBuffer,
-		uint32_t mappedIndex,
-		uint32_t endOffset,
-		BufferRange2ui &writtenRange) {
-	if (writtenRange.size > 0) {
-		clientBuffer.markWrittenTo(mappedIndex, writtenRange.offset, writtenRange.size);
-		writtenRange.size = 0; // no more data written
-	}
-	writtenRange.offset = endOffset;
+	cameraBuffer_->addStagedInput(sh_projParams_);
+	cameraBuffer_->addStagedInput(sh_proj_);
+	cameraBuffer_->addStagedInput(sh_projInv_);
+	joinStates(cameraBuffer_);
 }
 
 void Camera::updateShaderData(float dt) {
@@ -132,165 +119,70 @@ void Camera::updateShaderData(float dt) {
 
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
-	auto &clientBuffer = *cameraBlock_->clientBuffer().get();
 
-	if (clientBuffer.hasSegments() && clientBuffer.hasClientData()) {
-		auto mapped = clientBuffer.mapRange(
-				BUFFER_GPU_WRITE,
-				0u, clientBuffer.dataSize());
-		uint32_t offset = 0, dataSize, dataSize2;
-		BufferRange2ui writtenRange;
+	// The client buffer of the UBO was not initialized.
+	// So we need to write the data to individual shader inputs.
+	if (viewChanged) {
+		auto m_v = sh_view_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_v_i = sh_viewInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_vp = sh_viewProj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_vp_i = sh_viewProjInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
 
-		dataSize = view_.size() * sizeof(Mat4f) * 2;
-		if (viewChanged) {
-			lastViewStamp1_ = viewStamp_;
-			std::memcpy(mapped.w + offset, viewData_.data(), dataSize);
-			sh_view_->clientBuffer()->nextStamp(mapped.w_index);
-			sh_viewInv_->clientBuffer()->nextStamp(mapped.w_index);
-			offset = dataSize;
-			writtenRange.size = dataSize;
-		} else {
-			offset = dataSize;
-			writtenRange.offset = offset;
-		}
-
-		dataSize = viewProj_.size() * sizeof(Mat4f) * 2;
-		if (viewChanged || projChanged) {
-			std::memcpy(mapped.w + offset, viewProjData_.data(), dataSize);
-			sh_viewProj_->clientBuffer()->nextStamp(mapped.w_index);
-			sh_viewProjInv_->clientBuffer()->nextStamp(mapped.w_index);
-			offset += dataSize;
-			writtenRange.size += dataSize;
-		} else {
-			offset += dataSize;
-			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
-		}
-
-		dataSize = direction_.size() * sizeof(Vec4f);
-		if (lastDirStamp1_ != directionStamp_) {
-			lastDirStamp1_ = directionStamp_;
-			std::memcpy(mapped.w + offset, direction_.data(), dataSize);
-			sh_direction_->clientBuffer()->nextStamp(mapped.w_index);
-			offset += dataSize;
-			writtenRange.size += dataSize;
-		} else {
-			offset += dataSize;
-			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
-		}
-
-		if (lastPosStamp1_ != positionStamp_) {
-			lastPosStamp1_ = positionStamp_;
-			dataSize = position_.size() * sizeof(Vec4f);
-			std::memcpy(mapped.w + offset, position_.data(), dataSize);
-			offset += dataSize;
-			dataSize2 = sizeof(Vec4f);
-			std::memcpy(mapped.w + offset, &vel_.x, dataSize2);
-			offset += dataSize2;
-			sh_position_->clientBuffer()->nextStamp(mapped.w_index);
-			sh_vel_->clientBuffer()->nextStamp(mapped.w_index);
-			writtenRange.size += dataSize + dataSize2;
-		} else {
-			offset += position_.size() * sizeof(Vec4f);
-			offset += sizeof(Vec4f);
-			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
-		}
-
-		dataSize = projParams_.size() * sizeof(ProjectionParams);
-		if (projChanged) {
-			std::memcpy(mapped.w + offset, projParams_.data(), dataSize);
-			sh_projParams_->clientBuffer()->nextStamp(mapped.w_index);
-			offset += dataSize;
-			writtenRange.size += dataSize;
-		} else {
-			offset += dataSize;
-			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
-		}
-
-		dataSize = proj_.size() * sizeof(Mat4f) * 2;
-		if (projChanged) {
-			lastProjStamp1_ = projStamp_;
-			std::memcpy(mapped.w + offset, projData_.data(), dataSize);
-			sh_proj_->clientBuffer()->nextStamp(mapped.w_index);
-			sh_projInv_->clientBuffer()->nextStamp(mapped.w_index);
-			offset += dataSize;
-			writtenRange.size += dataSize;
-		} else {
-			offset += dataSize;
-			markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
-		}
-
-		if (sh_clipPlane_.get()) {
-			dataSize = clipPlane_.size() * sizeof(Vec4f);
-			if (lastClipPlaneStamp1_ != clipPlaneStamp_) {
-				lastClipPlaneStamp1_ = clipPlaneStamp_;
-				std::memcpy(mapped.w + offset, clipPlane_.data(), dataSize);
-				sh_clipPlane_->clientBuffer()->nextStamp(mapped.w_index);
-				//offset += dataSize;
-				writtenRange.size += dataSize;
-			}
-		}
-
-		markWrittenTo(clientBuffer, mapped.w_index, offset, writtenRange);
-		clientBuffer.unmapRange(BUFFER_GPU_WRITE, 0u, 0u, mapped.w_index);
-	} else {
-		// The client buffer of the UBO was not initialized.
-		// So we need to write the data to individual shader inputs.
-		if (viewChanged) {
-			lastViewStamp1_ = viewStamp_;
-			auto m_v = sh_view_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_v.w, view_.data(), view_.size() * sizeof(Mat4f));
-			m_v.unmap();
-
-			auto m_v_i = sh_viewInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_v_i.w, viewInv_.data(), viewInv_.size() * sizeof(Mat4f));
-			m_v_i.unmap();
-		}
-
-		if (viewChanged || projChanged) {
-			auto m_vp = sh_viewProj_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_vp.w, viewProj_.data(), viewProj_.size() * sizeof(Mat4f));
-			m_vp.unmap();
-
-			auto m_vp_i = sh_viewProjInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_vp_i.w, viewProjInv_.data(), viewProjInv_.size() * sizeof(Mat4f));
-			m_vp_i.unmap();
-		}
-
-		if (lastDirStamp1_ != directionStamp_) {
-			lastDirStamp1_ = directionStamp_;
-			auto m_dir = sh_direction_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_dir.w, direction_.data(), direction_.size() * sizeof(Vec4f));
-			m_dir.unmap();
-		}
-
-		if (lastPosStamp1_ != positionStamp_) {
-			lastPosStamp1_ = positionStamp_;
-			auto m_pos = sh_position_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_pos.w, position_.data(), position_.size() * sizeof(Vec4f));
-			m_pos.unmap();
-
-			auto m_vel = sh_vel_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_vel.w, &vel_.x, sizeof(Vec4f));
-			m_vel.unmap();
-		}
+		std::memcpy(m_v.w, view_.data(), view_.size() * sizeof(Mat4f));
+		std::memcpy(m_v_i.w, viewInv_.data(), viewInv_.size() * sizeof(Mat4f));
+		std::memcpy(m_vp.w, viewProj_.data(), viewProj_.size() * sizeof(Mat4f));
+		std::memcpy(m_vp_i.w, viewProjInv_.data(), viewProjInv_.size() * sizeof(Mat4f));
 
 		if (projChanged) {
-			lastProjStamp1_ = projStamp_;
 			auto m_pp = sh_projParams_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
-			m_pp.unmap();
-
 			auto m_p = sh_proj_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
-			m_p.unmap();
-
 			auto m_p_i = sh_projInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+
+			std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
+			std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
 			std::memcpy(m_p_i.w, projInv_.data(), projInv_.size() * sizeof(Mat4f));
-			m_p_i.unmap();
+
+			lastProjStamp1_ = projStamp_;
 		}
+
+		lastViewStamp1_ = viewStamp_;
+	} else if (projChanged) [[unlikely]] {
+		auto m_vp = sh_viewProj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_vp_i = sh_viewProjInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_pp = sh_projParams_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_p = sh_proj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_p_i = sh_projInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+
+		std::memcpy(m_vp.w, viewProj_.data(), viewProj_.size() * sizeof(Mat4f));
+		std::memcpy(m_vp_i.w, viewProjInv_.data(), viewProjInv_.size() * sizeof(Mat4f));
+		std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
+		std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
+		std::memcpy(m_p_i.w, projInv_.data(), projInv_.size() * sizeof(Mat4f));
+
+		lastProjStamp1_ = projStamp_;
+	}
+
+	if (lastDirStamp1_ != directionStamp_) {
+		auto m_dir = sh_direction_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_dir.w, direction_.data(), direction_.size() * sizeof(Vec4f));
+		lastDirStamp1_ = directionStamp_;
+	}
+
+	if (lastPosStamp1_ != positionStamp_) {
+		auto m_pos = sh_position_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		auto m_vel = sh_vel_->mapClientDataRaw(BUFFER_GPU_WRITE);
+
+		std::memcpy(m_pos.w, position_.data(), position_.size() * sizeof(Vec4f));
+		std::memcpy(m_vel.w, &vel_.x, sizeof(Vec4f));
+
+		lastPosStamp1_ = positionStamp_;
 	}
 
 	isUpdating_.store(false, std::memory_order_release);
+}
+
+void Camera::updateBuffers() {
+	cameraBuffer_->updateBuffer();
 }
 
 bool Camera::updateCamera() {
@@ -427,7 +319,7 @@ ref_ptr<UBO> Camera::getFrustumBuffer() {
 }
 
 void Camera::createFrustumBuffer() {
-	frustumBuffer_ = ref_ptr<UBO>::alloc("FrustumBuffer", cameraBlock_->stagingUpdateHint());
+	frustumBuffer_ = ref_ptr<UBO>::alloc("FrustumBuffer", cameraBuffer_->bufferUpdateHints());
 	frustumBuffer_->setStagingAccessMode(BUFFER_CPU_WRITE);
 	// each frustum has 6 planes, so we need 6 * numLayer_ Vec4f
 	frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", 6 * numLayer_);
@@ -579,6 +471,7 @@ ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &in
 	}
 
 	// make sure initial data is good.
+	lightCamera->updateBuffers();
 	lightCamera->updateCamera();
 	lightCamera->updateShaderData(0.0f);
 	dynamic_cast<LightCamera *>(lightCamera.get())->updateShadowData();
@@ -651,6 +544,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 			cam = ref_ptr<ReflectionCamera>::alloc(userCamera, normal, position, hasBackFace);
 		}
 		if (cam.get()) {
+			cam->updateBuffers();
 			ctx.scene()->putState(input.getName(), cam);
 		}
 		return cam;
@@ -666,6 +560,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 			90.0f, // fov is always 90 for cube map faces
 			input.getValue<float>("near", 0.1f),
 			input.getValue<float>("far", 100.0f));
+		cam->updateBuffers();
 		if (tf.get()) {
 			cam->attachToPosition(tf);
 		}
@@ -675,6 +570,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
 		bool hasBackFace = input.getValue<bool>("dual-paraboloid", true);
 		auto cam = ref_ptr<ParabolicCamera>::alloc(hasBackFace);
+		cam->updateBuffers();
 		if (input.hasAttribute("normal")) {
 			cam->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
 		}
@@ -715,6 +611,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT,
 										 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->screen()));
 		}
+		cam->updateBuffers();
 		cam->updateCamera();
 		cam->updateShaderData(0.0f);
 		ctx.scene()->putState(input.getName(), cam);

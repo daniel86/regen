@@ -51,7 +51,7 @@ ReflectionCamera::ReflectionCamera(
 
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	sh_clipPlane_->setUniformData(Vec4f::zero());
-	cameraBlock_->addStagedInput(sh_clipPlane_);
+	cameraBuffer_->addStagedInput(sh_clipPlane_);
 
 	updateReflection();
 	updateShaderData(0.0f);
@@ -65,7 +65,7 @@ ReflectionCamera::ReflectionCamera(
 		const Vec3f &reflectorNormal,
 		const Vec3f &reflectorPoint,
 		bool hasBackFace)
-		: Camera(1, userCamera->cameraBlock()->stagingUpdateHint()),
+		: Camera(1, userCamera->cameraBuffer()->bufferUpdateHints()),
 		  userCamera_(userCamera),
 		  projStamp_(userCamera->projectionStamp() - 1),
 		  camPosStamp_(userCamera->positionStamp() - 1),
@@ -91,7 +91,7 @@ ReflectionCamera::ReflectionCamera(
 			norWorld_.dot(posWorld_));
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	sh_clipPlane_->setUniformData(clipPlane_[0]);
-	cameraBlock_->addStagedInput(sh_clipPlane_);
+	cameraBuffer_->addStagedInput(sh_clipPlane_);
 
 	updateReflection();
 	updateShaderData(0.0f);

@@ -67,10 +67,7 @@ void MaskMesh::updateMask() {
 			}
 			maskUV.x += quadSize_ts.x;
 			if (maskDensity > 0.1) {
-				// TODO: generate better fitting quads, but geometry cannot be changed as instancing is used
-				//          could use scaling instead though to make instances smaller. This might be fine for some cases.
-				//auto corrected_x = static_cast<float>(masked.second.min.x + masked.second.max.x) * 0.5f;
-				//auto corrected_y = static_cast<float>(masked.second.min.y + masked.second.max.y) * 0.5f;
+				// Note: The quads are no perfect fit, as we use instancing and cannot change the geometry per instance.
 				instanceData[numInstances++] = baseOffset + Vec4f(
 						static_cast<float>( x ) * rectangleConfig_.posScale.x + quadHalfSize.x - maskMeshCfg_.meshSize.x * 0.5f,
 						maskMeshCfg_.height,
