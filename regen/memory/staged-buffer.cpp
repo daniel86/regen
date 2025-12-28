@@ -3,6 +3,7 @@
 #include "ssbo.h"
 #include "regen/scene/state.h"
 #include "../shader/input-processor.h"
+#include <nlohmann/json.hpp>
 
 using namespace regen;
 
@@ -816,4 +817,106 @@ void StagedBuffer::Shared::setUpdatedFrame(bool isUpdated) {
 void StagedBuffer::resetUpdateHistory() {
 	shared_->updateIdx_ = 0;
 	shared_->hasUpdateRotated_ = false;
+}
+
+template<typename T, bool ExportFromGPU>
+void exportToBinary(ShaderInput &input, const std::filesystem::path &exportPath) {
+	const uint32_t numElements   = input.numElements();
+	const uint32_t numComponents = input.valsPerElement();
+
+	std::vector<T> values(numElements * numComponents, T(0));
+	T* dstPtr = values.data();
+
+	byte *gpuData;
+	if constexpr (ExportFromGPU) {
+		gpuData = new byte[input.alignedInputSize()];
+		input.readServerData(gpuData);
+
+		for (uint32_t i = 0; i < numElements; ++i) {
+			const size_t offset = i * input.alignedElementSize();
+			std::memcpy(dstPtr, gpuData + offset, numComponents * sizeof(T));
+			dstPtr += numComponents;
+		}
+
+		delete[] gpuData;
+	} else {
+		auto mapped = input.mapClientDataRaw(BUFFER_GPU_READ);
+		auto* gpuData = mapped.r;
+
+		for (uint32_t i = 0; i < numElements; ++i) {
+			const size_t offset = i * input.alignedElementSize();
+			std::memcpy(dstPtr, gpuData + offset, numComponents * sizeof(T));
+			dstPtr += numComponents;
+		}
+	}
+
+	std::string binFile = (exportPath / input.name()).string() + ".bin";
+	std::ofstream bin(binFile, std::ios::binary);
+	bin.write(reinterpret_cast<const char*>(values.data()),
+			  values.size() * sizeof(T));
+	bin.close();
+}
+
+void StagedBuffer::exportGPUToJSON(const std::filesystem::path &exportPath) const {
+	static constexpr bool ExportFromGPU = true;
+
+	// Create JSON meta data dictionary.
+	nlohmann::json j;
+	j["name"] = name();
+	j["inputs"] = nlohmann::json::array();
+
+	// we create a subdirectory under the given export path for storing binary data files.
+	std::filesystem::path subPath = exportPath; // / name();
+	if (!std::filesystem::exists(subPath) && !std::filesystem::create_directories(subPath)) {
+		REGEN_ERROR("Failed to create export directory '"
+			<< subPath.string() << "' for staged buffer JSON export.");
+		return;
+	}
+
+	for (const auto &inputPair : inputs_) {
+		nlohmann::json &jInput = j["inputs"].emplace_back();
+		jInput["name"] = inputPair.name_;
+		jInput["binary"] = REGEN_STRING(inputPair.name_ << ".bin");
+		jInput["components"] = inputPair.in_->valsPerElement();
+		jInput["count"] = inputPair.in_->numElements();
+		jInput["layout"] = "packed";
+		jInput["originalStrideBytes"] = inputPair.in_->alignedElementSize();
+
+		// Read data from the main buffer to CPU memory for exporting.
+		ShaderInput &input = *inputPair.in_.get();
+		// Write base type arrays as JSON arrays.
+		switch (input.baseType()) {
+			case GL_FLOAT:
+				exportToBinary<float,ExportFromGPU>(input, subPath);
+				jInput["dtype"] = "float32";
+				break;
+			case GL_DOUBLE:
+				exportToBinary<double,ExportFromGPU>(input, subPath);
+				jInput["dtype"] = "float64";
+				break;
+			case GL_INT:
+				exportToBinary<int32_t,ExportFromGPU>(input, subPath);
+				jInput["dtype"] = "int32";
+				break;
+			case GL_UNSIGNED_INT:
+				exportToBinary<uint32_t,ExportFromGPU>(input, subPath);
+				jInput["dtype"] = "uint32";
+				break;
+			default:
+				REGEN_WARN("Unsupported base type " << input.baseType()
+								   << " for exporting staged buffer input '" << input.name() << "' to JSON.");
+				break;
+		}
+	}
+
+	// write JSON meta data file
+	std::filesystem::path jsonPath = subPath / "meta.json";
+	std::ofstream file(jsonPath);
+	if (!file.is_open()) {
+		REGEN_ERROR("Failed to open file '" << jsonPath.string() <<
+			"' for writing staged buffer JSON export.");
+		return;
+	}
+	file << j.dump(4);
+	file.close();
 }

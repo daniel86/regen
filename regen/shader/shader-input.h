@@ -536,6 +536,13 @@ namespace regen {
 		void readServerData();
 
 		/**
+		 * Maps VRAM and copies over data to dstPtr.
+		 * If not server-side data is available, nothing is done.
+		 * @param dstPtr the destination pointer.
+		 */
+		void readServerData(byte *dstPtr);
+
+		/**
 		 * Write this attribute to the GL server.
 		 * @param rs The RenderState.
 		 */

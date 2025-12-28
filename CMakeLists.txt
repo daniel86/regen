@@ -107,6 +107,9 @@ find_package(Boost ${Boost_MIN_VERSION}
 find_package(Threads REQUIRED)
 # Font library: text rendering support
 find_package(Freetype REQUIRED)
+# JSON library: for serialization
+find_package(nlohmann_json REQUIRED)
+set(JSON_LIBRARIES nlohmann_json::nlohmann_json)
 
 # Image loading libraries: required for loading textures from files
 find_package(PNG REQUIRED)
@@ -158,6 +161,7 @@ message(STATUS "regen will link against following libraries:")
 message(STATUS "  OpenGL: ${OPENGL_LIBRARIES};")
 message(STATUS "  glew: ${GLEW_LIBRARIES};")
 message(STATUS "  Boost: ${Boost_LIBRARIES};")
+message(STATUS "  JSON: ${JSON_LIBRARIES};")
 message(STATUS "  Fonts: ${FREETYPE_LIBRARIES};")
 message(STATUS "  Images: ${IMG_LIBRARIES};")
 message(STATUS "  Audio+Video: ${AV_LIBRARIES};")
@@ -193,6 +197,7 @@ set(REGEN_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${JSON_LIBRARIES}
     ${ASSIMP_LIBRARIES}
     ${FREETYPE_LIBRARIES} -lbrotlidec
     ${IMG_LIBRARIES}

@@ -359,7 +359,7 @@ void BufferObject::setBufferSubData(uint32_t localOffset, uint32_t dataSize, con
 
 void BufferObject::readBufferSubData(uint32_t localOffset, uint32_t dataSize, byte *data) {
 	auto &ref = allocations_[0];
-	if (!flags_.isWritable()) {
+	if (!flags_.isReadable()) {
 		// CPU is not allowed to read from this buffer, so we cannot read data directly.
 		// But we can copy data to a temporary buffer and then copy it to the target buffer.
 		auto tempRef = adoptBufferRange(dataSize,

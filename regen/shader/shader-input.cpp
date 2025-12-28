@@ -316,27 +316,17 @@ void ShaderInput::writeServerData() const {
 
 void ShaderInput::readServerData() {
 	if (!hasServerData()) return;
-	auto mappedClientData = clientBuffer_->mapRange(BUFFER_GPU_WRITE, 0, inputSize_);
+	auto mappedClientData = clientBuffer_->mapRange(BUFFER_GPU_WRITE, 0, alignedInputSize_);
 	auto clientData = mappedClientData.w;
+	auto bufferObj = (BufferObject*) bufferRef_->bufferObject();
+	bufferObj->readBufferSubData(offset_, alignedInputSize_, clientData);
+	clientBuffer_->unmapRange(BUFFER_GPU_WRITE, 0, alignedInputSize_, mappedClientData.w_index);
+}
 
-	byte *serverData = (byte *) glMapNamedBufferRange(
-			mainBufferName(),
-			offset_,
-			numVertices_ * vertexStride_ + elementSize_,
-			GL_MAP_READ_BIT);
-
-	if (static_cast<uint32_t>(vertexStride_) == elementSize_) {
-		std::memcpy(clientData, serverData, inputSize_);
-	} else {
-		for (uint32_t i = 0; i < numVertices_; ++i) {
-			std::memcpy(clientData, serverData, elementSize_);
-			serverData += vertexStride_;
-			clientData += elementSize_;
-		}
-	}
-
-	glUnmapNamedBuffer(mainBufferName());
-	clientBuffer_->unmapRange(BUFFER_GPU_WRITE, 0, inputSize_, mappedClientData.w_index);
+void ShaderInput::readServerData(byte *dstData) {
+	if (!hasServerData()) return;
+	auto bufferObj = static_cast<BufferObject *>(bufferRef_->bufferObject());
+	bufferObj->readBufferSubData(offset_, alignedInputSize_, dstData);
 }
 
 /////////////

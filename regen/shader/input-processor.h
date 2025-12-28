@@ -414,6 +414,86 @@ namespace regen {
 				return v;
 			}
 		};
+
+		/**
+		 * State that exports data from a staged buffer to a file.
+		 */
+		class DataExportState : public State {
+		public:
+			DataExportState(
+					const ref_ptr<StagedBuffer> &exportBuffer,
+					const std::filesystem::path &exportPath)
+					: State(),
+					  exportBuffer_(exportBuffer),
+					  exportPath_(exportPath) {}
+
+			// override
+			void enable(RenderState* /*rs*/) override {
+				exportBuffer_->exportGPUToJSON(exportPath_);
+			}
+		protected:
+			ref_ptr<StagedBuffer> exportBuffer_;
+			std::filesystem::path exportPath_;
+		};
+
+		/**
+		 * Processes SceneInput nodes of category "data-export".
+		 */
+		class DataExportProcessor : public StateProcessor {
+		public:
+			DataExportProcessor()
+					: StateProcessor("data-export") {}
+
+			// Override
+			void processInput(
+					scene::SceneLoader *scene,
+					SceneInputNode &input,
+					const ref_ptr<StateNode> &parent,
+					const ref_ptr<State> &state) override {
+				if (!input.hasAttribute("export-path")) {
+					REGEN_WARN("No export-path specified for " << input.getDescription() << ".");
+					return;
+				}
+				std::string exportPath = input.getValue("export-path");;
+				ref_ptr<ShaderInput> in;
+
+				if (input.hasAttribute("state")) {
+					// take uniform from state
+					ref_ptr<State> s = scene->getState(input.getValue("state"));
+					if (!s) {
+						scene->loadResources(input.getValue("state"));
+						s = scene->getState(input.getValue("state"));
+					}
+					if (!s) {
+						REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
+						return;
+					}
+
+					auto in_opt = s->findShaderInput(input.getValue("component"));
+					if (!in_opt.has_value() || !in_opt.value().in.get()) {
+						REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << ".");
+						return;
+					}
+					in = in_opt.value().in;
+				}
+
+				if (!in) {
+					REGEN_WARN("No state specified for data export in " << input.getDescription() << ".");
+					return;
+				}
+
+				// we only support export of staged buffers here
+				auto stagedBuffer = ref_ptr<StagedBuffer>::dynamicCast(in);
+				if (!stagedBuffer) {
+					REGEN_WARN("Data export only supported for staged buffers in " << input.getDescription() << ".");
+					return;
+				}
+
+				auto exportState =
+					ref_ptr<DataExportState>::alloc(stagedBuffer, exportPath);
+				state->joinStates(exportState);
+			}
+		};
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "regen/scene/scene-input.h"
 #include "regen/compute/threading.h"
 #include "staging-buffer.h"
+#include <filesystem>
 
 namespace regen {
 	/**
@@ -195,6 +196,14 @@ namespace regen {
 		 * Reset the update history, clearing the array of updated frames.
 		 */
 		void resetUpdateHistory();
+
+		/**
+		 * Export the buffer block data to a JSON file.
+		 * The data is loaded from the main GL buffer (client buffer is not used).
+		 * This will load the whole buffer content from the GPU and write it to a JSON file.
+		 * @param exportPath the path to the JSON file to write.
+		 */
+		void exportGPUToJSON(const std::filesystem::path &exportPath) const;
 
 	protected:
 		bool hasClientData_ = true;

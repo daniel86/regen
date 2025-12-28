@@ -61,6 +61,7 @@ void SceneLoader::init() {
 	setNodeProcessor(ref_ptr<LoadableNode<HorizonDividerNode>>::alloc("horizon"));
 	// add some default state processors
 	setStateProcessor(ref_ptr<ShaderInputProcessor>::alloc());
+	setStateProcessor(ref_ptr<DataExportProcessor>::alloc());
 	setStateProcessor(ref_ptr<ShaderDefineProcessor>::alloc());
 	setStateProcessor(ref_ptr<ResourceStateProvider>::alloc());
 	setStateProcessor(ref_ptr<ShapeProcessor>::alloc());
