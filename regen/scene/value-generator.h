@@ -110,7 +110,14 @@ namespace regen {
 			T nextRandom() {
 				const T min = n_->getValue<T>("min", Vec::create<T>(0));
 				const T max = n_->getValue<T>("max", Vec::create<T>(1));
-				value_ = min + (max - min) * math::random<float>();
+				static constexpr uint32_t NumComponents = sizeof(T) / sizeof(typename VecTraits<T>::BaseType);
+				if constexpr (NumComponents == 1) {
+					value_ = min + (max - min) * math::random<float>();
+				} else {
+					for (uint32_t i = 0; i < NumComponents; ++i) {
+						value_[i] = min[i] + (max[i] - min[i]) * math::random<float>();
+					}
+				}
 				counter_.x += 1;
 				return value_;
 			}
