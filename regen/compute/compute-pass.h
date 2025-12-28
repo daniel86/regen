@@ -17,9 +17,16 @@ namespace regen {
 	public:
 		/**
 		 * @param shaderKey the key will be imported when createShader is called.
+		 * @param computeState the compute state.
 		 */
-		explicit ComputePass(const std::string &shaderKey) : State(), HasShader(shaderKey) {
-			computeState_ = ref_ptr<ComputeState>::alloc();
+		explicit ComputePass(const std::string &shaderKey,
+					const ref_ptr<ComputeState> &computeState = {})
+					: State(), HasShader(shaderKey) {
+			if (!computeState) {
+				computeState_ = ref_ptr<ComputeState>::alloc();
+			} else {
+				computeState_ = computeState;
+			}
 			joinStates(shaderState_);
 			joinStates(computeState_);
 		}
@@ -46,7 +53,9 @@ namespace regen {
 				REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");
 				return {};
 			}
-			ref_ptr<ComputePass> cs = ref_ptr<ComputePass>::alloc(input.getValue("shader"));
+			ref_ptr<ComputePass> cs = ref_ptr<ComputePass>::alloc(
+				input.getValue("shader"),
+				ComputeState::load(ctx, input));
 			StateConfigurer shaderConfigurer;
 			shaderConfigurer.addNode(ctx.parent().get());
 			shaderConfigurer.addState(cs.get());
@@ -58,4 +67,4 @@ namespace regen {
 		ref_ptr<ComputeState> computeState_;
 	};
 } // namespace
-#endif /* FULLSCREEN_PASS_H_ */
+#endif /* REGEN_COMPUTE_PASS_H_ */

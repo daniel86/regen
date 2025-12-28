@@ -351,12 +351,16 @@ GLenum glenum::barrierBit(const std::string &v) {
 		return GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
 	else if (val == "ELEMENT_ARRAY")
 		return GL_ELEMENT_ARRAY_BARRIER_BIT;
+	else if (val == "CLIENT_MAPPED_BUFFER")
+		return GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
 	else if (val == "UNIFORM")
 		return GL_UNIFORM_BARRIER_BIT;
 	else if (val == "TEXTURE_FETCH")
 		return GL_TEXTURE_FETCH_BARRIER_BIT;
 	else if (val == "SHADER_IMAGE_ACCESS")
 		return GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+	else if (val == "SHADER_STORAGE")
+		return GL_SHADER_STORAGE_BARRIER_BIT;
 	else if (val == "COMMAND")
 		return GL_COMMAND_BARRIER_BIT;
 	else if (val == "PIXEL_BUFFER")

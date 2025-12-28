@@ -1,9 +1,30 @@
 
---------------------------------
---------------------------------
------ Raycasting Shader
---------------------------------
---------------------------------
+-- intersectBox
+bool intersectBox(vec3 origin, vec3 dir, out float t0, out float t1) {
+    vec3 invR = 1.0 / dir;
+    vec3 tbot = invR * (-in_halfVolumeSize-origin);
+    vec3 ttop = invR * (+in_halfVolumeSize-origin);
+    vec3 tmin = min(ttop, tbot);
+    vec3 tmax = max(ttop, tbot);
+    t0 = max(max(tmin.x, tmin.y), tmin.z);
+    t1 = min(min(tmax.x, tmax.y), tmax.z);
+    return t0 < t1;
+}
+
+-- computeNormal
+vec3 computeNormal(vec3 pos) {
+    float dx =
+        texture(in_volumeTexture, pos + vec3(in_rayStep, 0.0, 0.0)).x -
+        texture(in_volumeTexture, pos - vec3(in_rayStep, 0.0, 0.0)).x;
+    float dy =
+        texture(in_volumeTexture, pos + vec3(0.0, in_rayStep, 0.0)).x -
+        texture(in_volumeTexture, pos - vec3(0.0, in_rayStep, 0.0)).x;
+    float dz =
+        texture(in_volumeTexture, pos + vec3(0.0, 0.0, in_rayStep)).x -
+        texture(in_volumeTexture, pos - vec3(0.0, 0.0, in_rayStep)).x;
+    return vec3(-dx, -dy, -dz);
+}
+
 -- vs
 #include regen.objects.mesh.defines
 
@@ -100,27 +121,16 @@ const vec3 in_halfVolumeSize = vec3(1.0);
     #include regen.objects.mesh.writeOutput
 #endif
 #include regen.camera.camera.transformWorldToScreen
+#include regen.objects.volume.intersectBox
+#include regen.objects.volume.computeNormal
 
-vec4 volumeTransfer(float val)
-{
+vec4 volumeTransfer(float val) {
     vec3 col = texture(in_transferTexture, vec2(val)).rgb;
 #ifdef DENSITY_ALPHA
     return vec4(col, min(1.0,in_densityScale*val));
 #else
     return vec4(col*1.6, 1.0);
 #endif
-}
-
-bool intersectBox(vec3 origin, vec3 dir, out float t0, out float t1)
-{
-    vec3 invR = 1.0 / dir;
-    vec3 tbot = invR * (-in_halfVolumeSize-origin);
-    vec3 ttop = invR * (+in_halfVolumeSize-origin);
-    vec3 tmin = min(ttop, tbot);
-    vec3 tmax = max(ttop, tbot);
-    t0 = max(max(tmin.x, tmin.y), tmin.z);
-    t1 = min(min(tmax.x, tmax.y), tmax.z);
-    return t0 < t1;
 }
 
 void main() {
@@ -140,14 +150,21 @@ void main() {
     rayStop = 0.5 * (rayStop + vec3(1.0));
     // do the ray casting from start to stop
     vec3 ray = rayStop - rayStart;
-    vec3 stepVector = normalize(ray) * max(in_rayStep, 0.001);
+
+    float rayLength = length(ray);
+    int numSteps = int(rayLength / in_rayStep);
+    vec3 stepVector = ray / float(numSteps);
+    //vec3 stepVector = normalize(ray) * max(in_rayStep, 0.001);
+
     vec3 pos = rayStart;
     vec4 dst = vec4(0);
 #if RAY_CASTING_MODE==AVERAGE_INTENSITY
     float counter = 0.0;
 #endif
-    for(float rayLength=length(ray); rayLength>=0.0; rayLength-=in_rayStep)
-    {
+#if RAY_CASTING_MODE==MAX_INTENSITY
+    float maxIntensity = 0.0;
+#endif
+    for(int i=0; i<numSteps; i++) {
 #ifdef RAY_CAST_JITTER
         vec3 jitter = vec3(
             fract(sin(dot(pos.xy, vec2(12.9898, 78.233))) * 43758.5453),
@@ -160,8 +177,9 @@ void main() {
 #endif
 
 #if RAY_CASTING_MODE==MAX_INTENSITY
-        if(value > max(in_densityThreshold,dst.a)) {
+        if(value > max(in_densityThreshold,maxIntensity)) {
             dst = volumeTransfer(value);
+            maxIntensity = value;
         }
 #elif RAY_CASTING_MODE==AVERAGE_INTENSITY
         if(value > in_densityThreshold) {
@@ -202,18 +220,7 @@ void main() {
     vec4 ps = transformWorldToScreen(vec4(pw,1.0),0);
     gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
 #endif
-    // calculate normal by approximating the gradient using central differences
-    float dx =
-        texture(in_volumeTexture, pos + vec3(in_rayStep, 0.0, 0.0)).x -
-        texture(in_volumeTexture, pos - vec3(in_rayStep, 0.0, 0.0)).x;
-    float dy =
-        texture(in_volumeTexture, pos + vec3(0.0, in_rayStep, 0.0)).x -
-        texture(in_volumeTexture, pos - vec3(0.0, in_rayStep, 0.0)).x;
-    float dz =
-        texture(in_volumeTexture, pos + vec3(0.0, 0.0, in_rayStep)).x -
-        texture(in_volumeTexture, pos - vec3(0.0, 0.0, in_rayStep)).x;
-    // compute normal in world space
-    vec3 normal = normalize(mat3(in_modelMatrix) * vec3(-dx, -dy, -dz));
+    vec3 normal = normalize(mat3(in_modelMatrix) * computeNormal(pos));
 
 #ifndef FS_NO_OUTPUT
     #if DRAW_RAY_LENGTH==1
@@ -228,3 +235,88 @@ void main() {
 #endif
 }
 
+-- neural.training-data.cs
+#include regen.compute.compute.defines
+
+buffer vec4 in_rayOrigin[];
+buffer vec4 in_rayDestination[];
+
+buffer vec4 in_position[];
+buffer vec4 in_normal[];
+buffer float in_density[];
+
+uniform sampler3D in_volumeTexture;
+
+const float in_rayStep=0.02;
+const float in_densityThreshold=0.125;
+const float in_densityScale=2.0;
+const vec3 in_halfVolumeSize = vec3(1.0);
+
+#include regen.objects.volume.intersectBox
+#include regen.objects.volume.computeNormal
+
+void main() {
+    const uint id = gl_GlobalInvocationID.x;
+    const uint numElements = CS_WORK_UNITS_X;
+    if (id >= numElements) return;
+
+    const vec3 origin = in_rayOrigin[id].xyz;
+    vec3 dir = in_rayDestination[id].xyz - origin;
+    float len = length(dir);
+    if (len > 0.0) {
+        dir /= len;
+    } else {
+        // invalid ray
+        in_position[id] = vec4(9999.0, 9999.0, 9999.0, 0.0);
+        in_normal[id] = vec4(0.0, 0.0, 0.0, 0.0);
+        in_density[id] = 0.0;
+        return;
+    }
+
+    // We use mode=FIRST_MAXIMUM for generating training data
+    float tnear, tfar;
+    intersectBox( origin, dir, tnear, tfar);
+    tnear = max(tnear,0.0);
+    vec3 rayStart = origin + dir * tnear;
+    vec3 rayStop = origin + dir * tfar;
+#ifdef SWITCH_VOLUME_Y
+    // switch y-axis
+    rayStart.y *= -1; rayStop.y *= -1;
+#endif
+
+    // Transform from object space to texture coordinate space:
+    rayStart = 0.5 * (rayStart + vec3(1.0));
+    rayStop = 0.5 * (rayStop + vec3(1.0));
+
+    // do the ray casting from start to stop
+    vec3 ray = rayStop - rayStart;
+    float rayLength = length(ray);
+    int numSteps = int(rayLength / in_rayStep);
+    vec3 stepVector = ray / float(numSteps);
+    vec3 pos = rayStart;
+    float density = 0.0;
+    bool hit = false;
+
+    for(int i=0; i<numSteps; i++) {
+        float value = texture(in_volumeTexture, pos).x;
+        if(value > in_densityThreshold) {
+            density = value;
+            hit = true;
+            break;
+        }
+        pos += stepVector;
+    }
+
+    if(hit) {
+        // Store position in object space
+        vec3 po = 2.0 * pos - vec3(1.0);
+        in_position[id] = vec4(po, 0.0);
+        in_normal[id] = vec4(normalize(computeNormal(pos)), 0.0);
+        in_density[id] = density;
+    } else {
+        // No hit: write invalid values
+        in_position[id] = vec4(9999.0, 9999.0, 9999.0, 0.0);
+        in_normal[id] = vec4(0.0, 0.0, 0.0, 0.0);
+        in_density[id] = 0.0;
+    }
+}

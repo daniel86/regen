@@ -230,7 +230,7 @@ namespace regen {
 					in = ref_ptr<UBO>::dynamicCast(block);
 				}
 				else if (input.hasAttribute("ssbo")) {
-					auto block = scene->getResource<BufferBlock>(input.getValue("ubo"));
+					auto block = scene->getResource<BufferBlock>(input.getValue("ssbo"));
 					if (block.get() == nullptr || !block->isSSBO()) {
 						REGEN_WARN("No SSBO found for '" << input.getDescription() << "'.");
 						return {};
@@ -364,8 +364,10 @@ namespace regen {
 
 				auto numInstances = input.getValue<uint32_t>("num-instances", 1u);
 				auto numVertices = input.getValue<uint32_t>("num-vertices", 1u);
+				auto numElements = input.getValue<uint32_t>("num-elements", 1u);
 				bool isInstanced = input.getValue<bool>("is-instanced", false);
 				bool isAttribute = input.getValue<bool>("is-attribute", false);
+				bool isArray = (numElements > 1u);
 				uint32_t count = 1;
 				// read the gpu-usage flag
 				if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
@@ -376,16 +378,20 @@ namespace regen {
 
 				if (isInstanced) {
 					v->setInstanceData(numInstances, 1, nullptr);
-					count = numInstances;
+					count = numInstances * numElements;
 				} else if (isAttribute) {
 					v->setVertexData(numVertices, nullptr);
-					count = numVertices;
+					count = numVertices * numElements;
+				} else if (isArray) {
+					v->set_numArrayElements(numElements);
+					v->setInstanceData(1, 1, nullptr);
+					count = numElements;
 				} else {
 					v->setUniformData(input.getValue<T>("value", defaultValue));
 				}
 
 				// Handle Attribute values.
-				if (isInstanced || isAttribute) {
+				if (isInstanced || isAttribute || isArray) {
 					auto values = v->template mapClientData<T>(BUFFER_GPU_WRITE);
 					auto typedValues = values.w;
 					for (uint32_t i = 0; i < count; i += 1) typedValues[i] = defaultValue;
@@ -427,13 +433,22 @@ namespace regen {
 					  exportBuffer_(exportBuffer),
 					  exportPath_(exportPath) {}
 
+			void setUseGPUData(bool useGPUData) {
+				useGPUData_ = useGPUData;
+			}
+
 			// override
 			void enable(RenderState* /*rs*/) override {
-				exportBuffer_->exportGPUToJSON(exportPath_);
+				if (useGPUData_) {
+					exportBuffer_->exportGPUToJSON(exportPath_);
+				} else {
+					exportBuffer_->exportCPUToJSON(exportPath_);
+				}
 			}
 		protected:
 			ref_ptr<StagedBuffer> exportBuffer_;
 			std::filesystem::path exportPath_;
+			bool useGPUData_ = true;
 		};
 
 		/**
@@ -475,6 +490,17 @@ namespace regen {
 						return;
 					}
 					in = in_opt.value().in;
+				} else if (input.hasAttribute("buffer-id")) {
+					auto bufferID = input.getValue("buffer-id");
+					in = scene->getResource<BufferBlock>(bufferID);
+					if (!in) {
+						scene->loadResources(bufferID);
+						in = scene->getResource<BufferBlock>(bufferID);
+					}
+					if (!in) {
+						REGEN_WARN("No BufferBlock found for for '" << input.getDescription() << ".");
+						return;
+					}
 				}
 
 				if (!in) {
@@ -491,6 +517,7 @@ namespace regen {
 
 				auto exportState =
 					ref_ptr<DataExportState>::alloc(stagedBuffer, exportPath);
+				exportState->setUseGPUData(input.getValue<bool>("gpu-export", true));
 				state->joinStates(exportState);
 			}
 		};

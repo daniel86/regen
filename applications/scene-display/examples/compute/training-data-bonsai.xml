@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<node>
+    <gui-config ego-camera="0"
+                look-at-camera="1"
+                look-at="0.0,0.0,0.0"
+                look-at-height="0.0"
+                look-at-radius="2.0"
+                look-at-degree="0.0"
+                look-at-step="0.001"
+                look-at-scroll-step="0.05"
+                look-at-step-x="0.02"
+                look-at-step-y="0.001"
+                look-at-interval="10"
+    />
+    <node id="configuration">
+        <controller camera="main-camera" type="key-frames" interpolation="quadratic" dt="3.0" ease-in-out="0.0">
+            <key-frame pos=" 0.0, 0.0,  4.0" dir=" 0.0,  0.0, -2.0" dt="0.0"/>
+            <key-frame pos=" 4.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0"/>
+            <key-frame pos=" 0.0, 0.5,-4.0" dir=" 0.0,-0.5, 2.0"/>
+            <key-frame pos="-4.0, 0.0,  0.0" dir=" 2.0, 0.0, 0.0"/>
+
+            <key-frame pos=" 0.0,  0.0,  4.0" dir=" 0.0,  0.0,-2.0"/>
+            <key-frame pos=" 4.0, -0.5, 0.0" dir="-2.0, 0.5, 0.0"/>
+            <key-frame pos=" 0.0, -0.5,-4.0" dir=" 0.0, 0.5, 2.0"/>
+            <key-frame pos="-4.0,  0.0,  0.0" dir=" 2.0,  0.0, 0.0"/>
+            <key-frame pos=" 0.0,  0.0,  4.0" dir=" 0.0,  0.0,-2.0"/>
+        </controller>
+    </node>
+
+    <include xml-file="scene-display/examples/templates/default.xml"/>
+
+    <!-- Framebuffer -->
+    <fbo id="buffer-float" size-mode="rel" size="1,1"
+         pixel-type="FLOAT" pixel-size="16">
+        <texture id="color0" pixel-components="3"/>
+        <texture id="color1" pixel-components="3"/>
+    </fbo>
+    <fbo id="g-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse"/>
+        <texture id="tmp"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <!-- Textures -->
+    <texture id="sky-texture"
+             is-cube="1" cube-flip-back="1"
+             file="res/textures/cube-maps/grace.hdr"
+             mipmap="1"
+             wrapping="CLAMP_TO_EDGE"
+             internal-format="R11F_G11F_B10F"
+             aniso="2.0"/>
+    <!-- Cameras -->
+    <camera id="main-camera"
+            fov="45.0" near="0.1" far="200.0"
+            position="0.0,0.0,-2.0"
+            direction="0.0,0.0,1.0"/>
+    <!-- Meshes -->
+    <mesh id="sky-box"
+          type="box"
+          use-normal="0"
+          use-tangent="0"
+          texco-mode="CUBE_MAP"
+          update-frequency="NEVER"/>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <texture id="bonsai-transfer"
+             file="res/textures/volumes/bonsai-transfer.png"/>
+
+    <texture id="bonsai-volume"
+             file="res/textures/volumes/bonsai.raw"
+             is-raw="1"
+             raw-size="256,256,256"
+             raw-components="1"
+             raw-bytes="8"
+             wrapping="CLAMP_TO_EDGE"/>
+
+    <mesh id="bonsai-mesh"
+          type="box"
+          scaling="0.8, 0.8, 0.8"
+          use-normal="0"
+          use-tangent="0"
+          texco-mode="NONE"
+          update-frequency="NEVER">
+        <material emission="0.05,0.1,0.05" update-frequency="NEVER"/>
+    </mesh>
+
+    <node id="Scene-Objects">
+        <transform update-frequency="NEVER"/>
+        <node id="Bonsai">
+            <!-- <define key="DEPTH_CORRECT" value="TRUE"/> -->
+            <!-- <define key="RAY_CAST_JITTER" value="TRUE"/> -->
+            <!-- <define key="DENSITY_ALPHA" value="TRUE"/> -->
+            <alpha discard-threshold="0.25"/>
+            <define key="RAY_CASTING_MODE" value="FIRST_MAXIMUM"/>
+            <define key="SWITCH_VOLUME_Y" value="FALSE"/>
+            <cull mode="front"/>
+            <input type="float" name="rayStep" value="0.01"/>
+            <input type="float" name="densityThreshold" value="0.175"/>
+            <input type="float" name="densityScale" value="1.0"/>
+            <input type="vec3" name="halfVolumeSize" value="0.8, 0.8, 0.8"/>
+            <texture name="transferTexture" id="bonsai-transfer"/>
+            <texture name="volumeTexture" id="bonsai-volume"/>
+            <mesh id="bonsai-mesh" shader="regen.objects.volume"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="Background">
+        <define key="IGNORE_VIEW_TRANSLATION" value="TRUE"/>
+
+        <cull mode="front"/>
+        <depth function="LEQUAL"/>
+        <texture id="sky-texture" map-to="COLOR"/>
+        <mesh id="sky-box" shader="regen.objects.sky-box"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <block type="ssbo" id="ComputeInput">
+        <!-- generate random ray origins and destinations within a unit cube -->
+        <input name="rayOrigin" type="vec4" num-elements="256" value="0.0,0.0,0.0,0.0">
+            <set mode="random" min="-1.0,-1.0,-1.0,0.0" max="1.0,1.0,1.0,0.0" />
+        </input>
+        <input name="rayDestination" type="vec4" num-elements="256" value="0.0,0.0,0.0,0.0">
+            <set mode="random" min="-1.0,-1.0,-1.0,0.0" max="1.0,1.0,1.0,0.0" />
+        </input>
+    </block>
+
+    <block type="ssbo" id="ComputeOutput">
+        <input name="position" type="vec4"  num-elements="256" value="0.0,0.0,0.0,0.0" />
+        <input name="normal"   type="vec4"  num-elements="256" value="0.0,1.0,0.0,0.0" />
+        <input name="density"  type="float" num-elements="256" value="0.0" />
+    </block>
+
+    <node id="initialize">
+        <node>
+            <barrier bit="SHADER_STORAGE"/>
+            <input name="InputData" ssbo="ComputeInput"/>
+            <input name="OutputData" ssbo="ComputeOutput"/>
+
+            <input type="float" name="rayStep" value="0.01"/>
+            <input type="float" name="densityThreshold" value="0.175"/>
+            <input type="float" name="densityScale" value="1.0"/>
+            <input type="vec3" name="halfVolumeSize" value="0.8, 0.8, 0.8"/>
+            <texture name="volumeTexture" id="bonsai-volume"/>
+
+            <compute
+                shader="regen.objects.volume.neural.training-data"
+                work-units="256,1,1" group-size="256,1,1" />
+        </node>
+        <node>
+            <barrier bit="CLIENT_MAPPED_BUFFER" />
+            <data-export buffer-id="ComputeInput" gpu-export="0"
+                export-path="export/hdr/compute/in" />
+            <data-export buffer-id="ComputeOutput" gpu-export="1"
+                export-path="export/hdr/compute/out" />
+        </node>
+    </node>
+
+    <node id="root">
+        <fbo id="buffer-float" clear-buffers="0" draw-buffers="0"/>
+        <camera id="main-camera"/>
+
+        <node import="Background"/>
+        <node import="Scene-Objects"/>
+
+        <node import="GUI-Pass">
+            <fbo id="buffer-float" draw-buffers="0"/>
+        </node>
+
+        <view id="Result">
+            <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+    </node>
+</node>

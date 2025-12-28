@@ -205,6 +205,14 @@ namespace regen {
 		 */
 		void exportGPUToJSON(const std::filesystem::path &exportPath) const;
 
+		/**
+		 * Export the buffer block data to a JSON file.
+		 * The data is loaded from the client buffer.
+		 * This will write the whole buffer content to a JSON file.
+		 * @param exportPath the path to the JSON file to write.
+		 */
+		void exportCPUToJSON(const std::filesystem::path &exportPath) const;
+
 	protected:
 		bool hasClientData_ = true;
 		bool isBufferValid_ = true;

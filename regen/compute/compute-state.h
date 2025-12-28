@@ -19,7 +19,7 @@ namespace regen {
 
 		ComputeState();
 
-		ref_ptr<ComputeState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+		static ref_ptr<ComputeState> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		void setNumWorkUnits(uint32_t x, uint32_t y, uint32_t z);
 

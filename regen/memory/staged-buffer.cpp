@@ -857,54 +857,55 @@ void exportToBinary(ShaderInput &input, const std::filesystem::path &exportPath)
 	bin.close();
 }
 
-void StagedBuffer::exportGPUToJSON(const std::filesystem::path &exportPath) const {
-	static constexpr bool ExportFromGPU = true;
+template<bool ExportFromGPU>
+void exportToJSON(const std::filesystem::path &exportPath,
+	std::string_view bufferName,
+	std::vector<ShaderInput*> &inputs) {
 
 	// Create JSON meta data dictionary.
 	nlohmann::json j;
-	j["name"] = name();
+	j["name"] = bufferName;
 	j["inputs"] = nlohmann::json::array();
 
 	// we create a subdirectory under the given export path for storing binary data files.
-	std::filesystem::path subPath = exportPath; // / name();
+	std::filesystem::path subPath = exportPath;
 	if (!std::filesystem::exists(subPath) && !std::filesystem::create_directories(subPath)) {
 		REGEN_ERROR("Failed to create export directory '"
 			<< subPath.string() << "' for staged buffer JSON export.");
 		return;
 	}
 
-	for (const auto &inputPair : inputs_) {
+	for (auto &input : inputs) {
 		nlohmann::json &jInput = j["inputs"].emplace_back();
-		jInput["name"] = inputPair.name_;
-		jInput["binary"] = REGEN_STRING(inputPair.name_ << ".bin");
-		jInput["components"] = inputPair.in_->valsPerElement();
-		jInput["count"] = inputPair.in_->numElements();
+		jInput["name"] = input->name();
+		jInput["binary"] = REGEN_STRING(input->name() << ".bin");
+		jInput["components"] = input->valsPerElement();
+		jInput["count"] = input->numElements();
 		jInput["layout"] = "packed";
-		jInput["originalStrideBytes"] = inputPair.in_->alignedElementSize();
+		jInput["originalStrideBytes"] = input->alignedElementSize();
 
 		// Read data from the main buffer to CPU memory for exporting.
-		ShaderInput &input = *inputPair.in_.get();
 		// Write base type arrays as JSON arrays.
-		switch (input.baseType()) {
+		switch (input->baseType()) {
 			case GL_FLOAT:
-				exportToBinary<float,ExportFromGPU>(input, subPath);
+				exportToBinary<float,ExportFromGPU>(*input, subPath);
 				jInput["dtype"] = "float32";
 				break;
 			case GL_DOUBLE:
-				exportToBinary<double,ExportFromGPU>(input, subPath);
+				exportToBinary<double,ExportFromGPU>(*input, subPath);
 				jInput["dtype"] = "float64";
 				break;
 			case GL_INT:
-				exportToBinary<int32_t,ExportFromGPU>(input, subPath);
+				exportToBinary<int32_t,ExportFromGPU>(*input, subPath);
 				jInput["dtype"] = "int32";
 				break;
 			case GL_UNSIGNED_INT:
-				exportToBinary<uint32_t,ExportFromGPU>(input, subPath);
+				exportToBinary<uint32_t,ExportFromGPU>(*input, subPath);
 				jInput["dtype"] = "uint32";
 				break;
 			default:
-				REGEN_WARN("Unsupported base type " << input.baseType()
-								   << " for exporting staged buffer input '" << input.name() << "' to JSON.");
+				REGEN_WARN("Unsupported base type " << input->baseType()
+								   << " for exporting staged buffer input '" << input->name() << "' to JSON.");
 				break;
 		}
 	}
@@ -919,4 +920,22 @@ void StagedBuffer::exportGPUToJSON(const std::filesystem::path &exportPath) cons
 	}
 	file << j.dump(4);
 	file.close();
+}
+
+void StagedBuffer::exportGPUToJSON(const std::filesystem::path &exportPath) const {
+	static constexpr bool ExportFromGPU = true;
+	std::vector<ShaderInput*> inputs(stagedInputs_.size());
+	for (size_t i = 0; i < stagedInputs_.size(); ++i) {
+		inputs[i] = stagedInputs_[i].input;
+	}
+	exportToJSON<ExportFromGPU>(exportPath, name(), inputs);
+}
+
+void StagedBuffer::exportCPUToJSON(const std::filesystem::path &exportPath) const {
+	static constexpr bool ExportFromGPU = false;
+	std::vector<ShaderInput*> inputs(stagedInputs_.size());
+	for (size_t i = 0; i < stagedInputs_.size(); ++i) {
+		inputs[i] = stagedInputs_[i].input;
+	}
+	exportToJSON<ExportFromGPU>(exportPath, name(), inputs);
 }
