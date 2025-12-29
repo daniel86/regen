@@ -94,15 +94,15 @@ createTriangleMesh(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 	}
 	btIndexedMesh btMesh;
 	btMesh.m_numVertices = static_cast<int>(pos->numVertices());
-	btMesh.m_vertexStride = static_cast<int>(pos->elementSize());
+	btMesh.m_vertexStride = static_cast<int>(pos->vertexSize());
 
 	switch (mesh->primitive()) {
 		case GL_TRIANGLES:
-			btMesh.m_triangleIndexStride = 3 * static_cast<int>(indices->elementSize());
+			btMesh.m_triangleIndexStride = 3 * static_cast<int>(indices->vertexSize());
 			btMesh.m_numTriangles = static_cast<int>(indices->numVertices()) / 3;
 			break;
 		case GL_TRIANGLE_STRIP:
-			btMesh.m_triangleIndexStride = 1 * static_cast<int>(indices->elementSize());
+			btMesh.m_triangleIndexStride = 1 * static_cast<int>(indices->vertexSize());
 			btMesh.m_numTriangles = static_cast<int>(indices->numVertices() - 2);
 			break;
 		default:

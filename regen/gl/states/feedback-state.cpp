@@ -19,7 +19,7 @@ ref_ptr<ShaderInput> FeedbackSpecification::addFeedback(const ref_ptr<ShaderInpu
 
 	// create feedback attribute
 	ref_ptr<ShaderInput> feedback = ShaderInput::create(in);
-	feedback->set_inputSize(feedbackCount * feedback->elementSize());
+	feedback->set_inputSize(feedbackCount * feedback->vertexSize());
 	feedback->set_numVertices(feedbackCount);
 	feedback->set_isVertexAttribute(true);
 	feedbackAttributes_.push_back(feedback);
@@ -81,13 +81,13 @@ void FeedbackState::initializeResources() {
 		if (feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
 			GLsizei vertexSize = 0;
 			for (auto & att : feedbackAttributes_) {
-				vertexSize += static_cast<GLsizei>(att->elementSize());
+				vertexSize += static_cast<GLsizei>(att->vertexSize());
 			}
 			uint32_t byteOffset = feedbackRef_->address();
 			for (auto & att : feedbackAttributes_) {
 				att->setMainBuffer(feedbackRef_, byteOffset);
 				att->setVertexStride(vertexSize);
-				byteOffset += att->elementSize();
+				byteOffset += att->vertexSize();
 			}
 		} else {
 			// set up separate attributes

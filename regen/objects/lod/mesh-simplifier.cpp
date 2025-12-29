@@ -855,7 +855,7 @@ void MeshSimplifier::simplifyMesh() {
 				std::memcpy(
 						(byte *) levelData.pos.data(),
 						(byte *) lastLevelData.pos.data(),
-						levelData.pos.size() * inputPos_->elementSize());
+						levelData.pos.size() * inputPos_->vertexSize());
 				for (unsigned int attributeIndex = 0u; attributeIndex < inputAttributes_.size(); ++attributeIndex) {
 					auto lodAttr = lastLevelData.attributes[attributeIndex];
 					initializeLevelData(
@@ -954,14 +954,14 @@ uint32_t MeshSimplifier::createOutputAttributes() {
 	// then copy the LOD data into the new attributes
 	for (auto &lod: lodData_) {
 		std::memcpy(
-				outputPos_->clientData() + lod.offset * outputPos_->elementSize(),
+				outputPos_->clientData() + lod.offset * outputPos_->vertexSize(),
 				(byte *) lod.pos.data(),
-				lod.pos.size() * outputPos_->elementSize());
+				lod.pos.size() * outputPos_->vertexSize());
 		for (unsigned int attributeIndex = 0; attributeIndex < lod.attributes.size(); ++attributeIndex) {
 			auto &in = lod.attributes[attributeIndex];
 			auto &out = outputAttributes_[attributeIndex].second;
 			std::memcpy(
-					out->clientData() + lod.offset * out->elementSize(),
+					out->clientData() + lod.offset * out->vertexSize(),
 					in->clientData(),
 					in->inputSize());
 		}

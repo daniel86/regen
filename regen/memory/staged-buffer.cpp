@@ -201,7 +201,7 @@ void StagedBuffer::addStagedInput(const ref_ptr<ShaderInput> &input, std::string
 	auto &bufferInput = stagedInputs_.emplace_back();
 	bufferInput.input = input.get();
 	inputs_.emplace_back(input, std::string(name));
-	estimatedSize_ += input->elementSize();
+	estimatedSize_ += input->vertexSize() * input->numVertices();
 	hasClientData_ = input->hasClientData() && hasClientData_;
 	input->setMemoryLayout(memoryLayout_);
 	if (clientBuffer_->hasSegments()) {
@@ -827,9 +827,8 @@ void exportToBinary(ShaderInput &input, const std::filesystem::path &exportPath)
 	std::vector<T> values(numElements * numComponents, T(0));
 	T* dstPtr = values.data();
 
-	byte *gpuData;
 	if constexpr (ExportFromGPU) {
-		gpuData = new byte[input.alignedInputSize()];
+		byte *gpuData = new byte[input.alignedInputSize()];
 		input.readServerData(gpuData);
 
 		for (uint32_t i = 0; i < numElements; ++i) {

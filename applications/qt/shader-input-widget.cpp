@@ -43,8 +43,8 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x) {
 		// last time value was not changed from widget
 		// update initial data
 		auto clientData = x->mapClientDataRaw(BUFFER_GPU_READ);
-		byte *initialValue = new byte[x->elementSize()];
-		memcpy(initialValue, clientData.r, x->elementSize());
+		byte *initialValue = new byte[x->vertexSize()];
+		memcpy(initialValue, clientData.r, x->vertexSize());
 
 		byte *oldInitial = initialValue_[x];
 		delete[]oldInitial;
@@ -383,8 +383,8 @@ bool ShaderInputWidget::addParameter(
 		delete[]lastValue;
 	}
 	auto clientData = in->mapClientDataRaw(BUFFER_GPU_READ);
-	byte *initialValue = new byte[in->elementSize()];
-	memcpy(initialValue, clientData.r, in->elementSize());
+	byte *initialValue = new byte[in->vertexSize()];
+	memcpy(initialValue, clientData.r, in->vertexSize());
 	clientData.unmap();
 	initialValue_[in.get()] = initialValue;
 	initialValueStamp_[in.get()] = in->stampOfReadData();

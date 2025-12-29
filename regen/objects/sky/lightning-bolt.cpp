@@ -481,19 +481,19 @@ void LightningBolt::gpuUpdate(RenderState *rs, double dt) {
 		std::memcpy(
 			posData + numVertices,
 			segment.pos_.data(),
-			strikeVertices * pos_->elementSize());
+			strikeVertices * pos_->vertexSize());
 
 		// Copy brightness data
 		std::memcpy(
 			brightnessData + numVertices,
 			segment.brightness_.data(),
-			strikeVertices * brightness_->elementSize());
+			strikeVertices * brightness_->vertexSize());
 
 		// Copy strikeIdx data
 		std::memcpy(
 			strikeIdxData + numVertices,
 			segment.strikeIdx_.data(),
-			strikeVertices * strikeIdx_->elementSize());
+			strikeVertices * strikeIdx_->vertexSize());
 
 		numVertices += strikeVertices;
 	}

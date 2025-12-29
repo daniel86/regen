@@ -54,7 +54,7 @@ QColor ColorWidget::initializeColor() {
 void ColorWidget::updateColor(const QColor &color) {
 	// Update the shader input
 	uint32_t count = input_->valsPerElement();
-	byte *changedData = new byte[input_->elementSize()];
+	byte *changedData = new byte[input_->vertexSize()];
 	if (input_->baseType() == GL_FLOAT) {
 		((float *) changedData)[0] = color.redF();
 		((float *) changedData)[1] = color.greenF();

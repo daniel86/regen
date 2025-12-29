@@ -153,7 +153,7 @@ namespace regen {
 		 * The base size of the input.
 		 * @return the base size of the input in bytes.
 		 */
-		inline uint32_t baseSize() const { return baseSize_; }
+		inline uint32_t elementSize() const { return elementSize_; }
 
 		/**
 		 * Specifies the byte offset between consecutive elements of the shader data.
@@ -221,7 +221,7 @@ namespace regen {
 		/**
 		 * Attribute size for a single vertex.
 		 */
-		inline uint32_t elementSize() const { return elementSize_; }
+		inline uint32_t vertexSize() const { return vertexSize_; }
 
 		/**
 		 * numArrayElements() * numInstances()
@@ -644,7 +644,7 @@ namespace regen {
 		const GLenum baseType_;
 		const GLenum dataType_;
 		const uint32_t dataTypeBytes_;
-		const uint32_t baseSize_;
+		const uint32_t elementSize_;
 		const int32_t valsPerElement_;
 
 		uint32_t baseAlignment_;
@@ -654,11 +654,11 @@ namespace regen {
 		uint32_t unalignedSize_ = 0u;
 
 		uint32_t vertexStride_ = 0u;
+		// This is the size in bytes of one element in the vertex buffer.
+		// e.g. vertexSize(vec3f[2]) = 2 * 3 * sizeof(float)
+		uint32_t vertexSize_;
 		uint32_t offset_ = 0u;
 		uint32_t inputSize_ = 0u;
-		// This is the size in bytes of one element in the vertex buffer.
-		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
-		uint32_t elementSize_;
 		uint32_t numArrayElements_;
 		uint32_t numVertices_ = 1u;
 		uint32_t numInstances_ = 1u;
