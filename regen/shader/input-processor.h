@@ -517,7 +517,7 @@ namespace regen {
 					REGEN_WARN("No export-path specified for " << input.getDescription() << ".");
 					return;
 				}
-				std::string exportPath = input.getValue("export-path");;
+				std::string exportPath = input.getValue("export-path");
 				ref_ptr<ShaderInput> in;
 
 				if (input.hasAttribute("state")) {
