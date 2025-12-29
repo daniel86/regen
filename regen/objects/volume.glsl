@@ -238,11 +238,11 @@ void main() {
 -- neural.training-data.cs
 #include regen.compute.compute.defines
 
-buffer vec4 in_rayOrigin[];
-buffer vec4 in_rayDestination[];
+buffer vec3 in_rayOrigin[];
+buffer vec3 in_rayDirection[];
 
-buffer vec4 in_position[];
-buffer vec4 in_normal[];
+buffer vec3 in_position[];
+buffer vec3 in_normal[];
 buffer float in_density[];
 
 uniform sampler3D in_volumeTexture;
@@ -261,14 +261,14 @@ void main() {
     if (id >= numElements) return;
 
     const vec3 origin = in_rayOrigin[id].xyz;
-    vec3 dir = in_rayDestination[id].xyz - origin;
+    vec3 dir = in_rayDirection[id].xyz;
     float len = length(dir);
     if (len > 0.0) {
         dir /= len;
     } else {
         // invalid ray
-        in_position[id] = vec4(9999.0, 9999.0, 9999.0, 0.0);
-        in_normal[id] = vec4(0.0, 0.0, 0.0, 0.0);
+        in_position[id] = vec3(9999.0, 9999.0, 9999.0);
+        in_normal[id] = vec3(0.0, 0.0, 0.0);
         in_density[id] = 0.0;
         return;
     }
@@ -310,13 +310,13 @@ void main() {
     if(hit) {
         // Store position in object space
         vec3 po = 2.0 * pos - vec3(1.0);
-        in_position[id] = vec4(po, 0.0);
-        in_normal[id] = vec4(normalize(computeNormal(pos)), 0.0);
+        in_position[id] = po;
+        in_normal[id] = normalize(computeNormal(pos));
         in_density[id] = density;
     } else {
         // No hit: write invalid values
-        in_position[id] = vec4(9999.0, 9999.0, 9999.0, 0.0);
-        in_normal[id] = vec4(0.0, 0.0, 0.0, 0.0);
+        in_position[id] = vec3(9999.0, 9999.0, 9999.0);
+        in_normal[id] = vec3(0.0, 0.0, 0.0);
         in_density[id] = 0.0;
     }
 }
