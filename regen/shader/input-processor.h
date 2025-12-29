@@ -21,9 +21,9 @@ namespace regen {
 		 * @param name optional timer name.
 		 */
 		explicit TimerInput(float timeScale, const std::string &name = "time")
-				: ShaderInput1f(name),
-				  Animation(false, true),
-				  timeScale_(timeScale) {
+			: ShaderInput1f(name),
+			  Animation(false, true),
+			  timeScale_(timeScale) {
 			setUniformData(0.0f);
 		}
 
@@ -51,7 +51,7 @@ namespace regen {
 		public:
 			template<typename T, typename BaseType>
 			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
-				auto v_values =  shaderInput->mapClientData<T>(BUFFER_GPU_WRITE);
+				auto v_values = shaderInput->mapClientData<T>(BUFFER_GPU_WRITE);
 				auto default_value = input.getValue<T>("value", Vec::create<T>(0));
 				for (unsigned int i = 0; i < count; ++i) {
 					v_values.w[i] = default_value;
@@ -62,12 +62,12 @@ namespace regen {
 						auto blendMode = child->getValue<BlendMode>("blend-mode", BLEND_MODE_SRC);
 
 						uint32_t numInstances = 0;
-						for (auto &range : indices) {
+						for (auto &range: indices) {
 							numInstances += (range.to - range.from) / range.step + 1;
 						}
 						ValueGenerator<T> generator(child.get(), numInstances,
-													child->getValue<T>("value", Vec::create<T>(1)));
-						for (auto &range : indices) {
+						                            child->getValue<T>("value", Vec::create<T>(1)));
+						for (auto &range: indices) {
 							for (unsigned int j = range.from; j <= range.to; j = j + range.step) {
 								switch (blendMode) {
 									case BLEND_MODE_ADD:
@@ -96,48 +96,48 @@ namespace regen {
 					case GL_FLOAT:
 						switch (in->valsPerElement()) {
 							case 1:
-								setInput<float,float>(input, in, count);
+								setInput<float, float>(input, in, count);
 								break;
 							case 2:
-								setInput<Vec2f,float>(input, in, count);
+								setInput<Vec2f, float>(input, in, count);
 								break;
 							case 3:
-								setInput<Vec3f,float>(input, in, count);
+								setInput<Vec3f, float>(input, in, count);
 								break;
 							case 4:
-								setInput<Vec4f,float>(input, in, count);
+								setInput<Vec4f, float>(input, in, count);
 								break;
 						}
 						break;
 					case GL_INT:
 						switch (in->valsPerElement()) {
 							case 1:
-								setInput<int,int>(input, in, count);
+								setInput<int, int>(input, in, count);
 								break;
 							case 2:
-								setInput<Vec2i,int>(input, in, count);
+								setInput<Vec2i, int>(input, in, count);
 								break;
 							case 3:
-								setInput<Vec3i,int>(input, in, count);
+								setInput<Vec3i, int>(input, in, count);
 								break;
 							case 4:
-								setInput<Vec4i,int>(input, in, count);
+								setInput<Vec4i, int>(input, in, count);
 								break;
 						}
 						break;
 					case GL_UNSIGNED_INT:
 						switch (in->valsPerElement()) {
 							case 1:
-								setInput<uint32_t,uint32_t>(input, in, count);
+								setInput<uint32_t, uint32_t>(input, in, count);
 								break;
 							case 2:
-								setInput<Vec2ui,uint32_t>(input, in, count);
+								setInput<Vec2ui, uint32_t>(input, in, count);
 								break;
 							case 3:
-								setInput<Vec3ui,uint32_t>(input, in, count);
+								setInput<Vec3ui, uint32_t>(input, in, count);
 								break;
 							case 4:
-								setInput<Vec4ui,uint32_t>(input, in, count);
+								setInput<Vec4ui, uint32_t>(input, in, count);
 								break;
 						}
 						break;
@@ -148,7 +148,7 @@ namespace regen {
 
 			static int getNumInstances(const ref_ptr<Mesh> &mesh) {
 				int num = mesh->numInstances();
-				std::stack<ref_ptr<State>> stack;
+				std::stack<ref_ptr<State> > stack;
 				stack.emplace(mesh);
 				while (!stack.empty()) {
 					auto state = stack.top();
@@ -166,9 +166,9 @@ namespace regen {
 			 * @return The ShaderInput created or a null reference on failure.
 			 */
 			static ref_ptr<ShaderInput> createShaderInput(
-					scene::SceneLoader *scene,
-					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+				scene::SceneLoader *scene,
+				SceneInputNode &input,
+				const ref_ptr<State> &state) {
 				ref_ptr<ShaderInput> in;
 
 				if (input.hasAttribute("state")) {
@@ -220,24 +220,21 @@ namespace regen {
 					auto numInstances = getNumInstances(mesh);
 					in->setInstanceData(numInstances, 1, nullptr);
 					setInput(input, in.get(), numInstances);
-				}
-				else if (input.hasAttribute("ubo")) {
+				} else if (input.hasAttribute("ubo")) {
 					auto block = scene->getResource<BufferBlock>(input.getValue("ubo"));
 					if (block.get() == nullptr || !block->isUBO()) {
 						REGEN_WARN("No UBO found for '" << input.getDescription() << "'.");
 						return {};
 					}
 					in = ref_ptr<UBO>::dynamicCast(block);
-				}
-				else if (input.hasAttribute("ssbo")) {
+				} else if (input.hasAttribute("ssbo")) {
 					auto block = scene->getResource<BufferBlock>(input.getValue("ssbo"));
 					if (block.get() == nullptr || !block->isSSBO()) {
 						REGEN_WARN("No SSBO found for '" << input.getDescription() << "'.");
 						return {};
 					}
 					in = ref_ptr<SSBO>::dynamicCast(block);
-				}
-				else {
+				} else {
 					auto type = input.getValue<std::string>("type", "");
 					if (type == "time") {
 						auto scale = input.getValue<float>("scale", 1.0f);
@@ -281,14 +278,15 @@ namespace regen {
 			}
 
 			ShaderInputProcessor()
-					: StateProcessor(REGEN_INPUT_STATE_CATEGORY) {}
+				: StateProcessor(REGEN_INPUT_STATE_CATEGORY) {
+			}
 
 			// Override
 			void processInput(
-					scene::SceneLoader *scene,
-					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent,
-					const ref_ptr<State> &state) override {
+				scene::SceneLoader *scene,
+				SceneInputNode &input,
+				const ref_ptr<StateNode> &parent,
+				const ref_ptr<State> &state) override {
 				ref_ptr<ShaderInput> in = createShaderInput(scene, input, state);
 				if (in.get() == nullptr) {
 					REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
@@ -298,22 +296,22 @@ namespace regen {
 				const uint32_t dataType = in->baseType();
 				const uint32_t numComponents = in->valsPerElement();
 				if (dataType == GL_INT) {
-					if (numComponents == 1) processTyped<ShaderInput1i,int,int>(input, state, in);
-					else if (numComponents == 2) processTyped<ShaderInput2i,Vec2i,int>(input, state, in);
-					else if (numComponents == 3) processTyped<ShaderInput3i,Vec3i,int>(input, state, in);
-					else if (numComponents == 4) processTyped<ShaderInput4i,Vec4i,int>(input, state, in);
+					if (numComponents == 1) processTyped<ShaderInput1i, int, int>(input, state, in);
+					else if (numComponents == 2) processTyped<ShaderInput2i, Vec2i, int>(input, state, in);
+					else if (numComponents == 3) processTyped<ShaderInput3i, Vec3i, int>(input, state, in);
+					else if (numComponents == 4) processTyped<ShaderInput4i, Vec4i, int>(input, state, in);
 				} else if (dataType == GL_UNSIGNED_INT) {
-					if (numComponents == 1) processTyped<ShaderInput1ui,uint32_t,uint32_t>(input, state, in);
-					else if (numComponents == 2) processTyped<ShaderInput2ui,Vec2ui,unsigned int>(input, state, in);
-					else if (numComponents == 3) processTyped<ShaderInput3ui,Vec3ui,unsigned int>(input, state, in);
-					else if (numComponents == 4) processTyped<ShaderInput4ui,Vec4ui,unsigned int>(input, state, in);
+					if (numComponents == 1) processTyped<ShaderInput1ui, uint32_t, uint32_t>(input, state, in);
+					else if (numComponents == 2) processTyped<ShaderInput2ui, Vec2ui, unsigned int>(input, state, in);
+					else if (numComponents == 3) processTyped<ShaderInput3ui, Vec3ui, unsigned int>(input, state, in);
+					else if (numComponents == 4) processTyped<ShaderInput4ui, Vec4ui, unsigned int>(input, state, in);
 				} else if (dataType == GL_FLOAT) {
-					if (numComponents == 1) processTyped<ShaderInput1f,float,float>(input, state, in);
-					else if (numComponents == 2) processTyped<ShaderInput2f,Vec2f,float>(input, state, in);
-					else if (numComponents == 3) processTyped<ShaderInput3f,Vec3f,float>(input, state, in);
-					else if (numComponents == 4) processTyped<ShaderInput4f,Vec4f,float>(input, state, in);
-					else if (numComponents == 9) processTyped<ShaderInputMat3,Mat3f,float>(input, state, in);
-					else if (numComponents == 16) processTyped<ShaderInputMat4,Mat4f,float>(input, state, in);
+					if (numComponents == 1) processTyped<ShaderInput1f, float, float>(input, state, in);
+					else if (numComponents == 2) processTyped<ShaderInput2f, Vec2f, float>(input, state, in);
+					else if (numComponents == 3) processTyped<ShaderInput3f, Vec3f, float>(input, state, in);
+					else if (numComponents == 4) processTyped<ShaderInput4f, Vec4f, float>(input, state, in);
+					else if (numComponents == 9) processTyped<ShaderInputMat3, Mat3f, float>(input, state, in);
+					else if (numComponents == 16) processTyped<ShaderInputMat4, Mat4f, float>(input, state, in);
 				}
 
 				if (in->name() != input.getValue("name")) {
@@ -322,24 +320,24 @@ namespace regen {
 
 				if (input.getValue<bool>("join", true)) {
 					state->setInput(in,
-						input.getValue("name"),
-						input.getValue<std::string>("member-suffix", ""));
+					                input.getValue("name"),
+					                input.getValue<std::string>("member-suffix", ""));
 				}
 			}
 
 			template<class U, class T, typename ValueType>
 			static void processTyped(
-					SceneInputNode &input,
-					const ref_ptr<State> &state,
-					const ref_ptr<ShaderInput> &untyped) {
+				SceneInputNode &input,
+				const ref_ptr<State> &state,
+				const ref_ptr<ShaderInput> &untyped) {
 				ref_ptr<U> v = ref_ptr<U>::dynamicCast(untyped);
 				// Load animations.
 				for (const auto &n: input.getChildren("animation")) {
 					ref_ptr<InputAnimation<U, T> > inputAnimation = ref_ptr<InputAnimation<U, T> >::alloc(v);
 					for (const auto &m: n->getChildren("key-frame")) {
 						inputAnimation->push_back(
-								m->getValue<T>("value", T()),
-								m->getValue<double>("dt", 1.0)
+							m->getValue<T>("value", T()),
+							m->getValue<double>("dt", 1.0)
 						);
 					}
 					state->attach(inputAnimation);
@@ -347,11 +345,43 @@ namespace regen {
 				}
 			}
 
+			template<class T>
+			static void loadDataFile(const std::string &dataFile,
+			                         uint32_t count, WriteAccessor<T> &typedValues, const ref_ptr<ShaderInput> &v) {
+				std::filesystem::path dataPath = dataFile;
+				if (!exists(dataPath)) {
+					REGEN_WARN("Data file '" << dataPath << "' does not exist for input.");
+					return;
+				}
+				std::ifstream file(dataPath, std::ios::binary);
+				if (!file.is_open()) {
+					REGEN_WARN("Failed to open data file '" << dataPath << "' for input.");
+					return;
+				}
+				// Note that we might need to add padding, e.g. for std140 layout and vec3 arrays.
+				// So we cannot just read directly into the mapped buffer, but we need to read
+				// into a temporary buffer and then copy element by element, at least for the
+				// padded attributes.
+				if (v->elementSize() == v->alignedElementSize()) {
+					// no padding
+					file.read(reinterpret_cast<char *>(typedValues.data()), count * sizeof(T));
+				} else {
+					// with padding
+					T *tempBuffer = new T[count];
+					file.read(reinterpret_cast<char *>(tempBuffer), count * sizeof(T));
+					for (uint32_t i = 0; i < count; i += 1) {
+						typedValues[i] = tempBuffer[i];
+					}
+					delete[] tempBuffer;
+				}
+				file.close();
+			}
+
 			template<class U, class T, typename ValueType>
 			static ref_ptr<U> createShaderInputTyped(
-					SceneInputNode &input,
-					const ref_ptr<State> &state,
-					const T &defaultValue) {
+				SceneInputNode &input,
+				const ref_ptr<State> &state,
+				const T &defaultValue) {
 				if (!input.hasAttribute("name")) {
 					REGEN_WARN("No name specified for " << input.getDescription() << ".");
 					return ref_ptr<U>();
@@ -359,7 +389,8 @@ namespace regen {
 				ref_ptr<U> v = ref_ptr<U>::alloc(input.getValue("name"));
 				v->set_isConstant(input.getValue<bool>("is-constant", false));
 				if (input.hasAttribute("layout")) {
-					v->setMemoryLayout(input.getValue<BufferMemoryLayout>("layout", BUFFER_MEMORY_STD430));
+					v->setMemoryLayout(input.getValue<BufferMemoryLayout>(
+						"layout", BUFFER_MEMORY_STD430));
 				}
 
 				auto numInstances = input.getValue<uint32_t>("num-instances", 1u);
@@ -393,24 +424,34 @@ namespace regen {
 				// Handle Attribute values.
 				if (isInstanced || isAttribute || isArray) {
 					auto values = v->template mapClientData<T>(BUFFER_GPU_WRITE);
-					auto typedValues = values.w;
+					auto &typedValues = values.w;
 					for (uint32_t i = 0; i < count; i += 1) typedValues[i] = defaultValue;
+
+					// Check for "data-file" attribute, this would be a file with binary data
+					// in packed layout which must cover all elements.
+					if (input.hasAttribute("data-file")) {
+						std::string dataFile = input.getValue("data-file");
+						ShaderInputProcessor::loadDataFile<T>(resourcePath(dataFile),
+						                                      count, typedValues, v);
+					}
+
 					values.unmap();
+
 					setInput(input, v.get(), count);
 				}
 
 				// Set the schema.
 				bool hasMinMax = input.hasAttribute("min") || input.hasAttribute("max");
 				auto semantics = input.getValue<InputSchema::Semantics>(
-						"schema", InputSchema::Semantics::UNKNOWN);
+					"schema", InputSchema::Semantics::UNKNOWN);
 				if (hasMinMax) {
 					auto min = input.getValue<T>("min", Vec::create<T>(0));
 					auto max = input.getValue<T>("max", Vec::create<T>(1));
 					auto schema = InputSchema::alloc(semantics);
 					for (int i = 0; i < v->valsPerElement(); i += 1) {
 						schema->setLimits(i,
-							static_cast<float>(((ValueType*)&min)[i]),
-							static_cast<float>(((ValueType*)&max)[i]));
+						                  static_cast<float>(((ValueType *) &min)[i]),
+						                  static_cast<float>(((ValueType *) &max)[i]));
 					}
 					v->setSchema(schema);
 				} else if (input.hasAttribute("schema")) {
@@ -427,24 +468,26 @@ namespace regen {
 		class DataExportState : public State {
 		public:
 			DataExportState(
-					const ref_ptr<StagedBuffer> &exportBuffer,
-					const std::filesystem::path &exportPath)
-					: State(),
-					  exportBuffer_(exportBuffer),
-					  exportPath_(exportPath) {}
+				const ref_ptr<StagedBuffer> &exportBuffer,
+				const std::filesystem::path &exportPath)
+				: State(),
+				  exportBuffer_(exportBuffer),
+				  exportPath_(exportPath) {
+			}
 
 			void setUseGPUData(bool useGPUData) {
 				useGPUData_ = useGPUData;
 			}
 
 			// override
-			void enable(RenderState* /*rs*/) override {
+			void enable(RenderState * /*rs*/) override {
 				if (useGPUData_) {
 					exportBuffer_->exportGPUToJSON(exportPath_);
 				} else {
 					exportBuffer_->exportCPUToJSON(exportPath_);
 				}
 			}
+
 		protected:
 			ref_ptr<StagedBuffer> exportBuffer_;
 			std::filesystem::path exportPath_;
@@ -457,14 +500,15 @@ namespace regen {
 		class DataExportProcessor : public StateProcessor {
 		public:
 			DataExportProcessor()
-					: StateProcessor("data-export") {}
+				: StateProcessor("data-export") {
+			}
 
 			// Override
 			void processInput(
-					scene::SceneLoader *scene,
-					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent,
-					const ref_ptr<State> &state) override {
+				scene::SceneLoader *scene,
+				SceneInputNode &input,
+				const ref_ptr<StateNode> &parent,
+				const ref_ptr<State> &state) override {
 				if (!input.hasAttribute("export-path")) {
 					REGEN_WARN("No export-path specified for " << input.getDescription() << ".");
 					return;
@@ -516,7 +560,7 @@ namespace regen {
 				}
 
 				auto exportState =
-					ref_ptr<DataExportState>::alloc(stagedBuffer, exportPath);
+						ref_ptr<DataExportState>::alloc(stagedBuffer, exportPath);
 				exportState->setUseGPUData(input.getValue<bool>("gpu-export", true));
 				state->joinStates(exportState);
 			}
