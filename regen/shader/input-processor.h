@@ -374,6 +374,10 @@ namespace regen {
 					}
 					delete[] tempBuffer;
 				}
+				// verify that we read enough data
+				if (file.gcount() < static_cast<std::streamsize>(count * sizeof(T))) {
+					REGEN_WARN("Data file '" << dataPath << "' contains insufficient data for input.");
+				}
 				file.close();
 			}
 
