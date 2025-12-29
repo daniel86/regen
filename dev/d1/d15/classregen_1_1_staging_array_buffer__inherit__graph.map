@@ -1,0 +1,5 @@
+<map id="regen::StagingArrayBuffer&lt; T &gt;" name="regen::StagingArrayBuffer&lt; T &gt;">
+<area shape="rect" id="Node000001" title="A utility class for mapping arrays of structs for reading or writing." alt="" coords="5,79,233,104"/>
+<area shape="rect" id="Node000002" href="$d2/d44/classregen_1_1_staging_buffer.html" title="A staging buffer is used to store data that is accessed by the CPU." alt="" coords="42,5,197,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,44,122,79,117,79,117,44"/>
+</map>

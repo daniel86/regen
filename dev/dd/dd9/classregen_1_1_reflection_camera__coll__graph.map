@@ -1,0 +1,43 @@
+<map id="regen::ReflectionCamera" name="regen::ReflectionCamera">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1581,735,1764,761"/>
+<area shape="rect" id="Node000002" href="$d5/d2d/classregen_1_1_camera.html" title="Camera with projection and view matrix." alt="" coords="1278,346,1397,371"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1363,380,1451,471,1559,593,1621,672,1665,734,1660,737,1617,675,1555,596,1447,475,1359,383"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="953,259,1054,285"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1068,272,1148,282,1233,301,1280,322,1318,344,1315,348,1277,326,1231,307,1147,287,1068,278"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="645,210,792,235"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="806,235,953,261,952,266,805,240"/>
+<area shape="rect" id="Node000005" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="352,203,499,243"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="512,220,645,220,645,225,512,225"/>
+<area shape="rect" id="Node000006" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,203,177,243"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="191,220,352,220,352,225,191,225"/>
+<area shape="rect" id="Node000007" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="655,259,782,285"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="796,269,953,269,953,275,796,275"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,309,812,363"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="825,309,952,281,953,286,826,315"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="922,309,1085,349"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1099,321,1165,321,1232,327,1301,343,1299,348,1232,332,1164,326,1099,326"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="922,397,1085,437"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="1099,429,1165,430,1199,427,1231,420,1257,410,1281,397,1320,369,1323,374,1284,402,1259,415,1233,425,1199,432,1165,436,1099,435"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="922,525,1085,565"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="1098,546,1166,536,1200,525,1231,510,1267,478,1296,439,1316,400,1329,371,1334,373,1321,403,1300,442,1271,482,1233,514,1202,530,1167,541,1099,551"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="922,80,1085,120"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="1099,101,1169,117,1203,132,1234,151,1257,173,1277,199,1307,254,1326,307,1336,345,1331,346,1321,308,1302,256,1272,201,1253,177,1230,155,1200,136,1167,122,1098,107"/>
+<area shape="rect" id="Node000013" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="925,145,1082,170"/>
+<area shape="poly" id="edge12_Node000002_Node000013" title=" " alt="" coords="1096,164,1166,182,1201,197,1234,215,1269,246,1297,282,1333,345,1328,347,1293,285,1265,250,1230,220,1199,201,1164,187,1095,170"/>
+<area shape="rect" id="Node000014" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="925,633,1082,658"/>
+<area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="1096,657,1589,733,1588,738,1095,662"/>
+<area shape="poly" id="edge13_Node000002_Node000014" title=" " alt="" coords="1095,628,1165,605,1200,587,1230,565,1252,542,1271,516,1301,461,1320,409,1331,371,1336,372,1325,410,1306,463,1276,519,1256,546,1234,569,1202,591,1167,610,1096,633"/>
+<area shape="rect" id="Node000015" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="922,461,1085,501"/>
+<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="1093,508,1097,512,1108,533,1109,555,1109,575,1113,584,1120,593,1156,619,1190,634,1224,640,1257,640,1331,636,1373,639,1419,648,1490,673,1558,702,1639,733,1637,738,1556,706,1488,678,1418,653,1372,644,1331,642,1258,646,1223,645,1189,639,1154,624,1117,597,1108,586,1104,576,1103,555,1103,535,1093,515,1089,512"/>
+<area shape="poly" id="edge14_Node000002_Node000015" title=" " alt="" coords="1098,489,1165,485,1199,478,1231,467,1263,446,1290,420,1326,370,1331,373,1294,423,1266,451,1233,472,1201,484,1166,491,1099,495"/>
+<area shape="rect" id="Node000016" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="912,195,1095,235"/>
+<area shape="poly" id="edge15_Node000002_Node000016" title=" " alt="" coords="1109,230,1172,247,1233,272,1287,308,1326,344,1322,348,1283,313,1231,277,1170,252,1107,235"/>
+<area shape="rect" id="Node000017" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="1256,739,1419,779"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="1432,753,1581,748,1581,754,1432,758"/>
+<area shape="rect" id="Node000018" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="1256,803,1419,843"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="1432,820,1494,815,1557,803,1608,782,1650,759,1653,763,1611,787,1558,808,1495,820,1433,826"/>
+<area shape="rect" id="Node000019" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="1256,867,1419,907"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="1432,876,1495,862,1556,840,1587,822,1616,800,1658,759,1662,763,1620,804,1590,826,1558,845,1496,868,1433,881"/>
+<area shape="rect" id="Node000020" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="1285,931,1390,957"/>
+<area shape="poly" id="edge21_Node000001_Node000020" title=" " alt="" coords="1403,939,1480,925,1519,912,1556,894,1594,862,1625,825,1663,759,1668,762,1629,828,1597,866,1559,898,1521,917,1481,931,1404,944"/>
+</map>

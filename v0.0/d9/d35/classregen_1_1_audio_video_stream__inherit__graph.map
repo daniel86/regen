@@ -1,0 +1,11 @@
+<map id="regen::AudioVideoStream" name="regen::AudioVideoStream">
+<area shape="rect" id="Node000001" title="Baseclass for ffmpeg streams." alt="" coords="251,5,439,31"/>
+<area shape="rect" id="Node000002" href="$d3/d33/classregen_1_1_audio_library.html" title="Global audio state." alt="" coords="5,79,155,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="290,37,124,81,122,76,289,32"/>
+<area shape="rect" id="Node000003" href="$d3/d0e/classregen_1_1_audio_listener.html" title="Configures the audio listener." alt="" coords="179,79,335,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="322,41,273,81,270,76,319,37"/>
+<area shape="rect" id="Node000004" href="$d2/da9/classregen_1_1_audio_source.html" title="Source of audio in 3D space." alt="" coords="359,79,507,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="372,37,421,76,417,81,368,41"/>
+<area shape="rect" id="Node000005" href="$d1/db7/classregen_1_1_video_stream.html" title="ffmpeg stream that provides texture data for GL texture." alt="" coords="531,79,682,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="401,32,565,76,564,81,400,37"/>
+</map>

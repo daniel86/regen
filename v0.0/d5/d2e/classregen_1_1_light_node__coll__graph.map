@@ -1,0 +1,17 @@
+<map id="regen::LightNode" name="regen::LightNode">
+<area shape="rect" id="Node000001" title="Animates Light position using an AnimationNode." alt="" coords="689,152,823,177"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="373,63,474,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="488,81,573,97,666,121,732,149,730,154,664,126,572,102,487,86"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,29,312,53,373,63,372,69,312,58,173,35"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,73,372,73,372,78,182,78"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,119,372,82,373,87,182,124"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="342,113,505,153"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="519,139,689,156,689,161,518,144"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="342,177,505,217"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="518,185,665,171,689,169,690,174,666,177,519,191"/>
+<area shape="rect" id="Node000008" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="336,241,511,267"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="522,236,593,222,664,202,729,175,731,180,666,207,594,227,523,242"/>
+</map>

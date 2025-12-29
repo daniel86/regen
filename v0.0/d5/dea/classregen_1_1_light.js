@@ -1,0 +1,36 @@
+var classregen_1_1_light =
+[
+    [ "Type", "d5/dea/classregen_1_1_light.html#a8621e46e935116891476d8b49d098374", [
+      [ "DIRECTIONAL", "d5/dea/classregen_1_1_light.html#a8621e46e935116891476d8b49d098374ae471cfb33ca1d157ba5831d69101c370", null ],
+      [ "SPOT", "d5/dea/classregen_1_1_light.html#a8621e46e935116891476d8b49d098374ae504840dfb67a87366407dd89fcf9a25", null ],
+      [ "POINT", "d5/dea/classregen_1_1_light.html#a8621e46e935116891476d8b49d098374a57e953a046b12f1bcf60ece259196d3f", null ]
+    ] ],
+    [ "Light", "d5/dea/classregen_1_1_light.html#ace2f97b6705392f9ea3484242c137686", null ],
+    [ "coneAngle", "d5/dea/classregen_1_1_light.html#a4ba7c649838ab72202b11bbd4e8ec235", null ],
+    [ "coneMatrix", "d5/dea/classregen_1_1_light.html#a0dc29ea41dbef3ba1fa44ce6465c71d1", null ],
+    [ "diffuse", "d5/dea/classregen_1_1_light.html#a4c7149ccd35a3e5a4112c23110698b04", null ],
+    [ "direction", "d5/dea/classregen_1_1_light.html#ad3a4d85e49abffa80379219f2798e06b", null ],
+    [ "isAttenuated", "d5/dea/classregen_1_1_light.html#adceffc4dcbd0040ccd4426732b21369b", null ],
+    [ "lightType", "d5/dea/classregen_1_1_light.html#aa06c09ad8944078422dbd89a80e36e39", null ],
+    [ "lightUBO", "d5/dea/classregen_1_1_light.html#ab4fb38af5ee2e4c6c05773846febcbc9", null ],
+    [ "position", "d5/dea/classregen_1_1_light.html#a3b9df4b27678b8103b6fb73f1ca554bc", null ],
+    [ "radius", "d5/dea/classregen_1_1_light.html#aab269323794c9da8d7c603fbd52416a9", null ],
+    [ "set_innerConeAngle", "d5/dea/classregen_1_1_light.html#a8c6ee485a27947618b2bdb95ee3541f2", null ],
+    [ "set_isAttenuated", "d5/dea/classregen_1_1_light.html#a738d4d437fe735cc19c86efbdf2d0589", null ],
+    [ "set_outerConeAngle", "d5/dea/classregen_1_1_light.html#a69ece83a9fcb0d568957462c18966fa3", null ],
+    [ "specular", "d5/dea/classregen_1_1_light.html#aef562b6499dcff02d6db290f254c4137", null ],
+    [ "updateConeMatrix", "d5/dea/classregen_1_1_light.html#ad3a94d743f2dee1eace3cff960aa1c64", null ],
+    [ "updateConeMatrix_", "d5/dea/classregen_1_1_light.html#ab280b66b01af7135e737d3e24f0d0c9c", null ],
+    [ "coneAnimation_", "d5/dea/classregen_1_1_light.html#a55bee1895d1deae045f4caa54aee7b0f", null ],
+    [ "coneMatrix_", "d5/dea/classregen_1_1_light.html#af8dc17681a829dcc798add20c31ba753", null ],
+    [ "coneMatrixStamp_", "d5/dea/classregen_1_1_light.html#a2377722d252beadf6bb6ff52fe291403", null ],
+    [ "isAttenuated_", "d5/dea/classregen_1_1_light.html#a0171070bf5a6d7f0a929790b899cdad1", null ],
+    [ "lightConeAngles_", "d5/dea/classregen_1_1_light.html#a054c2d42c451552757a02833951baafb", null ],
+    [ "lightDiffuse_", "d5/dea/classregen_1_1_light.html#a3bd7f07a30aa121c750e4a4db2df6ffe", null ],
+    [ "lightDirection_", "d5/dea/classregen_1_1_light.html#a186349d2161139722fa1054b3f396f54", null ],
+    [ "lightPosition_", "d5/dea/classregen_1_1_light.html#a4c9b7ad92dc389860fe0a25634bee7a1", null ],
+    [ "lightRadius_", "d5/dea/classregen_1_1_light.html#a6bccfff2b67207d16e9b8e759de58f96", null ],
+    [ "lightSpecular_", "d5/dea/classregen_1_1_light.html#a4886437289aeffd63bd53409893166eb", null ],
+    [ "lightType_", "d5/dea/classregen_1_1_light.html#aa6ef93f2bd1c9abb84fd0de222e9748e", null ],
+    [ "lightUniforms_", "d5/dea/classregen_1_1_light.html#a75d60472d9310ba5e1d840ab298839d7", null ]
+];

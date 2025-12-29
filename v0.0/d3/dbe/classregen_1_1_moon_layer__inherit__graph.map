@@ -1,0 +1,7 @@
+<map id="regen::MoonLayer" name="regen::MoonLayer">
+<area shape="rect" id="Node000001" title="Moon layer of the sky. The moon is rendered using a textured quad with alpha blending...." alt="" coords="5,152,144,177"/>
+<area shape="rect" id="Node000002" href="$d0/de9/classregen_1_1_sky_layer.html" title=" " alt="" coords="11,79,138,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,118,77,152,72,152,72,118"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="7,5,142,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="77,44,77,79,72,79,72,44"/>
+</map>

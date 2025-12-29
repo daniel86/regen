@@ -1,0 +1,29 @@
+<map id="regen::BoidsSimulation_CPU" name="regen::BoidsSimulation_CPU">
+<area shape="rect" id="Node000001" title="Boids simulation. The boids simulation is a simple flocking simulation. This is a CPU implementation,..." alt="" coords="696,349,903,375"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="352,33,487,59"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="501,36,543,38,589,45,633,58,674,81,705,111,731,146,752,185,769,224,790,297,799,348,794,349,785,298,764,226,748,187,727,149,701,114,670,85,631,63,588,50,543,43,501,42"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,23,352,38,352,43,173,28"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="181,65,304,54,351,50,352,55,304,59,182,70"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="328,83,511,123"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="525,99,562,103,601,111,639,125,674,144,700,166,724,193,760,252,784,308,797,348,792,350,779,310,755,254,719,196,697,170,670,148,637,129,600,117,561,108,524,104"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="338,147,501,187"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="515,162,595,172,635,184,673,201,717,235,752,276,778,317,794,348,790,350,773,319,747,279,713,239,671,206,633,189,594,177,514,167"/>
+<area shape="rect" id="Node000007" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="336,211,503,251"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="517,220,594,224,635,232,673,245,711,267,745,295,791,347,787,351,741,299,708,271,671,250,633,237,594,230,516,225"/>
+<area shape="rect" id="Node000008" href="$da/db7/classregen_1_1_vec3.html" title="A 3D vector." alt="" coords="19,219,155,244"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="169,229,336,229,336,234,169,234"/>
+<area shape="rect" id="Node000009" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="332,316,507,341"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="520,335,696,350,696,356,520,340"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="338,366,501,406"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="515,387,535,387,603,390,672,387,752,372,753,377,672,393,603,396,535,393,515,392"/>
+<area shape="rect" id="Node000011" href="$d3/dbd/classregen_1_1_vec2.html" title=" " alt="" coords="332,431,507,456"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="520,435,595,427,671,411,726,393,772,372,774,377,728,398,673,417,596,432,521,441"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="338,481,501,521"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="514,492,592,479,632,468,671,454,705,436,737,414,784,373,787,377,740,418,708,441,673,459,634,473,593,484,515,497"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="338,790,501,830"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="515,824,555,825,596,821,635,810,670,789,694,759,717,711,736,652,754,586,780,459,794,374,799,375,785,460,759,587,742,653,722,713,699,762,674,793,638,815,597,826,555,831,515,830"/>
+<area shape="rect" id="Node000014" href="$dd/d9e/classregen_1_1_quaternion.html" title="A number system that extends the complex numbers." alt="" coords="350,855,489,880"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="492,879,536,883,584,880,630,869,651,859,670,845,684,831,697,810,720,756,740,688,757,613,782,469,794,375,799,375,787,470,763,614,746,689,725,757,701,813,688,834,674,849,654,863,632,874,584,886,536,888,491,885"/>
+</map>

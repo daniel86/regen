@@ -1,0 +1,23 @@
+<map id="regen::FBO" name="regen::FBO">
+<area shape="rect" id="Node000001" title="Framebuffer Objects are a mechanism for rendering to images other than the default OpenGL Default Fra..." alt="" coords="997,221,1092,247"/>
+<area shape="rect" id="Node000002" href="$dd/d23/classregen_1_1_g_l_rectangle.html" title="A 2D rectangular buffer." alt="" coords="651,83,800,108"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="814,80,854,80,895,84,937,94,975,112,1002,136,1021,166,1043,220,1038,222,1017,169,998,139,972,116,935,99,894,89,853,85,814,86"/>
+<area shape="rect" id="Node000003" href="$d2/d27/classregen_1_1_g_l_object.html" title="Base class for buffer objects." alt="" coords="347,33,474,59"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="488,54,611,73,654,80,653,85,610,78,487,59"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="29,5,155,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="169,22,347,38,347,43,169,27"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,179,95"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="192,64,347,49,348,54,192,69"/>
+<area shape="rect" id="Node000006" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="320,83,501,108"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="515,93,650,93,650,98,515,98"/>
+<area shape="rect" id="Node000007" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="332,143,489,168"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="502,147,556,139,610,127,634,117,670,106,672,111,636,122,611,133,557,145,503,152"/>
+<area shape="rect" id="Node000008" href="$d9/df2/structregen_1_1_draw_buffers.html" title="Specifies a list of color buffers to be drawn into." alt="" coords="652,132,799,157"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="813,140,893,148,935,157,975,172,1009,194,1034,219,1031,223,1006,198,972,176,933,163,892,153,812,145"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="644,211,807,251"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="821,230,840,230,997,231,997,236,840,235,821,235"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="644,275,807,315"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="820,290,895,282,973,266,1021,245,1023,249,974,271,896,288,821,296"/>
+<area shape="rect" id="Node000011" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="635,340,816,365"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="829,349,902,337,938,326,972,310,992,296,1009,279,1034,246,1038,249,1013,282,995,300,975,315,940,331,903,342,830,354"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="regen::HasInputState" name="regen::HasInputState">
+<area shape="rect" id="Node000001" title="A state with an input container." alt="" coords="535,127,693,152"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="372,95,473,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="487,115,538,124,537,129,486,121"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="25,5,172,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="187,29,260,45,337,66,398,92,396,97,335,71,259,50,185,34"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,55,180,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="194,82,372,100,371,105,193,87"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,119,180,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="194,130,336,117,371,112,372,117,336,122,194,135"/>
+<area shape="rect" id="Node000006" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="360,151,485,176"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="499,151,534,147,535,152,500,156"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,183,192,223"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="205,188,359,168,360,174,206,193"/>
+</map>

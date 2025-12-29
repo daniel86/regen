@@ -1,0 +1,13 @@
+<map id="regen::CameraControllerBase" name="regen::CameraControllerBase">
+<area shape="rect" id="Node000001" title="Computes the transformation matrices of a Camera." alt="" coords="193,5,408,31"/>
+<area shape="rect" id="Node000002" href="$d3/de0/classregen_1_1_camera_controller.html" title=" " alt="" coords="103,79,285,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,40,213,81,210,76,271,36"/>
+<area shape="rect" id="Node000006" href="$d9/d61/classregen_1_1_key_frame_controller.html" title="Computes the view matrix of a Camera based on user specified key frames." alt="" coords="309,79,505,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="330,36,391,76,388,81,328,40"/>
+<area shape="rect" id="Node000003" href="$d0/d32/classregen_1_1_impulse_controller.html" title="Camera controller that applies an impulse to a physical object." alt="" coords="5,152,188,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="169,114,114,154,111,150,166,110"/>
+<area shape="rect" id="Node000004" href="$d2/d82/classregen_1_1_user_controller.html" title=" " alt="" coords="212,152,373,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="222,110,278,150,275,154,219,114"/>
+<area shape="rect" id="Node000005" href="$d6/d34/classregen_1_1_kinematic_player_controller.html" title="Character controller. The character controller is a camera controller that uses a kinematic character..." alt="" coords="173,225,412,251"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="295,191,295,225,290,225,290,191"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="regen::FeedbackState" name="regen::FeedbackState">
+<area shape="rect" id="Node000001" title="Transform feedback state." alt="" coords="30,225,193,251"/>
+<area shape="rect" id="Node000002" href="$d6/d43/classregen_1_1_feedback_specification.html" title=" " alt="" coords="5,152,217,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,191,114,225,109,225,109,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="61,79,162,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="114,118,114,152,109,152,109,118"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="38,5,185,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="114,44,114,79,109,79,109,44"/>
+</map>

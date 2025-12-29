@@ -1,0 +1,22 @@
+<map id="/home/runner/work/regen/regen/regen/external/libnoise/src/noise/module/add.h" name="/home/runner/work/regen/regen/regen/external/libnoise/src/noise/module/add.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="142,5,374,60"/>
+<area shape="rect" id="Node000002" href="$d9/d8e/modulebase_8h.html" title=" " alt="" coords="201,108,315,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="261,60,261,94,255,94,255,60"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,76,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="224,136,90,180,88,174,222,131"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="101,181,175,207"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="240,136,171,176,168,172,237,131"/>
+<area shape="rect" id="Node000005" href="$df/db1/math_8h.html" title=" " alt="" coords="224,255,292,280"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="255,134,241,182,242,213,250,241,245,243,236,214,235,181,250,133"/>
+<area shape="rect" id="Node000007" href="$d9/da6/basictypes_8h.html" title=" " alt="" coords="405,255,521,280"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="316,125,426,144,475,159,493,169,506,180,512,197,509,214,488,246,484,243,504,212,507,197,501,183,490,173,473,164,425,149,315,130"/>
+<area shape="rect" id="Node000008" href="$dd/d2d/exception_8h.html" title=" " alt="" coords="380,181,491,207"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="287,131,395,174,393,179,286,136"/>
+<area shape="rect" id="Node000009" href="$d8/d10/noisegen_8h.html" title=" " alt="" coords="251,181,356,207"/>
+<area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="268,132,291,168,286,171,263,135"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="286,252,307,253,316,259,319,268,313,279,300,283,298,278,309,274,313,267,311,262,306,258,285,257"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="222,328,294,353"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="261,280,261,314,255,314,255,280"/>
+<area shape="poly" id="edge10_Node000009_Node000005" title=" " alt="" coords="298,208,275,245,270,242,294,206"/>
+<area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="330,204,426,247,424,251,328,209"/>
+</map>

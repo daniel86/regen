@@ -1,0 +1,7 @@
+<map id="regen::scene::ToggleStateProvider" name="regen::scene::ToggleStateProvider">
+<area shape="rect" id="Node000001" title=" " alt="" coords="16,167,205,207"/>
+<area shape="rect" id="Node000002" href="$da/d18/classregen_1_1scene_1_1_state_processor.html" title=" " alt="" coords="5,93,216,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,132,113,167,108,167,108,132"/>
+<area shape="rect" id="Node000003" href="$df/de7/classregen_1_1scene_1_1_input_processor.html" title=" " alt="" coords="6,5,215,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,59,113,93,108,93,108,59"/>
+</map>

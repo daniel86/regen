@@ -1,0 +1,5 @@
+<map id="regen::SilhouetteGenerator" name="regen::SilhouetteGenerator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,204,31"/>
+<area shape="rect" id="Node000002" href="$d0/d7f/classregen_1_1_tile_merge_generator.html" title=" " alt="" coords="6,79,203,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,44,107,79,102,79,102,44"/>
+</map>

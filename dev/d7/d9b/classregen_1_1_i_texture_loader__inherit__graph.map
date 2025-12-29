@@ -1,0 +1,5 @@
+<map id="regen::ITextureLoader" name="regen::ITextureLoader">
+<area shape="rect" id="Node000001" title="Interface for texture loaders." alt="" coords="5,5,168,31"/>
+<area shape="rect" id="Node000002" href="$d6/dc9/classregen_1_1_devil_loader.html" title="Texture loader using the DevIL library." alt="" coords="14,79,159,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,44,89,79,84,79,84,44"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="regen::CommentProcessor" name="regen::CommentProcessor">
+<area shape="rect" id="Node000001" title="Removes comments from GLSL code." alt="" coords="5,183,200,208"/>
+<area shape="rect" id="Node000002" href="$df/d55/classregen_1_1_g_l_s_l_processor.html" title="Baseclass for GLSL pre&#45;processors." alt="" coords="21,108,184,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,148,105,182,100,182,100,148"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="21,5,184,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,59,105,108,100,108,100,59"/>
+</map>

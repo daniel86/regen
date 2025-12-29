@@ -1,0 +1,29 @@
+<map id="regen::OBB" name="regen::OBB">
+<area shape="rect" id="Node000001" title="Oriented bounding box." alt="" coords="1292,490,1387,515"/>
+<area shape="rect" id="Node000002" href="$d8/d98/classregen_1_1_bounding_box.html" title=" " alt="" coords="1089,415,1243,455"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1231,457,1307,487,1305,492,1229,462"/>
+<area shape="rect" id="Node000003" href="$df/d29/classregen_1_1_batched_bounding_shape.html" title="Batched bounding shape." alt="" coords="729,293,951,333"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="908,336,1066,395,1112,412,1110,417,1064,400,907,341"/>
+<area shape="rect" id="Node000004" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="419,229,587,254"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="577,254,746,291,745,296,576,260"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,17,178,57"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="192,30,241,33,294,41,347,56,396,80,435,115,465,156,486,196,499,227,494,229,482,199,460,159,431,118,393,85,345,61,293,47,241,38,192,35"/>
+<area shape="rect" id="Node000006" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="33,82,160,107"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="175,95,282,110,340,125,396,147,426,165,453,186,492,226,488,230,449,190,423,169,393,152,339,130,281,115,174,100"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,132,188,172"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="202,163,297,179,395,201,470,226,468,231,394,207,296,185,201,169"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,196,188,236"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="202,220,419,233,418,239,201,225"/>
+<area shape="rect" id="Node000009" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="44,261,149,286"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="163,268,394,252,418,250,418,255,395,257,163,273"/>
+<area shape="rect" id="Node000010" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="18,403,175,429"/>
+<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="137,432,204,461,293,493,396,519,449,527,501,529,1167,529,1232,524,1291,512,1292,518,1233,529,1167,535,501,535,448,532,395,524,292,498,202,466,135,437"/>
+<area shape="poly" id="edge13_Node000002_Node000010" title=" " alt="" coords="189,415,1089,431,1089,436,189,420"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="189,400,306,377,357,364,393,350,425,328,452,301,491,253,495,256,456,304,428,332,396,354,359,369,307,382,190,405"/>
+<area shape="rect" id="Node000011" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="13,310,180,335"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="194,316,291,306,394,285,438,270,476,252,479,257,440,275,395,291,292,311,194,321"/>
+<area shape="rect" id="Node000012" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="757,453,923,493"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="937,461,1065,447,1089,443,1090,449,1066,452,937,467"/>
+<area shape="rect" id="Node000013" href="$dd/da3/structregen_1_1_vec3.html" title="A 3D vector." alt="" coords="435,463,571,489"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="585,473,705,472,756,472,757,477,705,477,585,478"/>
+</map>

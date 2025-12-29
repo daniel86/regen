@@ -1,0 +1,32 @@
+<map id="regen::TBO" name="regen::TBO">
+<area shape="rect" id="Node000001" title="A buffer object that can be bound to a texture." alt="" coords="1269,284,1364,309"/>
+<area shape="rect" id="Node000002" href="$db/d5b/classregen_1_1_staged_buffer.html" title="A buffer object that can be used for staging data in a staging system." alt="" coords="983,227,1134,252"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1144,252,1246,274,1274,281,1272,287,1245,279,1143,257"/>
+<area shape="rect" id="Node000003" href="$dc/d41/classregen_1_1_buffer_object.html" title="Base class for OpenGL buffer objects." alt="" coords="640,95,788,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="802,104,878,114,917,124,955,138,985,157,1012,181,1050,225,1046,228,1009,185,982,162,952,143,916,129,877,119,802,109"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="343,68,470,93"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="484,85,640,98,639,104,483,90"/>
+<area shape="rect" id="Node000005" href="$d8/d35/structregen_1_1_buffer_flags.html" title="Buffer configuration structure." alt="" coords="336,132,477,157"/>
+<area shape="poly" id="edge13_Node000002_Node000005" title=" " alt="" coords="491,152,701,179,954,217,995,224,994,229,953,222,701,184,490,157"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="491,132,639,114,640,119,491,137"/>
+<area shape="rect" id="Node000006" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="5,132,193,157"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="207,142,336,142,336,147,207,147"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="68,117,77,109,99,105,118,108,129,114,132,124,126,133,122,131,127,123,125,117,116,113,99,111,80,114,71,121"/>
+<area shape="rect" id="Node000007" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="641,271,787,296"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="800,270,982,246,983,252,801,275"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="325,210,488,250"/>
+<area shape="poly" id="edge11_Node000002_Node000008" title=" " alt="" coords="502,229,983,236,983,241,502,234"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="500,250,512,253,641,272,640,278,512,258,499,256"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="325,282,488,322"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="502,301,598,298,641,293,641,298,599,303,502,307"/>
+<area shape="rect" id="Node000010" href="$dd/d68/classregen_1_1_input_schema.html" title="Describes the semantics of an input, and what values are valid." alt="" coords="331,347,483,372"/>
+<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="496,348,547,338,598,322,621,306,656,294,658,299,624,311,600,327,548,343,497,354"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="633,321,795,361"/>
+<area shape="poly" id="edge12_Node000002_Node000011" title=" " alt="" coords="808,330,881,315,918,302,952,286,964,275,976,262,1003,250,1006,255,979,267,967,279,955,291,919,307,882,320,809,335"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="623,385,805,425"/>
+<area shape="poly" id="edge14_Node000002_Node000012" title=" " alt="" coords="818,400,854,394,889,383,922,367,951,345,959,336,962,327,963,306,964,285,975,263,994,250,997,254,979,266,969,286,968,306,968,328,964,339,955,349,925,372,891,388,855,399,819,405"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="977,277,1140,317"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="1154,294,1269,294,1269,299,1154,299"/>
+<area shape="rect" id="Node000014" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="977,341,1140,381"/>
+<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="1153,337,1245,314,1271,307,1273,312,1246,319,1154,342"/>
+</map>

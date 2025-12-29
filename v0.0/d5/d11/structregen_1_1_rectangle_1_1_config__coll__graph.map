@@ -1,0 +1,7 @@
+<map id="regen::Rectangle::Config" name="regen::Rectangle::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="101,123,282,148"/>
+<area shape="rect" id="Node000002" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="5,5,180,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,40,184,121,180,124,110,43"/>
+<area shape="rect" id="Node000003" href="$d3/dbd/classregen_1_1_vec2.html" title=" " alt="" coords="204,5,379,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,44,262,72,239,101,210,124,207,120,235,97,257,69,276,41"/>
+</map>

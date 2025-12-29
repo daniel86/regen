@@ -1,0 +1,7 @@
+<map id="regen::ShaderInput4d" name="regen::ShaderInput4d">
+<area shape="rect" id="Node000001" title="Provides 4D double input to shader programs." alt="" coords="39,167,201,192"/>
+<area shape="rect" id="Node000002" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="5,79,235,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,132,123,166,117,166,117,132"/>
+<area shape="rect" id="Node000003" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="47,5,193,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,44,123,79,117,79,117,44"/>
+</map>

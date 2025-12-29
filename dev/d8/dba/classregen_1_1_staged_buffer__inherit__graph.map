@@ -1,0 +1,23 @@
+<map id="regen::StagedBuffer" name="regen::StagedBuffer">
+<area shape="rect" id="Node000001" title="A buffer object that can be used for staging data in a staging system." alt="" coords="299,152,449,177"/>
+<area shape="rect" id="Node000005" href="$de/dbe/classregen_1_1_buffer_block.html" title="Manages data in a buffer object that can be bound as buffer blocks in shaders." alt="" coords="160,225,303,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="340,186,256,227,253,223,338,181"/>
+<area shape="rect" id="Node000010" href="$df/de5/classregen_1_1_t_b_o.html" title="A buffer object that can be bound to a texture." alt="" coords="327,225,421,251"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="377,191,377,225,371,225,371,191"/>
+<area shape="rect" id="Node000011" href="$dd/d9a/classregen_1_1_v_b_o.html" title="Buffer object that is used for vertex data." alt="" coords="445,225,540,251"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="406,182,475,223,472,227,404,187"/>
+<area shape="rect" id="Node000002" href="$dc/d41/classregen_1_1_buffer_object.html" title="Base class for OpenGL buffer objects." alt="" coords="215,79,363,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,110,362,150,358,154,311,115"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="225,5,352,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="291,44,291,79,286,79,286,44"/>
+<area shape="rect" id="Node000004" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="387,79,532,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="437,115,390,154,386,150,434,110"/>
+<area shape="rect" id="Node000006" href="$d1/d84/classregen_1_1_s_s_b_o.html" title="A Shader Storage Buffer Object is a Buffer Object that is used to store and retrieve data from within..." alt="" coords="119,299,221,324"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="214,263,182,300,178,297,210,260"/>
+<area shape="rect" id="Node000009" href="$d3/dd6/classregen_1_1_u_b_o.html" title="Uniform Buffer Objects are a mechanism for sharing data between the CPU and the GPU." alt="" coords="246,299,342,324"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="253,259,286,297,282,300,249,263"/>
+<area shape="rect" id="Node000007" href="$d8/d21/classregen_1_1_b_box_buffer.html" title="A buffer object that stores the bounding box of a mesh." alt="" coords="5,372,145,397"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="145,334,92,374,89,370,142,330"/>
+<area shape="rect" id="Node000008" href="$dc/d43/classregen_1_1_draw_indirect_buffer.html" title="A buffer for storing draw indirect commands. This buffer is used to store draw commands that can be e..." alt="" coords="170,372,359,397"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="198,330,251,370,248,374,195,334"/>
+</map>

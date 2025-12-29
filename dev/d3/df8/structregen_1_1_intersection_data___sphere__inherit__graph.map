@@ -1,0 +1,5 @@
+<map id="regen::IntersectionData_Sphere" name="regen::IntersectionData_Sphere">
+<area shape="rect" id="Node000001" title="Intersection shape data for sphere shapes." alt="" coords="25,79,200,119"/>
+<area shape="rect" id="Node000002" href="$da/d6d/structregen_1_1_intersection_shape_data.html" title="Base structure for intersection shape data used in batched intersection tests. This shape data is fix..." alt="" coords="5,5,220,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,44,115,79,110,79,110,44"/>
+</map>

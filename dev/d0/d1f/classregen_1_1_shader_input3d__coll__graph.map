@@ -1,0 +1,13 @@
+<map id="regen::ShaderInput3d" name="regen::ShaderInput3d">
+<area shape="rect" id="Node000001" title="Provides 3D double input to shader programs." alt="" coords="776,77,937,102"/>
+<area shape="rect" id="Node000002" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="497,69,727,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="741,87,776,87,776,92,741,92"/>
+<area shape="rect" id="Node000003" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="303,77,448,102"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,87,497,87,497,92,462,92"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="182,44,318,74,317,79,181,49"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,69,168,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="182,87,302,87,302,92,182,92"/>
+<area shape="rect" id="Node000006" href="$dd/d68/classregen_1_1_input_schema.html" title="Describes the semantics of an input, and what values are valid." alt="" coords="11,134,163,159"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="167,129,278,107,313,99,315,105,279,112,168,134"/>
+</map>

@@ -1,0 +1,31 @@
+<map id="/home/runner/work/regen/regen/regen/shader" name="/home/runner/work/regen/regen/regen/shader">
+<area shape="rect" id="node1" href="dir_12f4b3d7230a9fb313c0702e4508f117.html" title="memory" alt="" coords="27,125,104,151"/>
+<area shape="rect" id="node2" href="dir_2e49f1315ef1fe2d893d489521a34f62.html" title="textures" alt="" coords="129,125,205,151"/>
+<area shape="rect" id="node3" href="dir_37945fe6942da98ae846479c20944be4.html" title="gl" alt="" coords="229,125,267,151"/>
+<area shape="rect" id="node4" href="dir_4c86553a771246bf7fc7700dc8262126.html" title="animation" alt="" coords="292,125,380,151"/>
+<area shape="rect" id="node5" href="dir_5c70d36492bc4306f9e39eb9c74a98d5.html" title="shading" alt="" coords="405,125,478,151"/>
+<area shape="rect" id="node6" href="dir_6cbedb1091e1ff88c2dc0e721c5d2c3a.html" title="scene" alt="" coords="502,125,562,151"/>
+<area shape="rect" id="node7" href="dir_946aa8c041f52d65207fb9abb2189855.html" title="objects" alt="" coords="587,125,656,151"/>
+<area shape="rect" id="node8" href="dir_9b0d25f083ce3058922e8bb4000894a5.html" title="utility" alt="" coords="681,125,741,151"/>
+<area shape="rect" id="node9" href="dir_c4127f864dff7a16c887417a5a401e67.html" title="compute" alt="" coords="765,125,843,151"/>
+<area shape="rect" id="node10" href="dir_b7a53d8e673c5f866a1f44e46045be31.html" title="shader" alt="" coords="408,52,475,77"/>
+<area shape="poly" id="edge1" href="dir_000026_000009.html" alt="" coords="408,74,118,128,117,123,407,69"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000026_000009.html" title="9" alt="" coords="119,125,129,140"/>
+<area shape="poly" id="edge2" href="dir_000026_000036.html" alt="" coords="408,77,219,126,217,121,407,72"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000026_000036.html" title="4" alt="" coords="220,123,229,138"/>
+<area shape="poly" id="edge3" href="dir_000026_000006.html" alt="" coords="411,80,281,127,280,122,409,75"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000026_000006.html" title="5" alt="" coords="283,124,292,138"/>
+<area shape="poly" id="edge4" href="dir_000026_000000.html" alt="" coords="426,80,366,120,363,115,423,75"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000026_000000.html" title="2" alt="" coords="368,115,378,129"/>
+<area shape="poly" id="edge5" href="dir_000026_000027.html" alt="" coords="444,78,444,112,439,112,439,78"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000026_000027.html" title="2" alt="" coords="445,100,454,114"/>
+<area shape="poly" id="edge6" href="dir_000026_000025.html" alt="" coords="458,75,508,114,505,119,454,79"/>
+<area shape="rect" id="edge6-headlabel" href="dir_000026_000025.html" title="11" alt="" coords="499,100,517,115"/>
+<area shape="poly" id="edge7" href="dir_000026_000016.html" alt="" coords="471,75,580,118,578,123,469,80"/>
+<area shape="rect" id="edge7-headlabel" href="dir_000026_000016.html" title="1" alt="" coords="573,103,583,118"/>
+<area shape="poly" id="edge8" href="dir_000026_000037.html" alt="" coords="475,72,668,123,666,128,474,77"/>
+<area shape="rect" id="edge8-headlabel" href="dir_000026_000037.html" title="16" alt="" coords="656,108,674,123"/>
+<area shape="poly" id="edge9" href="dir_000026_000004.html" alt="" coords="476,69,752,122,751,128,475,75"/>
+<area shape="rect" id="edge9-headlabel" href="dir_000026_000004.html" title="2" alt="" coords="743,108,753,123"/>
+<area shape="rect" id="clust1" href="dir_b96892ed0b55fde8c8b16c9c3e10f960.html" title="regen" alt="" coords="16,16,855,161"/>
+</map>

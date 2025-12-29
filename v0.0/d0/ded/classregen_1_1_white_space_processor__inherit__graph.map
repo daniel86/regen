@@ -1,0 +1,5 @@
+<map id="regen::WhiteSpaceProcessor" name="regen::WhiteSpaceProcessor">
+<area shape="rect" id="Node000001" title="Removes empty lines from GLSL code." alt="" coords="5,79,212,104"/>
+<area shape="rect" id="Node000002" href="$df/d55/classregen_1_1_g_l_s_l_processor.html" title="Baseclass for GLSL pre&#45;processors." alt="" coords="27,5,190,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,44,111,79,106,79,106,44"/>
+</map>

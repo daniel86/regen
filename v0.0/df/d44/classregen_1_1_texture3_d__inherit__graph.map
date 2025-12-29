@@ -1,0 +1,21 @@
+<map id="regen::Texture3D" name="regen::Texture3D">
+<area shape="rect" id="Node000001" title="A 3 dimensional texture." alt="" coords="217,313,351,339"/>
+<area shape="rect" id="Node000008" href="$d0/dcb/classregen_1_1_noise_texture3_d.html" title=" " alt="" coords="5,387,176,412"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="241,346,123,389,121,384,239,341"/>
+<area shape="rect" id="Node000009" href="$d8/da4/classregen_1_1_texture2_d_array.html" title="Array of two dimensional textures." alt="" coords="200,387,368,412"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="287,352,287,387,281,387,281,352"/>
+<area shape="rect" id="Node000010" href="$dc/dbf/classregen_1_1_texture3_d_depth.html" title="A 3 dimensional depth texture." alt="" coords="393,387,565,412"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="329,341,448,384,446,389,327,346"/>
+<area shape="rect" id="Node000002" href="$d6/d95/classregen_1_1_texture.html" title="A OpenGL Object that contains one or more images that all have the same image format." alt="" coords="227,240,341,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="287,279,287,313,281,313,281,279"/>
+<area shape="rect" id="Node000003" href="$dd/d23/classregen_1_1_g_l_rectangle.html" title="A 2D rectangular buffer." alt="" coords="121,167,271,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="222,198,271,238,268,242,219,203"/>
+<area shape="rect" id="Node000004" href="$d2/d27/classregen_1_1_g_l_object.html" title="Base class for buffer objects." alt="" coords="133,86,259,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="199,125,199,166,193,166,193,125"/>
+<area shape="rect" id="Node000005" href="$d8/d87/classregen_1_1_shader_input1i.html" title="Provides 1D int input to shader programs." alt="" coords="295,167,452,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="350,203,300,242,297,238,347,198"/>
+<area shape="rect" id="Node000006" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="283,79,466,119"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="377,132,376,166,371,166,371,132"/>
+<area shape="rect" id="Node000007" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="302,5,447,31"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="377,44,377,79,372,79,372,44"/>
+</map>

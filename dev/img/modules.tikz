@@ -1,0 +1,105 @@
+%%%
+\documentclass[tikz,border=5mm]{standalone}
+\usetikzlibrary{arrows.meta, positioning, shapes.multipart, fit, calc}
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\definecolor{mainColor}{RGB}{183,215,237}
+
+\begin{document}
+\begin{tikzpicture}[
+    module/.style={rectangle, draw=black, thick, fill=mainColor!60!orange!20!white, align=center, minimum width=7cm, minimum height=2.2cm},
+    core/.style={rectangle, rounded corners, draw=black, very thick, fill=mainColor!15!white, align=center, minimum width=4cm, minimum height=0.8cm},
+    base/.style={rectangle, draw=black, thick, fill=mainColor!70!black!20!white, align=left, minimum width=21.8cm, minimum height=2.5cm},
+    box/.style={draw=black, thick, fill=mainColor!10},
+    arrow/.style={-Latex, thick},
+    node distance=1.3cm and 1.5cm
+]
+
+% Top title box
+\node[core] (regen) {\textbf{REGEN} \\ Realtime Graphics \& Simulation Engine};
+
+\node[module, below=0.3cm of regen] (sim) {
+    \\[12pt]
+    \begin{tabular}{l}
+• Swarm simulation (CPU + GPU path)\\
+• Fluid simulation (render-to-texture) \\
+• Particle system (VS + feedback) \\
+• Rigid body dynamics (Bullet)
+    \end{tabular}
+};
+\node[anchor=north,yshift=-2pt] at (sim.north) {\textbf{Simulation Core}};
+
+% Second layer: three main subsystems
+\node[module, left=0.4cm of sim.north west, anchor=north east] (render) {
+    \\[12pt]
+    \begin{tabular}{l}
+    • LOD \& culling (CPU + GPU path)\\
+    • Terrain \& vegetation \& weather \\
+    • Deferred shading, direct shading \\
+    • Volumetric effects, post-processing
+    \end{tabular}
+};
+\node[anchor=north,yshift=-2pt] at (render.north) {\textbf{Rendering Core}};
+
+\node[module, right=0.4cm of sim.north east, anchor=north west] (ai) {
+    \\[12pt]
+    \begin{tabular}{l}
+• Semantic world model\\
+• Behavior tree \\
+• Bone controller \& animation blending\\
+• Navigation \& collision avoidance
+    \end{tabular}
+};
+\node[anchor=north,yshift=-2pt] at (ai.north) {\textbf{Agent / AI Core}};
+
+% Core systems layer
+\node[base, below=0.6cm of sim] (corelayer) {};
+\node[below=0.6cm of sim,yshift=-15pt] {
+    \begin{tabular}{p{7cm}p{1cm}p{7cm}}
+• GPU–CPU staging system
+	&& adaptive ring buffers, scheduled copies\\
+• Client memory management
+	&& lock-free, thread-safe, frame-locked\\
+• Threaded execution \& synchronization
+	&& lightweight primitives, job assignment\\
+• Compute \& draw indirection
+	&& GPU radix sort + histogram + prefix scan
+    \end{tabular}
+};
+\node[anchor=north,yshift=-2pt] at (corelayer.north) {\textbf{Core Systems Layer}};
+
+% Connect subsystems to core systems
+\draw[arrow] (render.south) -- (corelayer.north -| render.south);
+\draw[arrow] (sim.south) -- (corelayer.north);
+\draw[arrow] (ai.south) -- (corelayer.north -| ai.south);
+
+% Platform layer
+\node[base, below=0.6cm of corelayer] (platform) {};
+\node[below=0.6cm of corelayer,yshift=-15pt] {
+    \begin{tabular}{p{7cm}p{1cm}p{7cm}}
+• Graphics APIs
+	&& OpenGL 4.6, GLSL, libnoise\\
+• Asset loading
+	&& AssImp, DevIL, STB, Freetype, ffmpeg\\
+• GPU testing
+	&& AMD / NVIDIA / Intel\\
+• Platform support
+	&& Linux / Windows\\
+    \end{tabular}
+};
+\node[anchor=north,yshift=-2pt] at (platform.north) {\textbf{Platform / API Layer}};
+
+% Connect core layer to platform
+\draw[arrow] (corelayer.south) -- (platform.north);
+
+% draw an enclosing box
+\begin{pgfonlayer}{background}
+\draw[box]
+	($(regen.west -| render.west)+(-0.3,0.0)$)  rectangle
+	($(platform.south -| ai.east)+(0.3,-0.3)$);
+\end{pgfonlayer}
+
+\end{tikzpicture}
+\end{document}
+

@@ -1,0 +1,92 @@
+<map id="regen::RenderState" name="regen::RenderState">
+<area shape="rect" id="Node000001" title="Handles server&#45;side GL states." alt="" coords="1079,1235,1225,1261"/>
+<area shape="rect" id="Node000002" href="$d2/d45/classregen_1_1_indexed_state_stack.html" title=" " alt="" coords="645,492,833,532"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="847,497,901,499,958,509,1011,529,1035,544,1057,562,1074,586,1089,617,1114,698,1131,797,1142,904,1153,1108,1154,1235,1148,1235,1147,1108,1137,905,1126,798,1108,699,1084,619,1070,588,1053,566,1032,548,1008,533,956,514,901,505,847,503"/>
+<area shape="rect" id="Node000003" href="$dc/def/structregen_1_1_indexed_state_stack_1_1_node.html" title=" " alt="" coords="5,580,193,620"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="154,623,224,651,311,672,357,677,403,675,448,666,489,648,498,640,501,630,504,619,513,607,536,591,556,584,604,570,693,530,696,535,606,574,558,589,538,596,517,611,509,621,506,632,502,643,492,653,449,671,404,681,357,682,310,677,223,656,152,628"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="72,564,82,556,99,553,115,555,125,561,129,570,128,580,122,579,124,571,121,565,113,561,99,559,84,561,75,568"/>
+<area shape="rect" id="Node000005" href="$d2/d45/classregen_1_1_indexed_state_stack.html" title="State stack with indexed apply function." alt="" coords="303,513,491,553"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="202,574,306,551,307,556,203,580"/>
+<area shape="rect" id="Node000009" href="$d2/d45/classregen_1_1_indexed_state_stack.html" title=" " alt="" coords="645,152,833,192"/>
+<area shape="poly" id="edge14_Node000009_Node000003" title=" " alt="" coords="126,567,159,526,191,477,210,437,220,400,231,331,237,299,249,268,269,238,301,208,327,195,362,185,452,172,552,167,645,167,645,172,552,172,452,178,363,190,329,200,304,213,273,241,253,270,242,300,236,332,225,401,215,439,196,480,163,529,130,571"/>
+<area shape="rect" id="Node000013" href="$d2/d45/classregen_1_1_indexed_state_stack.html" title=" " alt="" coords="645,323,833,363"/>
+<area shape="poly" id="edge21_Node000013_Node000003" title=" " alt="" coords="121,567,162,518,216,470,267,438,322,411,379,390,437,374,549,352,645,342,645,348,550,358,438,379,380,395,324,416,269,442,219,474,166,522,125,571"/>
+<area shape="rect" id="Node000015" href="$d2/d45/classregen_1_1_indexed_state_stack.html" title=" " alt="" coords="645,649,833,689"/>
+<area shape="poly" id="edge26_Node000015_Node000003" title=" " alt="" coords="118,631,146,681,187,740,240,796,271,820,304,839,348,856,387,864,423,864,457,856,491,843,526,824,604,772,664,728,713,687,717,691,667,732,607,777,529,828,494,848,459,862,424,869,386,869,346,861,302,844,268,824,236,800,183,743,142,684,114,634"/>
+<area shape="rect" id="Node000021" href="$d2/d45/classregen_1_1_indexed_state_stack.html" title=" " alt="" coords="645,787,833,827"/>
+<area shape="poly" id="edge35_Node000021_Node000003" title=" " alt="" coords="109,633,128,709,144,755,164,805,190,854,222,900,259,940,304,972,346,993,384,1006,419,1012,453,1012,488,1005,524,993,604,954,644,925,677,891,705,855,724,826,729,829,709,858,682,894,647,929,607,958,526,998,489,1010,454,1017,419,1018,382,1011,343,998,301,977,256,944,217,903,185,856,159,807,139,757,123,710,104,634"/>
+<area shape="rect" id="Node000004" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="9,442,190,467"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="203,449,340,450,491,460,577,473,657,489,656,495,576,478,490,465,340,456,203,455"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="162,468,321,511,320,516,161,474"/>
+<area shape="poly" id="edge15_Node000009_Node000004" title=" " alt="" coords="104,428,123,356,161,259,187,209,219,160,257,115,301,78,341,53,378,34,413,23,448,17,484,18,521,24,606,51,644,71,677,97,725,150,721,153,674,101,641,75,604,56,520,29,483,23,449,23,415,28,380,39,344,57,304,82,260,119,223,163,191,211,165,262,128,358,109,429"/>
+<area shape="poly" id="edge22_Node000013_Node000004" title=" " alt="" coords="117,430,148,393,191,349,243,306,302,270,366,248,453,231,540,224,577,226,606,232,642,250,675,273,723,320,719,324,671,277,640,254,604,237,576,231,540,229,453,236,367,253,304,274,246,310,195,353,152,397,121,433"/>
+<area shape="poly" id="edge27_Node000015_Node000004" title=" " alt="" coords="143,472,170,490,195,513,204,530,206,545,209,559,219,571,253,593,286,602,318,603,350,600,383,597,417,596,453,602,492,619,501,627,505,635,509,642,516,648,547,661,579,669,645,675,645,680,578,674,545,666,513,653,505,646,500,637,496,630,489,624,452,607,416,601,383,602,350,606,318,609,285,607,251,597,216,575,204,561,201,546,199,531,191,516,167,494,140,476"/>
+<area shape="poly" id="edge36_Node000021_Node000004" title=" " alt="" coords="145,471,172,489,195,513,208,538,212,560,213,582,220,609,236,659,248,700,267,735,283,751,304,767,329,779,364,788,453,800,553,805,645,806,645,812,553,811,453,806,363,793,328,784,301,772,279,755,263,738,243,702,231,661,215,610,208,583,206,560,203,539,191,516,169,493,142,476"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="504,524,645,515,645,520,505,529"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="369,497,379,490,397,487,412,489,422,495,427,504,425,513,420,512,421,505,418,498,410,494,397,492,381,495,373,501"/>
+<area shape="poly" id="edge17_Node000009_Node000005" title=" " alt="" coords="438,503,464,480,489,454,496,442,500,430,504,418,513,405,536,384,558,373,580,362,603,343,616,327,627,309,719,191,724,194,632,312,620,330,607,347,582,366,560,377,539,389,517,408,509,421,505,432,501,444,493,458,468,484,441,507"/>
+<area shape="poly" id="edge24_Node000013_Node000005" title=" " alt="" coords="447,505,604,419,704,360,706,365,607,424,450,509"/>
+<area shape="poly" id="edge29_Node000015_Node000005" title=" " alt="" coords="476,555,606,603,700,647,698,652,604,608,474,560"/>
+<area shape="poly" id="edge38_Node000021_Node000005" title=" " alt="" coords="478,558,493,570,502,584,506,597,509,610,517,624,538,643,559,654,581,664,607,681,671,736,721,785,717,788,667,739,604,685,578,669,556,659,535,648,513,627,504,612,501,599,497,586,489,574,474,563"/>
+<area shape="rect" id="Node000006" href="$d2/dc4/classregen_1_1_keyed_state_stack.html" title=" " alt="" coords="651,971,828,1011"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="842,996,974,1010,1027,1019,1056,1028,1081,1051,1100,1078,1129,1137,1145,1194,1152,1235,1147,1235,1140,1195,1124,1139,1096,1081,1077,1055,1053,1033,1026,1024,973,1015,841,1001"/>
+<area shape="rect" id="Node000007" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1039,484,1065"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="481,1034,650,1004,651,1009,482,1040"/>
+<area shape="rect" id="Node000008" href="$d5/d82/classregen_1_1_by_value_state_stack.html" title=" " alt="" coords="644,1035,835,1075"/>
+<area shape="poly" id="edge12_Node000008_Node000007" title=" " alt="" coords="498,1050,644,1051,643,1057,498,1055"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="849,1068,1056,1103,1091,1133,1117,1170,1137,1206,1149,1234,1144,1236,1132,1208,1113,1173,1087,1137,1054,1108,848,1074"/>
+<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="827,194,886,218,949,251,1009,295,1035,321,1057,351,1075,385,1090,430,1115,541,1132,673,1144,815,1153,1078,1154,1235,1148,1235,1148,1078,1138,815,1127,674,1110,542,1085,431,1070,387,1052,353,1031,325,1005,299,946,256,884,223,825,199"/>
+<area shape="rect" id="Node000010" href="$de/d38/structregen_1_1_buffer_range.html" title="Bind a range within a buffer object to an indexed buffer target." alt="" coords="323,93,470,118"/>
+<area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="476,118,646,151,645,156,475,123"/>
+<area shape="rect" id="Node000011" href="$dd/d1c/classregen_1_1_by_reference_state_stack.html" title=" " alt="" coords="629,1099,849,1139"/>
+<area shape="poly" id="edge18_Node000001_Node000011" title=" " alt="" coords="863,1131,983,1148,1056,1163,1082,1178,1106,1197,1142,1233,1138,1237,1103,1201,1079,1183,1054,1168,982,1153,863,1136"/>
+<area shape="rect" id="Node000012" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1106,484,1131"/>
+<area shape="poly" id="edge19_Node000011_Node000012" title=" " alt="" coords="498,1116,629,1116,629,1121,498,1121"/>
+<area shape="poly" id="edge20_Node000001_Node000013" title=" " alt="" coords="848,359,903,376,960,401,1013,435,1036,456,1057,480,1074,508,1088,545,1112,639,1129,751,1141,871,1152,1096,1153,1235,1148,1235,1146,1096,1135,871,1124,751,1107,640,1083,547,1069,511,1052,483,1033,460,1010,439,957,406,901,381,846,364"/>
+<area shape="rect" id="Node000014" href="$d6/d5c/structregen_1_1_texture_bind.html" title="Bind a named texture to a texturing target." alt="" coords="325,285,469,310"/>
+<area shape="poly" id="edge23_Node000013_Node000014" title=" " alt="" coords="483,306,646,328,645,333,482,311"/>
+<area shape="poly" id="edge25_Node000001_Node000015" title=" " alt="" coords="795,642,855,622,924,610,960,609,994,614,1027,625,1056,645,1073,664,1088,690,1112,760,1129,846,1140,941,1152,1121,1153,1235,1148,1235,1146,1121,1135,941,1124,847,1107,762,1083,693,1069,667,1053,649,1025,630,993,619,959,614,925,615,856,627,797,647"/>
+<area shape="rect" id="Node000016" href="$df/d1b/classregen_1_1_vec4.html" title="A 4D vector." alt="" coords="329,718,465,743"/>
+<area shape="poly" id="edge28_Node000015_Node000016" title=" " alt="" coords="442,745,478,756,519,764,562,766,605,759,637,745,668,726,716,687,719,692,671,731,640,750,606,764,563,771,518,769,476,761,440,751"/>
+<area shape="rect" id="Node000017" href="$d5/d82/classregen_1_1_by_value_state_stack.html" title=" " alt="" coords="644,1163,835,1203"/>
+<area shape="poly" id="edge30_Node000001_Node000017" title=" " alt="" coords="826,1204,850,1212,874,1221,981,1238,1079,1245,1078,1250,980,1244,873,1227,848,1217,824,1209"/>
+<area shape="rect" id="Node000018" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1217,484,1242"/>
+<area shape="poly" id="edge31_Node000017_Node000018" title=" " alt="" coords="497,1213,643,1193,644,1198,498,1218"/>
+<area shape="rect" id="Node000027" href="$d2/dc4/classregen_1_1_keyed_state_stack.html" title=" " alt="" coords="651,1227,828,1267"/>
+<area shape="poly" id="edge44_Node000027_Node000018" title=" " alt="" coords="498,1232,650,1240,650,1245,497,1237"/>
+<area shape="rect" id="Node000019" href="$d5/d82/classregen_1_1_by_value_state_stack.html" title=" " alt="" coords="644,1291,835,1331"/>
+<area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="848,1314,949,1310,1002,1304,1054,1293,1095,1277,1130,1258,1133,1263,1098,1282,1055,1299,1003,1309,950,1316,849,1319"/>
+<area shape="rect" id="Node000020" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1298,484,1323"/>
+<area shape="poly" id="edge33_Node000019_Node000020" title=" " alt="" coords="498,1308,643,1308,643,1313,498,1313"/>
+<area shape="poly" id="edge34_Node000001_Node000021" title=" " alt="" coords="767,775,813,736,842,718,872,704,924,686,969,675,991,675,1012,679,1034,688,1056,705,1072,722,1085,745,1108,808,1124,885,1136,969,1150,1130,1153,1235,1148,1235,1144,1131,1131,969,1119,885,1102,809,1081,748,1067,725,1053,709,1031,693,1010,684,990,680,970,680,926,691,874,709,844,722,816,740,770,779"/>
+<area shape="rect" id="Node000022" href="$d1/dc3/structregen_1_1_vec2.html" title="A 2D vector." alt="" coords="329,909,465,934"/>
+<area shape="poly" id="edge37_Node000021_Node000022" title=" " alt="" coords="449,935,485,943,525,947,565,945,604,935,643,913,676,883,703,852,723,825,727,829,707,856,680,887,646,917,606,940,566,950,524,952,484,948,448,940"/>
+<area shape="rect" id="Node000023" href="$dd/d1c/classregen_1_1_by_reference_state_stack.html" title=" " alt="" coords="629,1355,849,1395"/>
+<area shape="poly" id="edge39_Node000001_Node000023" title=" " alt="" coords="863,1375,959,1364,1007,1352,1054,1335,1080,1319,1104,1298,1139,1259,1143,1263,1108,1302,1084,1323,1056,1340,1009,1357,960,1369,863,1380"/>
+<area shape="rect" id="Node000024" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1362,484,1387"/>
+<area shape="poly" id="edge40_Node000023_Node000024" title=" " alt="" coords="498,1372,629,1372,629,1377,498,1377"/>
+<area shape="rect" id="Node000025" href="$dd/d1c/classregen_1_1_by_reference_state_stack.html" title=" " alt="" coords="629,1419,849,1459"/>
+<area shape="poly" id="edge41_Node000001_Node000025" title=" " alt="" coords="863,1443,911,1440,960,1432,1009,1417,1053,1395,1088,1364,1114,1326,1133,1289,1144,1260,1149,1262,1138,1291,1119,1329,1092,1368,1056,1400,1011,1422,961,1437,911,1445,863,1449"/>
+<area shape="rect" id="Node000026" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1426,484,1451"/>
+<area shape="poly" id="edge42_Node000025_Node000026" title=" " alt="" coords="498,1436,629,1436,629,1441,498,1441"/>
+<area shape="poly" id="edge43_Node000001_Node000027" title=" " alt="" coords="842,1263,874,1267,964,1273,1054,1267,1103,1258,1104,1263,1055,1272,964,1278,873,1272,841,1268"/>
+<area shape="rect" id="Node000028" href="$dd/d1c/classregen_1_1_by_reference_state_stack.html" title=" " alt="" coords="629,1483,849,1523"/>
+<area shape="poly" id="edge45_Node000001_Node000028" title=" " alt="" coords="863,1492,983,1480,1029,1472,1053,1464,1077,1443,1096,1417,1124,1358,1140,1302,1147,1261,1152,1262,1145,1303,1129,1360,1101,1419,1081,1446,1056,1469,1030,1478,984,1485,863,1497"/>
+<area shape="rect" id="Node000029" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1490,484,1515"/>
+<area shape="poly" id="edge46_Node000028_Node000029" title=" " alt="" coords="498,1500,629,1500,629,1505,498,1505"/>
+<area shape="rect" id="Node000030" href="$d5/d82/classregen_1_1_by_value_state_stack.html" title=" " alt="" coords="644,1547,835,1587"/>
+<area shape="poly" id="edge47_Node000001_Node000030" title=" " alt="" coords="848,1574,909,1576,969,1575,1019,1569,1053,1555,1085,1524,1109,1485,1126,1443,1138,1399,1148,1317,1149,1261,1154,1261,1154,1317,1143,1400,1131,1444,1114,1488,1089,1527,1056,1560,1021,1574,969,1580,909,1581,848,1579"/>
+<area shape="rect" id="Node000031" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1578,484,1603"/>
+<area shape="poly" id="edge48_Node000030_Node000031" title=" " alt="" coords="497,1581,643,1571,644,1576,498,1586"/>
+<area shape="rect" id="Node000032" href="$d2/dc4/classregen_1_1_keyed_state_stack.html" title=" " alt="" coords="651,1611,828,1651"/>
+<area shape="poly" id="edge50_Node000032_Node000031" title=" " alt="" coords="498,1600,650,1618,650,1623,497,1605"/>
+<area shape="poly" id="edge49_Node000001_Node000032" title=" " alt="" coords="841,1645,895,1647,951,1642,1005,1627,1030,1614,1053,1598,1072,1573,1089,1535,1117,1435,1136,1332,1146,1261,1152,1261,1141,1332,1122,1436,1094,1537,1076,1576,1057,1602,1033,1619,1007,1631,952,1647,895,1653,841,1651"/>
+<area shape="rect" id="Node000033" href="$d2/dc4/classregen_1_1_keyed_state_stack.html" title=" " alt="" coords="651,1675,828,1715"/>
+<area shape="poly" id="edge51_Node000001_Node000033" title=" " alt="" coords="842,1702,904,1705,966,1704,1019,1698,1039,1691,1053,1683,1076,1652,1095,1604,1111,1543,1124,1476,1140,1347,1147,1261,1153,1261,1145,1348,1129,1477,1116,1544,1100,1605,1080,1655,1056,1687,1041,1696,1020,1703,966,1709,904,1710,842,1707"/>
+<area shape="rect" id="Node000034" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1682,484,1707"/>
+<area shape="poly" id="edge52_Node000033_Node000034" title=" " alt="" coords="498,1692,650,1692,650,1697,498,1697"/>
+<area shape="rect" id="Node000035" href="$dd/d1c/classregen_1_1_by_reference_state_stack.html" title=" " alt="" coords="629,1739,849,1779"/>
+<area shape="poly" id="edge53_Node000001_Node000035" title=" " alt="" coords="863,1776,913,1776,963,1769,1011,1753,1053,1726,1065,1711,1077,1691,1097,1636,1113,1569,1126,1496,1141,1354,1147,1261,1153,1261,1147,1354,1131,1496,1118,1570,1102,1638,1082,1693,1070,1714,1056,1730,1014,1758,965,1775,913,1782,863,1782"/>
+<area shape="rect" id="Node000036" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack of states that can be applied to a rendering context." alt="" coords="309,1746,484,1771"/>
+<area shape="poly" id="edge54_Node000035_Node000036" title=" " alt="" coords="498,1756,629,1756,629,1761,498,1761"/>
+</map>

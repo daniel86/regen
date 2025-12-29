@@ -1,0 +1,27 @@
+var classregen_1_1_reflection_camera =
+[
+    [ "ReflectionCamera", "de/d17/classregen_1_1_reflection_camera.html#a575a63a8d23378092695a5fec0d585c6", null ],
+    [ "ReflectionCamera", "de/d17/classregen_1_1_reflection_camera.html#afc028f9ec79cfdfbad3dc3b662e8cee7", null ],
+    [ "updateReflection", "de/d17/classregen_1_1_reflection_camera.html#afa1bb98143c1c9d0ee4f874cf23f4a33", null ],
+    [ "camDirStamp_", "de/d17/classregen_1_1_reflection_camera.html#a074e96712bced1051b31e72b20090141", null ],
+    [ "cameraChanged_", "de/d17/classregen_1_1_reflection_camera.html#a5222746d4286333346534f05793b03d4", null ],
+    [ "camPosStamp_", "de/d17/classregen_1_1_reflection_camera.html#a8de4e8eb4a7b8cd6f0bc1a04e5e4d97d", null ],
+    [ "cullState_", "de/d17/classregen_1_1_reflection_camera.html#a8217b2cdc2b0ba7f32962c63b598b75f", null ],
+    [ "hasBackFace_", "de/d17/classregen_1_1_reflection_camera.html#aed7474b9483466b808dfecec293d532f", null ],
+    [ "hasMesh_", "de/d17/classregen_1_1_reflection_camera.html#ac639c998cdb2bb01d199475fb6aaae72", null ],
+    [ "isFront_", "de/d17/classregen_1_1_reflection_camera.html#aed2bf6478534c7a89a6dd228ab198f2c", null ],
+    [ "isReflectorValid_", "de/d17/classregen_1_1_reflection_camera.html#a2a853e8f33bd855d933635ea1c9a29d1", null ],
+    [ "nor_", "de/d17/classregen_1_1_reflection_camera.html#a0a7420e85fcc9f9f81db6d3ca7248222", null ],
+    [ "norStamp_", "de/d17/classregen_1_1_reflection_camera.html#a100143bc52e5184a9c0ad220c7dcd8d1", null ],
+    [ "norWorld_", "de/d17/classregen_1_1_reflection_camera.html#a7369055408c7055c5a8d12cfa5b15a06", null ],
+    [ "pos_", "de/d17/classregen_1_1_reflection_camera.html#a3633718d3d5f8f967643e9846826537f", null ],
+    [ "posStamp_", "de/d17/classregen_1_1_reflection_camera.html#aaf975b8c7ffeead8a3f31a3dac235d05", null ],
+    [ "posWorld_", "de/d17/classregen_1_1_reflection_camera.html#ad2c748acb8310be6bb56edb694eba6dd", null ],
+    [ "projStamp_", "de/d17/classregen_1_1_reflection_camera.html#ac2dcf875ee960d109b646c5e2604ea88", null ],
+    [ "reflectionMatrix_", "de/d17/classregen_1_1_reflection_camera.html#a918bd90406f6653b743b431823e8c058", null ],
+    [ "reflectionUpdater_", "de/d17/classregen_1_1_reflection_camera.html#a5ac998d06caac30dce3dc6d89fdd2e1d", null ],
+    [ "transform_", "de/d17/classregen_1_1_reflection_camera.html#ae46ae7f5110fd27bebaa76697160f2d9", null ],
+    [ "transformStamp_", "de/d17/classregen_1_1_reflection_camera.html#ad462d08d7ede8dd470d0efe8e18d1b83", null ],
+    [ "userCamera_", "de/d17/classregen_1_1_reflection_camera.html#a28fef0ff9a3d3b58c23751010b62615d", null ],
+    [ "vertexIndex_", "de/d17/classregen_1_1_reflection_camera.html#a2035a79b1cc849cdeb92957fa2a19c83", null ]
+];

@@ -1,0 +1,23 @@
+<map id="regen::KeyFrameController" name="regen::KeyFrameController">
+<area shape="rect" id="Node000001" title="Computes the view matrix of a Camera based on user specified key frames." alt="" coords="1288,171,1484,197"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="988,79,1123,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1116,106,1340,169,1339,174,1114,111"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="633,22,780,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="794,46,988,78,987,84,793,51"/>
+<area shape="rect" id="Node000004" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="352,15,499,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="512,32,633,32,633,37,512,37"/>
+<area shape="rect" id="Node000005" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,15,177,55"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,32,352,32,352,37,191,37"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,72,788,112"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="802,89,988,89,988,95,802,95"/>
+<area shape="rect" id="Node000007" href="$d2/d32/classregen_1_1_camera_controller_base.html" title="Computes the transformation matrices of a Camera." alt="" coords="948,143,1163,169"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1176,164,1288,173,1288,178,1176,169"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,136,788,176"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="802,153,948,153,948,159,802,159"/>
+<area shape="rect" id="Node000009" href="$de/d82/structregen_1_1_key_frame_controller_1_1_camera_key_frame.html" title=" " alt="" coords="957,193,1153,233"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1167,201,1288,190,1288,195,1168,206"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,200,788,240"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="802,216,957,213,957,218,802,221"/>
+<area shape="rect" id="Node000011" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="977,258,1134,283"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1147,258,1205,248,1263,233,1315,215,1359,194,1361,199,1317,220,1265,239,1206,253,1148,263"/>
+</map>

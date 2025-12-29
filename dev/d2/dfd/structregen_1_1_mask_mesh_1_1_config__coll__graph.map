@@ -1,0 +1,15 @@
+<map id="regen::MaskMesh::Config" name="regen::MaskMesh::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="519,303,705,328"/>
+<area shape="rect" id="Node000002" href="$db/de8/structregen_1_1_rectangle_1_1_config.html" title=" " alt="" coords="301,207,483,233"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="433,236,586,300,584,305,431,241"/>
+<area shape="rect" id="Node000003" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="5,44,163,69"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="110,76,176,124,260,174,303,191,346,205,344,210,302,196,257,178,173,129,107,80"/>
+<area shape="rect" id="Node000004" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="561,44,719,69"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="640,83,627,200,616,302,611,302,621,200,634,83"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="610,79,519,134,410,209,406,205,516,130,607,74"/>
+<area shape="rect" id="Node000005" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="187,44,375,69"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="299,79,386,206,382,209,295,82"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="326,38,353,36,377,38,395,44,402,57,393,70,372,76,343,77,313,72,314,67,344,72,371,71,390,66,397,57,391,49,376,43,353,41,327,44"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="704,200,867,240"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="739,249,635,305,632,300,737,244"/>
+</map>

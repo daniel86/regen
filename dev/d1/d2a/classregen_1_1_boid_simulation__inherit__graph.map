@@ -1,0 +1,7 @@
+<map id="regen::BoidSimulation" name="regen::BoidSimulation">
+<area shape="rect" id="Node000001" title="Boids simulation. The boids simulation is a simple flocking simulation." alt="" coords="65,5,231,31"/>
+<area shape="rect" id="Node000002" href="$d5/d3c/classregen_1_1_boids_c_p_u.html" title="CPU Boid simulation. A spatial grid is used to speed up the simulation. For a couple of thousand boid..." alt="" coords="5,79,136,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,42,85,80,82,76,124,38"/>
+<area shape="rect" id="Node000003" href="$d5/de7/classregen_1_1_boids_g_p_u.html" title="GPU Boid simulation. The boids simulation is a simple flocking simulation. The simulation is done on ..." alt="" coords="160,79,291,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,38,214,76,211,80,169,42"/>
+</map>

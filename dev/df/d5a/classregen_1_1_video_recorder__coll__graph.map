@@ -1,0 +1,21 @@
+<map id="regen::VideoRecorder" name="regen::VideoRecorder">
+<area shape="rect" id="Node000001" title="Records a video from a FBO and saves it to a file." alt="" coords="1268,178,1431,203"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="962,57,1097,82"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1106,83,1174,101,1245,127,1292,151,1331,176,1328,180,1290,156,1243,132,1173,106,1104,88"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="633,22,780,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="794,41,962,59,961,65,793,47"/>
+<area shape="rect" id="Node000004" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="352,15,499,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="512,32,633,32,633,37,512,37"/>
+<area shape="rect" id="Node000005" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,15,177,55"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,32,352,32,352,37,191,37"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,72,788,112"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="802,85,924,77,961,74,962,79,924,83,802,90"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="948,107,1111,147"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1125,143,1285,175,1284,181,1124,148"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="948,171,1111,211"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1125,188,1268,188,1268,193,1125,193"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="948,235,1111,275"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1124,243,1243,223,1314,201,1316,206,1245,228,1125,248"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="948,299,1111,339"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1124,300,1184,284,1243,262,1293,232,1332,201,1335,206,1296,236,1245,266,1185,289,1125,305"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="regen::AllocatorPool&lt; ActualAllocatorType, ActualAllocatorRef, VirtualAllocatorType, VirtualAllocatorRef &gt;::Node" name="regen::AllocatorPool&lt; ActualAllocatorType, ActualAllocatorRef, VirtualAllocatorType, VirtualAllocatorRef &gt;::Node">
+<area shape="rect" id="Node000001" title="Doubly linked node containing an allocator." alt="" coords="765,25,1064,95"/>
+<area shape="rect" id="Node000002" href="$dc/df3/classregen_1_1_allocator_pool.html" title="A pool of memory allocators." alt="" coords="5,48,261,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="275,44,385,25,469,18,535,17,684,25,765,34,765,39,684,31,534,22,469,23,386,31,275,49"/>
+<area shape="rect" id="Node000003" href="$d2/d17/structregen_1_1_allocator_pool_1_1_node.html" title="Doubly linked node containing an allocator." alt="" coords="385,93,684,163"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="275,96,385,108,385,114,275,101"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="697,96,765,84,766,89,698,102"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,136,285,129,239,120,240,115,286,124,372,131"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="502,78,514,70,535,67,552,69,564,74,571,83,573,93,567,94,566,85,561,78,550,74,535,72,516,75,505,82"/>
+</map>

@@ -1,0 +1,16 @@
+<map id="regen::StagingArrayBuffer&lt; T &gt;" name="regen::StagingArrayBuffer&lt; T &gt;">
+<area shape="rect" id="Node000001" title="A utility class for mapping arrays of structs for reading or writing." alt="" coords="891,219,1119,244"/>
+<area shape="rect" id="Node000002" href="$d2/d44/classregen_1_1_staging_buffer.html" title="A staging buffer is used to store data that is accessed by the CPU." alt="" coords="687,219,841,244"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="856,229,890,229,890,234,856,234"/>
+<area shape="rect" id="Node000003" href="$d8/d35/structregen_1_1_buffer_flags.html" title="Buffer configuration structure." alt="" coords="345,132,486,157"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="500,154,580,170,663,190,735,216,733,221,662,195,579,175,499,160"/>
+<area shape="rect" id="Node000004" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="5,132,193,157"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="207,142,344,142,344,147,207,147"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="68,117,77,109,99,105,118,108,129,114,132,124,126,133,122,131,127,123,125,117,116,113,99,111,80,114,71,121"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="334,182,497,222"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="511,207,687,222,686,228,510,213"/>
+<area shape="rect" id="Node000006" href="$d6/d7e/structregen_1_1_buffer_copy_range.html" title="A range of data to copy from one buffer to another. This is used for scheduling buffer copies in the ..." alt="" coords="325,247,505,272"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="519,253,662,243,686,241,687,246,663,249,519,259"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="334,297,497,337"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="510,304,585,291,662,273,702,258,737,242,739,247,704,263,663,278,586,297,511,309"/>
+</map>

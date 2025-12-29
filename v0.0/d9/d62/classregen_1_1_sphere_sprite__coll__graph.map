@@ -1,0 +1,31 @@
+<map id="regen::SphereSprite" name="regen::SphereSprite">
+<area shape="rect" id="Node000001" title="A sprite that generates sphere normals." alt="" coords="883,413,1033,439"/>
+<area shape="rect" id="Node000002" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="713,324,816,349"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="807,353,931,411,928,416,805,358"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="397,83,498,108"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="502,110,587,147,632,173,674,204,703,234,727,267,760,323,755,325,723,270,699,237,670,208,629,178,584,152,500,115"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="25,5,172,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="186,30,337,61,406,80,405,85,335,66,185,35"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,55,180,95"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="194,78,397,90,397,95,194,83"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,119,180,159"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="194,125,336,107,396,99,397,105,336,113,194,130"/>
+<area shape="rect" id="Node000007" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="385,171,510,196"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="525,192,599,211,637,226,673,244,699,262,722,283,756,322,752,325,718,287,696,266,671,248,635,230,597,216,523,197"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,183,192,223"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="206,195,384,184,385,190,206,200"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,221,529,261"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="543,258,673,294,738,321,736,326,671,299,541,263"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,285,529,325"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="543,312,714,329,713,334,542,317"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,349,529,389"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="542,358,672,345,713,340,713,345,672,350,542,363"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,413,529,453"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="542,412,606,397,671,377,738,347,741,352,673,382,607,402,543,417"/>
+<area shape="rect" id="Node000013" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="360,477,535,503"/>
+<area shape="poly" id="edge12_Node000002_Node000013" title=" " alt="" coords="548,481,611,468,642,457,671,442,689,426,712,401,752,348,756,351,716,404,693,430,673,447,644,462,612,473,549,487"/>
+<area shape="rect" id="Node000014" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="696,437,833,463"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="847,437,882,433,883,438,848,442"/>
+<area shape="rect" id="Node000015" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,527,529,567"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="543,553,607,549,640,542,671,532,696,517,719,498,752,461,756,465,723,502,699,521,673,536,641,547,608,554,543,558"/>
+</map>

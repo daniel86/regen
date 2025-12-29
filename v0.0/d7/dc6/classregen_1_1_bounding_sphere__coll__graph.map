@@ -1,0 +1,13 @@
+<map id="regen::BoundingSphere" name="regen::BoundingSphere">
+<area shape="rect" id="Node000001" title="Bounding sphere." alt="" coords="645,109,819,134"/>
+<area shape="rect" id="Node000002" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="331,77,499,102"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="513,96,645,110,645,115,513,102"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="202,44,352,74,351,79,201,49"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,69,178,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="192,87,331,87,331,92,192,92"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,133,178,173"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="191,132,351,99,352,105,192,137"/>
+<area shape="rect" id="Node000006" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="328,126,503,151"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="516,133,621,128,645,126,645,132,621,133,517,138"/>
+</map>

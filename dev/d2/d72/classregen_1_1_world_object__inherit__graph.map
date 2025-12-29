@@ -1,0 +1,23 @@
+<map id="regen::WorldObject" name="regen::WorldObject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="180,152,327,177"/>
+<area shape="rect" id="Node000003" href="$de/da9/classregen_1_1_character_object.html" title=" " alt="" coords="375,53,547,79"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="282,142,324,115,374,89,408,76,410,81,376,94,327,120,285,146"/>
+<area shape="rect" id="Node000008" href="$d2/da7/classregen_1_1_location.html" title=" " alt="" coords="399,103,522,128"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="320,146,406,125,407,131,321,151"/>
+<area shape="rect" id="Node000009" href="$d6/da3/classregen_1_1_object_group.html" title=" " alt="" coords="387,152,535,177"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="340,162,386,162,386,167,340,167"/>
+<area shape="rect" id="Node000010" href="$db/d83/classregen_1_1_place.html" title=" " alt="" coords="409,201,512,227"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="321,178,410,199,409,205,320,183"/>
+<area shape="rect" id="Node000011" href="$dd/de1/classregen_1_1_way_point.html" title=" " alt="" coords="397,251,525,276"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="284,183,327,211,376,237,407,248,405,253,374,242,324,215,281,188"/>
+<area shape="rect" id="Node000002" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="5,152,132,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,162,179,162,179,167,146,167"/>
+<area shape="rect" id="Node000004" href="$d9/d3a/classregen_1_1_n_p_c_object.html" title=" " alt="" coords="602,29,738,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="560,52,602,47,602,52,561,57"/>
+<area shape="rect" id="Node000007" href="$d3/dc7/classregen_1_1_player_object.html" title=" " alt="" coords="595,79,745,104"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="561,75,594,80,594,85,560,81"/>
+<area shape="rect" id="Node000005" href="$de/d79/classregen_1_1_animal_object.html" title=" " alt="" coords="793,5,948,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="751,30,793,25,793,30,752,35"/>
+<area shape="rect" id="Node000006" href="$d4/dad/classregen_1_1_person_object.html" title=" " alt="" coords="794,55,947,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="752,50,794,55,794,60,752,55"/>
+</map>

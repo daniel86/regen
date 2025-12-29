@@ -1,0 +1,15 @@
+<map id="regen::QuadTree" name="regen::QuadTree">
+<area shape="rect" id="Node000001" title=" " alt="" coords="138,303,266,328"/>
+<area shape="rect" id="Node000002" href="$df/dfa/classregen_1_1_spatial_index.html" title="Spatial index." alt="" coords="5,213,153,238"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,244,188,300,184,305,105,248"/>
+<area shape="rect" id="Node000003" href="$d4/d2f/classregen_1_1_thread_pool.html" title=" " alt="" coords="9,115,149,141"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,154,82,212,77,212,77,154"/>
+<area shape="rect" id="Node000004" href="$d2/d84/structregen_1_1_quad_tree_1_1_node.html" title=" " alt="" coords="313,213,483,238"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="361,246,229,305,227,300,359,241"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="499,217,510,225,502,233,484,236,483,231,500,228,505,225,496,222"/>
+<area shape="rect" id="Node000005" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="244,108,411,148"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="275,157,243,181,216,212,207,235,203,260,203,302,198,302,197,260,202,234,212,209,239,177,272,153"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="352,158,392,211,387,214,348,161"/>
+<area shape="rect" id="Node000006" href="$d3/dbd/classregen_1_1_vec2.html" title="A 2D vector." alt="" coords="259,5,395,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="330,45,330,108,325,108,325,45"/>
+</map>

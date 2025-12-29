@@ -1,0 +1,7 @@
+<map id="regen::ShaderInput3ui" name="regen::ShaderInput3ui">
+<area shape="rect" id="Node000001" title="Provides 3D unsigned int input to shader programs." alt="" coords="61,167,226,192"/>
+<area shape="rect" id="Node000002" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="5,79,281,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,132,146,166,141,166,141,132"/>
+<area shape="rect" id="Node000003" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="71,5,216,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="146,44,146,79,141,79,141,44"/>
+</map>

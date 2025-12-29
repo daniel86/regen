@@ -1,0 +1,5 @@
+<map id="regen::BatchOfOBBs" name="regen::BatchOfOBBs">
+<area shape="rect" id="Node000001" title="Batch structure for oriented bounding box (OBB) shapes. This structure holds the necessary data for p..." alt="" coords="11,79,166,104"/>
+<area shape="rect" id="Node000002" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="5,5,172,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,44,91,79,86,79,86,44"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="regen::FullscreenPass" name="regen::FullscreenPass">
+<area shape="rect" id="Node000001" title="State that updates each texel of the active render target." alt="" coords="657,171,820,196"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="367,83,468,108"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="478,109,692,168,691,173,477,114"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,30,313,59,380,80,379,85,311,65,173,35"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,78,367,90,366,95,181,84"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,125,312,107,366,100,367,105,312,113,182,130"/>
+<area shape="rect" id="Node000006" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="349,171,486,196"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="500,181,657,181,657,186,500,186"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,183,168,223"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="182,195,348,185,348,190,182,200"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,221,499,261"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="512,222,633,201,671,193,672,199,634,206,513,227"/>
+</map>

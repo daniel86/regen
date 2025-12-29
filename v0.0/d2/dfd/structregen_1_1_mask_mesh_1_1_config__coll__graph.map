@@ -1,0 +1,12 @@
+<map id="regen::MaskMesh::Config" name="regen::MaskMesh::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="198,225,385,251"/>
+<area shape="rect" id="Node000002" href="$db/de8/structregen_1_1_rectangle_1_1_config.html" title=" " alt="" coords="62,130,243,155"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,161,237,199,274,223,271,227,234,204,179,166"/>
+<area shape="rect" id="Node000003" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="5,5,180,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="91,44,90,71,98,97,112,115,130,128,127,132,108,119,93,100,85,72,85,44"/>
+<area shape="rect" id="Node000004" href="$d3/dbd/classregen_1_1_vec2.html" title=" " alt="" coords="204,5,379,31"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="294,45,294,225,289,225,289,45"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="229,38,198,57,183,74,172,94,158,130,153,129,167,92,179,71,195,53,226,33"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="383,123,546,163"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="419,172,314,228,311,223,416,167"/>
+</map>

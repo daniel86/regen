@@ -1,0 +1,33 @@
+<map id="/home/runner/work/regen/regen/regen/animation/transform&#45;animation.h" name="/home/runner/work/regen/regen/regen/animation/transform&#45;animation.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="218,5,405,60"/>
+<area shape="rect" id="Node000002" href="$d8/d8f/transform-animation_8cpp.html" title=" " alt="" coords="5,115,193,170"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="249,69,152,118,150,113,246,64"/>
+<area shape="rect" id="Node000003" href="$d3/d25/navigation-controller_8h.html" title=" " alt="" coords="218,108,405,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="314,74,314,108,309,108,309,74"/>
+<area shape="rect" id="Node000015" href="$df/d7a/model-transformation_8cpp.html" title=" " alt="" coords="429,115,629,170"/>
+<area shape="poly" id="edge16_Node000001_Node000015" title=" " alt="" coords="378,64,477,113,474,118,376,69"/>
+<area shape="rect" id="Node000004" href="$d8/d22/navigation-controller_8cpp.html" title=" " alt="" coords="113,225,299,295"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,190,239,227,235,223,269,186"/>
+<area shape="rect" id="Node000005" href="$d2/dca/npc-controller_8h.html" title=" " alt="" coords="323,233,510,287"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="354,186,394,231,391,234,350,190"/>
+<area shape="rect" id="Node000006" href="$d2/daa/animal-controller_8h.html" title=" " alt="" coords="7,343,194,397"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="328,294,178,345,177,340,326,289"/>
+<area shape="rect" id="Node000008" href="$d3/d59/npc-controller_8cpp.html" title=" " alt="" coords="639,343,826,397"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="507,289,657,340,655,345,506,294"/>
+<area shape="rect" id="Node000009" href="$d8/d03/person-controller_8h.html" title=" " alt="" coords="218,343,405,397"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="383,300,339,344,335,341,379,296"/>
+<area shape="rect" id="Node000011" href="$d4/dfd/character-object_8h.html" title=" " alt="" coords="429,343,615,397"/>
+<area shape="poly" id="edge10_Node000005_Node000011" title=" " alt="" coords="454,296,498,341,494,344,450,300"/>
+<area shape="rect" id="Node000007" href="$d9/d15/animal-controller_8cpp.html" title=" " alt="" coords="7,445,194,500"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="103,411,103,445,98,445,98,411"/>
+<area shape="rect" id="Node000010" href="$de/d33/person-controller_8cpp.html" title=" " alt="" coords="218,445,405,500"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="314,411,314,445,309,445,309,411"/>
+<area shape="poly" id="edge11_Node000011_Node000007" title=" " alt="" coords="416,400,207,448,195,451,194,446,205,443,415,395"/>
+<area shape="poly" id="edge12_Node000011_Node000010" title=" " alt="" coords="456,406,367,448,365,443,454,401"/>
+<area shape="rect" id="Node000012" href="$d1/d6f/character-object_8cpp.html" title=" " alt="" coords="429,445,628,500"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="527,411,530,445,524,445,522,411"/>
+<area shape="rect" id="Node000013" href="$d1/db5/world-model-debug_8cpp.html" title=" " alt="" coords="652,445,872,500"/>
+<area shape="poly" id="edge14_Node000011_Node000013" title=" " alt="" coords="598,400,700,443,698,448,596,405"/>
+<area shape="rect" id="Node000014" href="$dd/d09/world-object_8cpp.html" title=" " alt="" coords="897,445,1083,500"/>
+<area shape="poly" id="edge15_Node000011_Node000014" title=" " alt="" coords="629,395,759,419,885,443,897,445,896,451,884,448,758,424,628,400"/>
+</map>

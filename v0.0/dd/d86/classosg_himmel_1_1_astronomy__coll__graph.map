@@ -1,0 +1,7 @@
+<map id="osgHimmel::Astronomy" name="osgHimmel::Astronomy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="37,168,213,193"/>
+<area shape="rect" id="Node000002" href="$db/d5d/classosg_himmel_1_1_abstract_astronomy.html" title=" " alt="" coords="9,93,240,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,133,127,168,122,168,122,133"/>
+<area shape="rect" id="Node000003" href="$dd/d76/structosg_himmel_1_1s___astronomical_time.html" title=" " alt="" coords="5,5,244,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="127,45,127,93,122,93,122,45"/>
+</map>

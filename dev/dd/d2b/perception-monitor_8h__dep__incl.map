@@ -1,0 +1,40 @@
+<map id="/home/runner/work/regen/regen/regen/behavior/perception/perception&#45;monitor.h" name="/home/runner/work/regen/regen/regen/behavior/perception/perception&#45;monitor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="527,5,713,75"/>
+<area shape="rect" id="Node000002" href="$d7/d1e/collision-monitor_8h.html" title=" " alt="" coords="386,123,606,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="573,86,528,124,525,120,569,82"/>
+<area shape="rect" id="Node000017" href="$db/d74/detection-monitor_8h.html" title=" " alt="" coords="631,123,857,177"/>
+<area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="671,82,715,120,712,124,667,86"/>
+<area shape="rect" id="Node000003" href="$d3/d25/navigation-controller_8h.html" title=" " alt="" coords="403,225,589,295"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="499,191,499,225,493,225,493,191"/>
+<area shape="rect" id="Node000015" href="$da/d63/perception-system_8h.html" title=" " alt="" coords="632,225,819,295"/>
+<area shape="poly" id="edge16_Node000002_Node000015" title=" " alt="" coords="565,181,655,223,653,228,563,186"/>
+<area shape="rect" id="Node000004" href="$d8/d22/navigation-controller_8cpp.html" title=" " alt="" coords="251,343,437,412"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="442,305,390,344,387,340,439,301"/>
+<area shape="rect" id="Node000005" href="$d2/dca/npc-controller_8h.html" title=" " alt="" coords="461,350,648,405"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="522,306,544,349,539,351,517,309"/>
+<area shape="rect" id="Node000006" href="$d2/daa/animal-controller_8h.html" title=" " alt="" coords="251,460,437,515"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="492,413,397,462,394,457,490,409"/>
+<area shape="rect" id="Node000008" href="$d3/d59/npc-controller_8cpp.html" title=" " alt="" coords="40,460,227,515"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="462,411,450,415,345,440,239,463,228,465,226,460,238,457,344,435,449,409,461,406"/>
+<area shape="rect" id="Node000009" href="$d8/d03/person-controller_8h.html" title=" " alt="" coords="672,460,859,515"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="619,409,715,457,713,462,617,413"/>
+<area shape="rect" id="Node000011" href="$d4/dfd/character-object_8h.html" title=" " alt="" coords="461,460,648,515"/>
+<area shape="poly" id="edge10_Node000005_Node000011" title=" " alt="" coords="557,419,557,460,552,460,552,419"/>
+<area shape="rect" id="Node000007" href="$d9/d15/animal-controller_8cpp.html" title=" " alt="" coords="5,563,192,617"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="269,522,164,565,162,560,267,517"/>
+<area shape="rect" id="Node000010" href="$de/d33/person-controller_8cpp.html" title=" " alt="" coords="896,563,1083,617"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="837,518,932,560,930,565,835,523"/>
+<area shape="poly" id="edge11_Node000011_Node000007" title=" " alt="" coords="448,518,205,565,193,568,192,563,203,560,447,512"/>
+<area shape="poly" id="edge12_Node000011_Node000010" title=" " alt="" coords="662,512,883,560,896,563,895,568,882,565,661,518"/>
+<area shape="rect" id="Node000012" href="$d1/d6f/character-object_8cpp.html" title=" " alt="" coords="673,563,871,617"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="625,518,716,560,714,565,622,523"/>
+<area shape="rect" id="Node000013" href="$d1/db5/world-model-debug_8cpp.html" title=" " alt="" coords="217,563,437,617"/>
+<area shape="poly" id="edge14_Node000011_Node000013" title=" " alt="" coords="484,523,387,565,385,560,482,518"/>
+<area shape="rect" id="Node000014" href="$dd/d09/world-object_8cpp.html" title=" " alt="" coords="461,563,648,617"/>
+<area shape="poly" id="edge15_Node000011_Node000014" title=" " alt="" coords="557,528,557,563,552,563,552,528"/>
+<area shape="poly" id="edge17_Node000015_Node000005" title=" " alt="" coords="666,305,595,352,592,348,663,300"/>
+<area shape="poly" id="edge19_Node000015_Node000009" title=" " alt="" coords="735,308,753,412,763,459,757,460,748,412,730,309"/>
+<area shape="rect" id="Node000016" href="$df/d4c/perception-system_8cpp.html" title=" " alt="" coords="763,343,949,412"/>
+<area shape="poly" id="edge18_Node000015_Node000016" title=" " alt="" coords="776,302,819,340,816,344,772,306"/>
+<area shape="poly" id="edge21_Node000017_Node000015" title=" " alt="" coords="740,192,734,226,729,225,734,191"/>
+</map>

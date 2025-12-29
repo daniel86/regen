@@ -1,0 +1,21 @@
+<map id="/home/runner/work/regen/regen/regen/objects/sky&#45;box.h" name="/home/runner/work/regen/regen/regen/objects/sky&#45;box.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="303,5,526,45"/>
+<area shape="rect" id="Node000002" href="$d5/da3/sky-box_8cpp.html" title=" " alt="" coords="5,93,192,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="338,52,188,96,187,91,337,47"/>
+<area shape="rect" id="Node000003" href="$d2/dec/atmosphere_8h.html" title=" " alt="" coords="216,93,403,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="385,56,341,95,337,91,381,52"/>
+<area shape="rect" id="Node000006" href="$d1/dc9/darkness_8h.html" title=" " alt="" coords="427,93,613,148"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="448,52,492,91,489,95,444,56"/>
+<area shape="rect" id="Node000008" href="$d7/d2d/star-map_8h.html" title=" " alt="" coords="637,93,824,148"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="492,47,642,91,641,96,491,52"/>
+<area shape="rect" id="Node000004" href="$d6/d36/atmosphere_8cpp.html" title=" " alt="" coords="111,196,297,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="274,160,233,198,230,194,270,156"/>
+<area shape="rect" id="Node000005" href="$dc/dfe/sky_8cpp.html" title=" " alt="" coords="321,196,508,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="349,156,389,194,385,198,345,160"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="484,160,444,198,440,194,481,156"/>
+<area shape="rect" id="Node000007" href="$d5/de3/darkness_8cpp.html" title=" " alt="" coords="532,196,719,251"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="559,156,600,194,596,198,556,160"/>
+<area shape="poly" id="edge9_Node000008_Node000005" title=" " alt="" coords="636,155,498,198,496,193,635,150"/>
+<area shape="rect" id="Node000009" href="$d6/d16/star-map_8cpp.html" title=" " alt="" coords="743,196,929,251"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="770,156,810,194,807,198,766,160"/>
+</map>

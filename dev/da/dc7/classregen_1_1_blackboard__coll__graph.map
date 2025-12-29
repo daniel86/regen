@@ -1,0 +1,37 @@
+<map id="regen::Blackboard" name="regen::Blackboard">
+<area shape="rect" id="Node000001" title="A blackboard encapsulates NPC state, it represents what the NPC &quot;knows&quot; about the world...." alt="" coords="661,495,801,521"/>
+<area shape="rect" id="Node000002" href="$da/dec/classregen_1_1_world_object.html" title=" " alt="" coords="337,237,484,262"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="446,268,535,328,639,409,686,454,721,494,717,497,682,458,636,413,532,332,443,272"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,70,150,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="164,92,235,111,272,125,307,143,337,165,364,190,402,235,398,238,360,194,334,169,304,148,270,130,234,116,163,97"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,120,168,160"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,159,306,198,387,234,384,239,304,202,180,164"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,184,168,224"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="182,215,338,237,337,242,182,220"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="182,19,244,25,306,41,415,90,458,114,495,140,529,171,563,206,639,298,674,351,700,408,729,494,724,496,695,410,669,354,635,302,559,209,526,174,492,145,455,118,413,94,304,47,243,30,182,25"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="161,47,251,80,307,104,341,137,369,173,405,235,401,238,365,176,337,140,304,109,249,85,159,52"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,248,168,288"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="182,260,337,251,337,256,182,265"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,451,168,491"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="174,444,240,417,304,379,336,350,363,317,400,261,405,263,368,320,340,354,307,383,243,422,176,449"/>
+<area shape="rect" id="Node000014" href="$d5/dd5/structregen_1_1_blackboard_1_1_perceived_object.html" title=" " alt="" coords="337,484,485,524"/>
+<area shape="poly" id="edge16_Node000014_Node000008" title=" " alt="" coords="182,478,336,494,336,499,182,483"/>
+<area shape="rect" id="Node000015" href="$d4/ddb/structregen_1_1_patient.html" title=" " alt="" coords="355,549,467,574"/>
+<area shape="poly" id="edge18_Node000015_Node000008" title=" " alt="" coords="146,494,193,511,278,533,355,549,354,555,276,539,191,516,144,499"/>
+<area shape="rect" id="Node000009" href="$dd/da3/structregen_1_1_vec3.html" title="A 3D vector." alt="" coords="19,313,155,338"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="165,343,170,348,180,364,182,381,184,395,194,409,223,428,250,441,303,455,353,455,403,447,455,437,511,429,571,430,638,445,683,468,717,493,714,497,680,472,636,451,570,435,511,434,456,442,404,452,354,460,302,460,248,446,220,432,190,413,179,398,177,381,175,366,166,351,161,347"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="168,309,305,280,372,260,374,265,306,285,169,314"/>
+<area shape="rect" id="Node000010" href="$d1/dc3/structregen_1_1_vec2.html" title="A 2D vector." alt="" coords="19,362,155,387"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="168,363,236,349,304,326,356,293,395,260,398,264,359,298,306,330,237,354,169,369"/>
+<area shape="rect" id="Node000011" href="$d5/dee/structregen_1_1_world_time.html" title="World time structure." alt="" coords="342,606,479,631"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="492,611,564,599,636,576,682,548,716,519,719,523,685,553,638,581,565,604,493,616"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,605,168,645"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="182,621,341,617,342,623,182,626"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="329,668,492,708"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="506,692,573,683,606,673,636,658,670,626,696,588,713,550,724,520,729,522,718,552,700,590,674,630,639,662,608,678,574,689,506,697"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="499,504,516,504,661,505,661,511,516,509,498,509"/>
+<area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="480,558,556,553,637,540,701,518,703,523,638,545,557,558,480,563"/>
+<area shape="rect" id="Node000016" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,541,168,581"/>
+<area shape="poly" id="edge19_Node000015_Node000016" title=" " alt="" coords="182,559,354,559,354,564,182,564"/>
+</map>

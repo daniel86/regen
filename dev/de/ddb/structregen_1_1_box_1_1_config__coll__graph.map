@@ -1,0 +1,10 @@
+<map id="regen::Box::Config" name="regen::Box::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="195,185,336,211"/>
+<area shape="rect" id="Node000002" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="5,44,163,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,78,148,118,199,159,241,183,238,187,196,164,144,122,103,82"/>
+<area shape="rect" id="Node000003" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="187,44,344,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="268,83,268,185,263,185,263,83"/>
+<area shape="rect" id="Node000004" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="369,44,557,69"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="444,81,402,122,348,164,299,188,297,183,345,159,399,118,441,78"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="513,39,560,40,577,46,583,57,575,69,555,75,528,76,499,72,500,67,528,70,554,69,572,64,578,57,573,50,559,45,513,44"/>
+</map>

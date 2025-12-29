@@ -1,0 +1,15 @@
+<map id="regen::PersonController" name="regen::PersonController">
+<area shape="rect" id="Node000001" title=" " alt="" coords="86,313,261,339"/>
+<area shape="rect" id="Node000002" href="$dd/d26/classregen_1_1_non_player_character_controller.html" title=" " alt="" coords="75,225,272,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,279,176,313,171,313,171,279"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classregen_1_1_navigation_controller.html" title=" " alt="" coords="72,152,275,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="176,191,176,225,171,225,171,191"/>
+<area shape="rect" id="Node000004" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="17,79,151,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="111,110,160,150,157,154,107,115"/>
+<area shape="rect" id="Node000005" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,5,152,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="83,44,86,78,80,79,78,45"/>
+<area shape="rect" id="Node000006" href="$d0/d72/classregen_1_1_collision_monitor.html" title=" " alt="" coords="179,79,352,104"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="242,114,190,154,187,150,238,110"/>
+<area shape="rect" id="Node000007" href="$dc/d22/classregen_1_1_perception_monitor.html" title=" " alt="" coords="176,5,363,31"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="271,45,269,79,263,78,265,44"/>
+</map>

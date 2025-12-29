@@ -1,0 +1,5 @@
+<map id="regen::PreProcessorState" name="regen::PreProcessorState">
+<area shape="rect" id="Node000001" title="The current state of pre&#45;processing a GLSL code." alt="" coords="5,93,191,119"/>
+<area shape="rect" id="Node000002" href="$d9/d27/structregen_1_1_pre_processor_input.html" title="Specifies input for GLSL pre&#45;processors." alt="" coords="6,5,190,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,45,101,93,95,93,95,45"/>
+</map>

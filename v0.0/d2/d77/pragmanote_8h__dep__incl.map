@@ -1,0 +1,32 @@
+<map id="/home/runner/work/regen/regen/regen/external/osghimmel/pragmanote.h" name="/home/runner/work/regen/regen/regen/external/osghimmel/pragmanote.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="659,5,853,60"/>
+<area shape="rect" id="Node000002" href="$d3/d94/coords_8h.html" title=" " alt="" coords="545,108,732,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="716,71,671,110,668,106,713,67"/>
+<area shape="rect" id="Node000013" href="$d4/d35/twounitschanger_8cpp.html" title=" " alt="" coords="756,108,993,163"/>
+<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="799,67,845,106,842,110,796,71"/>
+<area shape="rect" id="Node000003" href="$d9/dfa/external_2osghimmel_2moon_8h.html" title=" " alt="" coords="651,211,837,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="678,170,718,209,715,213,674,174"/>
+<area shape="rect" id="Node000009" href="$db/d96/external_2osghimmel_2stars_8h.html" title=" " alt="" coords="223,211,409,265"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="542,169,401,213,399,208,541,164"/>
+<area shape="rect" id="Node000011" href="$de/d9e/sun_8h.html" title=" " alt="" coords="440,211,627,265"/>
+<area shape="poly" id="edge11_Node000002_Node000011" title=" " alt="" coords="603,174,563,213,559,209,599,170"/>
+<area shape="rect" id="Node000012" href="$de/d33/sky_2stars_8cpp.html" title=" " alt="" coords="862,218,1055,258"/>
+<area shape="poly" id="edge16_Node000002_Node000012" title=" " alt="" coords="736,164,899,215,898,220,734,169"/>
+<area shape="rect" id="Node000004" href="$dd/d13/astronomy_8cpp.html" title=" " alt="" coords="217,313,415,368"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="638,268,429,316,416,319,415,314,427,311,637,263"/>
+<area shape="rect" id="Node000005" href="$d9/d57/earth_8cpp.html" title=" " alt="" coords="440,313,627,368"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="678,274,589,316,587,311,676,269"/>
+<area shape="rect" id="Node000006" href="$db/d92/external_2osghimmel_2moon_8cpp.html" title=" " alt="" coords="651,313,837,368"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="747,279,747,313,741,313,741,279"/>
+<area shape="rect" id="Node000007" href="$db/df7/sun_8cpp.html" title=" " alt="" coords="861,313,1048,368"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="812,269,901,311,899,316,810,274"/>
+<area shape="rect" id="Node000008" href="$d0/d51/sky_2sky_8cpp.html" title=" " alt="" coords="1072,321,1259,361"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="851,263,851,263,1061,311,1091,318,1089,323,1059,316,850,268,850,268"/>
+<area shape="poly" id="edge9_Node000009_Node000004" title=" " alt="" coords="319,279,319,313,313,313,313,279"/>
+<area shape="rect" id="Node000010" href="$d7/dee/external_2osghimmel_2stars_8cpp.html" title=" " alt="" coords="5,313,192,368"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="248,273,156,316,154,311,246,269"/>
+<area shape="poly" id="edge12_Node000011_Node000004" title=" " alt="" coords="466,273,374,316,372,311,463,269"/>
+<area shape="poly" id="edge13_Node000011_Node000005" title=" " alt="" coords="536,279,536,313,531,313,531,279"/>
+<area shape="poly" id="edge14_Node000011_Node000006" title=" " alt="" coords="602,269,690,311,688,316,599,274"/>
+<area shape="poly" id="edge15_Node000011_Node000007" title=" " alt="" coords="641,263,850,311,862,314,860,319,849,316,639,268"/>
+</map>

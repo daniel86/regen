@@ -1,0 +1,15 @@
+<map id="regen::PerceptionMonitor" name="regen::PerceptionMonitor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="201,5,387,31"/>
+<area shape="rect" id="Node000002" href="$d0/d72/classregen_1_1_collision_monitor.html" title=" " alt="" coords="107,79,281,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="268,41,212,81,209,76,265,36"/>
+<area shape="rect" id="Node000007" href="$dc/d56/classregen_1_1_detection_monitor.html" title=" " alt="" coords="305,79,485,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="323,36,380,76,377,81,320,41"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classregen_1_1_navigation_controller.html" title=" " alt="" coords="93,152,295,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="197,118,197,152,191,152,191,118"/>
+<area shape="rect" id="Node000004" href="$dd/d26/classregen_1_1_non_player_character_controller.html" title=" " alt="" coords="95,225,293,265"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="197,191,197,225,191,225,191,191"/>
+<area shape="rect" id="Node000005" href="$d8/d9d/classregen_1_1_animal_controller.html" title=" " alt="" coords="5,313,183,339"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="161,276,111,315,107,311,157,272"/>
+<area shape="rect" id="Node000006" href="$d7/d03/classregen_1_1_person_controller.html" title=" " alt="" coords="207,313,381,339"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="231,272,281,311,277,315,227,276"/>
+</map>

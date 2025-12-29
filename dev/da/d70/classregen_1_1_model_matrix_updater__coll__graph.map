@@ -1,0 +1,17 @@
+<map id="regen::ModelMatrixUpdater" name="regen::ModelMatrixUpdater">
+<area shape="rect" id="Node000001" title=" " alt="" coords="263,431,464,456"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="113,335,248,361"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,364,342,428,340,433,214,369"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="18,233,165,258"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,267,173,334,169,337,109,270"/>
+<area shape="rect" id="Node000004" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="18,123,165,163"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,176,94,232,89,232,89,176"/>
+<area shape="rect" id="Node000005" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,5,177,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="94,59,94,122,89,122,89,59"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="189,225,351,265"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="246,278,193,337,189,333,242,274"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="272,328,455,368"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="366,382,366,430,361,430,361,382"/>
+<area shape="rect" id="Node000008" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="479,335,584,361"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="500,370,385,433,383,428,497,365"/>
+</map>

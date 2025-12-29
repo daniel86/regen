@@ -1,0 +1,21 @@
+<map id="/home/runner/work/regen/regen/regen/compute/threading.h" name="/home/runner/work/regen/regen/regen/compute/threading.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="208,5,451,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,101,184,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="279,48,139,99,138,94,277,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="208,101,272,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="311,48,264,93,260,89,308,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="296,101,363,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="332,46,332,87,327,87,327,46"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="387,101,450,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="351,44,398,89,395,93,347,48"/>
+<area shape="rect" id="Node000006" href="$d8/ddc/aligned-allocator_8h.html" title=" " alt="" coords="475,93,645,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="381,43,498,86,496,91,379,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="379,181,456,207"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="527,136,451,177,449,172,525,131"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="481,181,546,207"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="551,135,530,171,525,168,546,132"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="570,181,641,207"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="573,132,594,168,589,171,569,135"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="665,181,751,207"/>
+<area shape="poly" id="edge9_Node000006_Node000010" title=" " alt="" coords="597,131,675,172,673,177,594,136"/>
+</map>

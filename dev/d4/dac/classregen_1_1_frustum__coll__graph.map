@@ -1,0 +1,32 @@
+<map id="regen::Frustum" name="regen::Frustum">
+<area shape="rect" id="Node000001" title=" " alt="" coords="755,438,875,463"/>
+<area shape="rect" id="Node000002" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="419,226,587,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="558,254,643,290,689,315,732,345,757,367,778,393,808,436,804,439,774,396,753,371,729,349,687,319,641,295,556,259"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,17,178,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="192,30,242,33,295,42,347,57,396,80,435,114,465,155,486,195,499,225,494,227,481,197,460,158,431,118,393,85,345,62,293,47,241,39,192,36"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="33,82,160,107"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="174,95,282,111,340,126,396,147,426,164,453,185,492,224,488,228,449,189,423,169,394,152,338,131,281,116,174,101"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,132,188,172"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="202,164,296,180,395,201,467,223,465,228,394,207,295,185,201,169"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,196,188,236"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="202,219,419,231,418,237,202,224"/>
+<area shape="rect" id="Node000007" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="44,261,149,286"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="163,268,394,251,418,248,418,253,395,256,163,273"/>
+<area shape="rect" id="Node000008" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="18,323,175,349"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="190,338,480,359,626,377,686,387,732,399,768,416,798,435,795,440,766,421,730,404,685,392,625,382,479,365,189,343"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="189,333,289,324,342,314,394,300,444,276,484,249,487,254,447,281,396,305,344,320,290,329,189,338"/>
+<area shape="rect" id="Node000009" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="13,387,180,413"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="194,399,242,395,294,387,345,373,393,352,426,329,454,301,492,250,496,253,458,305,430,333,396,357,347,378,295,392,243,400,194,404"/>
+<area shape="rect" id="Node000010" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="424,414,581,439"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="595,431,754,443,754,449,595,436"/>
+<area shape="rect" id="Node000011" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="419,464,586,504"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="599,475,730,463,754,459,755,464,731,468,600,481"/>
+<area shape="rect" id="Node000012" href="$d1/dc3/structregen_1_1_vec2.html" title="A 2D vector." alt="" coords="29,471,165,497"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="179,481,419,481,419,487,179,487"/>
+<area shape="rect" id="Node000013" href="$d1/d0b/structregen_1_1_plane.html" title=" " alt="" coords="451,529,554,554"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="568,532,646,518,730,495,764,479,793,461,796,466,766,484,732,500,647,523,569,537"/>
+<area shape="rect" id="Node000014" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="18,529,175,554"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="189,539,451,539,451,544,189,544"/>
+<area shape="rect" id="Node000015" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="421,579,584,619"/>
+<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="597,589,665,574,698,562,729,546,754,527,775,504,804,462,808,465,779,507,758,531,732,550,700,566,666,579,598,594"/>
+</map>

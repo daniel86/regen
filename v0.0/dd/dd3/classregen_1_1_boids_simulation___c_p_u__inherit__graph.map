@@ -1,0 +1,7 @@
+<map id="regen::BoidsSimulation_CPU" name="regen::BoidsSimulation_CPU">
+<area shape="rect" id="Node000001" title="Boids simulation. The boids simulation is a simple flocking simulation. This is a CPU implementation,..." alt="" coords="5,152,212,177"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="41,79,176,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,118,111,152,106,152,106,118"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="35,5,182,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,44,111,79,106,79,106,44"/>
+</map>

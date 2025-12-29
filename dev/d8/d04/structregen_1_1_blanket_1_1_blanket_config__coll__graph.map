@@ -1,0 +1,8 @@
+<map id="regen::Blanket::BlanketConfig" name="regen::Blanket::BlanketConfig">
+<area shape="rect" id="Node000001" title=" " alt="" coords="31,185,246,211"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="5,44,163,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,81,137,184,132,186,91,83"/>
+<area shape="rect" id="Node000003" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="187,44,375,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="271,83,246,123,210,163,170,188,167,183,206,159,242,120,267,80"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="332,39,379,40,395,46,402,57,394,69,374,75,347,76,318,72,319,67,347,70,373,69,391,64,397,57,392,50,378,45,332,44"/>
+</map>

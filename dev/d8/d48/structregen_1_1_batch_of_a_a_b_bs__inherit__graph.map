@@ -1,0 +1,5 @@
+<map id="regen::BatchOfAABBs" name="regen::BatchOfAABBs">
+<area shape="rect" id="Node000001" title="Batch structure for axis&#45;aligned bounding box (AABB) shapes. This structure holds the necessary data ..." alt="" coords="7,79,170,104"/>
+<area shape="rect" id="Node000002" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="5,5,172,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,44,91,79,86,79,86,44"/>
+</map>

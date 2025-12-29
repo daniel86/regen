@@ -1,0 +1,11 @@
+<map id="regen::TimeElapsedQuery" name="regen::TimeElapsedQuery">
+<area shape="rect" id="Node000001" title=" " alt="" coords="60,257,251,283"/>
+<area shape="rect" id="Node000002" href="$da/d64/classregen_1_1_g_l_query.html" title=" " alt="" coords="64,183,247,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,222,158,257,153,257,153,222"/>
+<area shape="rect" id="Node000003" href="$d2/d27/classregen_1_1_g_l_object.html" title="Base class for buffer objects." alt="" coords="92,108,219,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="158,148,158,182,153,182,153,148"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="5,13,132,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="91,46,147,106,143,110,87,50"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="157,5,330,45"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="218,57,168,109,165,106,214,53"/>
+</map>

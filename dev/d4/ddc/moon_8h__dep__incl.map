@@ -1,0 +1,11 @@
+<map id="/home/runner/work/regen/regen/regen/objects/sky/moon.h" name="/home/runner/work/regen/regen/regen/objects/sky/moon.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="321,5,508,60"/>
+<area shape="rect" id="Node000002" href="$dd/d13/astronomy_8cpp.html" title=" " alt="" coords="5,108,192,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="320,67,182,110,180,105,319,62"/>
+<area shape="rect" id="Node000003" href="$d9/d57/earth_8cpp.html" title=" " alt="" coords="216,108,403,163"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="379,72,339,110,335,106,375,68"/>
+<area shape="rect" id="Node000004" href="$d8/d26/moon_8cpp.html" title=" " alt="" coords="427,108,613,163"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="454,68,494,106,491,110,450,72"/>
+<area shape="rect" id="Node000005" href="$dc/dfe/sky_8cpp.html" title=" " alt="" coords="637,108,824,163"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="511,62,649,105,648,110,509,67"/>
+</map>

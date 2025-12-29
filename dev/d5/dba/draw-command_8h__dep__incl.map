@@ -1,0 +1,23 @@
+<map id="/home/runner/work/regen/regen/regen/gl/draw&#45;command.h" name="/home/runner/work/regen/regen/regen/gl/draw&#45;command.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="227,5,465,45"/>
+<area shape="rect" id="Node000002" href="$d8/dd2/mesh_8cpp.html" title=" " alt="" coords="5,101,228,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="288,53,164,103,162,98,286,48"/>
+<area shape="rect" id="Node000003" href="$d6/d36/atmosphere_8cpp.html" title=" " alt="" coords="253,93,439,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="349,59,349,93,343,93,343,59"/>
+<area shape="rect" id="Node000004" href="$d8/d58/lod-state_8h.html" title=" " alt="" coords="463,93,650,148"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="402,48,498,91,496,96,400,53"/>
+<area shape="rect" id="Node000005" href="$dc/d74/mesh-processor_8cpp.html" title=" " alt="" coords="245,196,439,251"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="490,156,399,198,397,194,487,151"/>
+<area shape="rect" id="Node000006" href="$d6/d35/node-processor_8h.html" title=" " alt="" coords="463,196,650,251"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="559,162,559,196,554,196,554,162"/>
+<area shape="rect" id="Node000011" href="$de/df7/lod-state_8cpp.html" title=" " alt="" coords="674,196,861,251"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="625,151,714,194,711,198,623,156"/>
+<area shape="rect" id="Node000007" href="$d7/d91/geometric-picking_8cpp.html" title=" " alt="" coords="103,299,325,353"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="455,257,304,301,303,296,453,252"/>
+<area shape="rect" id="Node000008" href="$dd/dff/horizon-divider_8cpp.html" title=" " alt="" coords="349,299,548,353"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="520,262,479,301,475,297,516,258"/>
+<area shape="rect" id="Node000009" href="$db/d42/scene-loader_8cpp.html" title=" " alt="" coords="572,299,760,353"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="597,258,639,297,636,301,594,262"/>
+<area shape="rect" id="Node000010" href="$da/d59/direct-shading_8cpp.html" title=" " alt="" coords="785,299,985,353"/>
+<area shape="poly" id="edge9_Node000006_Node000010" title=" " alt="" coords="656,252,800,296,798,301,655,257"/>
+</map>

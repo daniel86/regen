@@ -1,0 +1,5 @@
+<map id="regen::HitBuffer" name="regen::HitBuffer">
+<area shape="rect" id="Node000001" title="Buffer for storing hit shape indices." alt="" coords="18,108,143,133"/>
+<area shape="rect" id="Node000002" href="$d7/d7a/structregen_1_1_aligned_array.html" title=" " alt="" coords="5,5,156,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,59,83,108,78,108,78,59"/>
+</map>

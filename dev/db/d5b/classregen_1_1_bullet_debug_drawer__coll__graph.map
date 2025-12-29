@@ -1,0 +1,14 @@
+<map id="regen::BulletDebugDrawer" name="regen::BulletDebugDrawer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="115,183,309,208"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,120,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,137,189,180,187,185,98,142"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="145,108,279,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,148,215,182,209,182,209,148"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="294,113,306,121,298,128,280,130,279,125,296,123,301,121,292,118"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="131,5,293,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="215,59,215,108,209,108,209,59"/>
+<area shape="rect" id="Node000005" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="381,108,518,133"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="399,140,250,185,249,180,398,135"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="368,5,531,45"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="452,59,452,108,447,108,447,59"/>
+</map>

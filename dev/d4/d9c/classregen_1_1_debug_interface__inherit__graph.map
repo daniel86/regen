@@ -1,0 +1,7 @@
+<map id="regen::DebugInterface" name="regen::DebugInterface">
+<area shape="rect" id="Node000001" title=" " alt="" coords="124,5,291,31"/>
+<area shape="rect" id="Node000002" href="$d8/daf/classregen_1_1_spatial_index_debug.html" title=" " alt="" coords="5,79,196,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,40,120,81,117,76,178,36"/>
+<area shape="rect" id="Node000003" href="$d2/dc4/classregen_1_1_world_model_debug.html" title=" " alt="" coords="221,79,407,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,36,298,76,295,81,234,40"/>
+</map>

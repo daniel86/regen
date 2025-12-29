@@ -1,0 +1,42 @@
+<map id="regen::ProcTree" name="regen::ProcTree">
+<area shape="rect" id="Node000001" title=" " alt="" coords="677,516,800,541"/>
+<area shape="rect" id="Node000002" href="$d9/dc0/class_proctree_1_1_tree.html" title=" " alt="" coords="373,155,483,180"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="454,188,545,280,655,406,700,466,732,514,727,517,695,469,651,409,541,284,450,191"/>
+<area shape="rect" id="Node000003" href="$dc/d2e/class_proctree_1_1_properties.html" title=" " alt="" coords="24,5,175,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="189,21,249,33,309,56,344,78,375,105,419,153,415,156,372,108,341,82,307,60,248,39,188,27"/>
+<area shape="rect" id="Node000004" href="$db/d71/struct_proctree_1_1fvec3.html" title=" " alt="" coords="39,95,159,120"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="174,113,309,134,383,152,382,157,307,139,173,118"/>
+<area shape="rect" id="Node000005" href="$da/da3/struct_proctree_1_1fvec2.html" title=" " alt="" coords="39,155,159,180"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="173,165,372,165,372,170,173,170"/>
+<area shape="rect" id="Node000006" href="$d2/d78/struct_proctree_1_1ivec3.html" title=" " alt="" coords="40,215,159,240"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="172,219,238,211,307,199,388,177,390,183,309,205,239,216,173,224"/>
+<area shape="rect" id="Node000007" href="$d3/d6e/structregen_1_1_proc_tree_1_1_tree_mesh.html" title=" " alt="" coords="332,404,524,429"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="515,430,584,448,654,473,692,493,722,514,719,518,689,498,652,478,582,453,513,435"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="18,265,181,305"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="195,291,252,304,309,324,341,341,371,363,416,402,412,406,368,367,339,346,307,328,251,309,194,297"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="18,329,181,369"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="195,366,366,401,365,407,194,371"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="18,393,181,433"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="195,411,332,413,332,418,194,416"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="18,457,181,497"/>
+<area shape="poly" id="edge10_Node000007_Node000011" title=" " alt="" coords="194,457,357,427,358,432,195,462"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="18,521,181,561"/>
+<area shape="poly" id="edge11_Node000007_Node000012" title=" " alt="" coords="184,514,307,472,401,427,404,432,309,476,186,519"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="347,477,509,517"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="524,504,677,520,677,525,523,509"/>
+<area shape="rect" id="Node000014" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="347,541,509,581"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="523,550,653,537,677,534,678,539,654,542,523,555"/>
+<area shape="rect" id="Node000015" href="$dd/d12/structregen_1_1_silhouette_mesh_1_1_config.html" title=" " alt="" coords="344,633,512,673"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="501,626,652,568,712,539,714,544,654,572,503,631"/>
+<area shape="rect" id="Node000016" href="$d8/d34/structregen_1_1_silhouette_config.html" title=" " alt="" coords="12,585,187,611"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="201,606,308,622,347,630,346,635,308,627,200,611"/>
+<area shape="rect" id="Node000017" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="21,640,178,665"/>
+<area shape="poly" id="edge16_Node000015_Node000017" title=" " alt="" coords="192,651,217,651,308,651,344,651,344,656,308,657,217,657,192,656"/>
+<area shape="rect" id="Node000018" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="21,689,178,715"/>
+<area shape="poly" id="edge17_Node000015_Node000018" title=" " alt="" coords="191,689,308,673,343,667,344,672,308,678,192,694"/>
+<area shape="rect" id="Node000019" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="5,865,193,891"/>
+<area shape="poly" id="edge18_Node000015_Node000019" title=" " alt="" coords="127,854,209,790,306,707,318,694,330,682,354,670,356,675,334,687,321,698,310,711,212,794,130,859"/>
+<area shape="poly" id="edge19_Node000019_Node000019" title=" " alt="" coords="67,851,77,842,99,839,118,841,129,847,132,857,127,867,122,864,127,856,125,851,116,846,99,844,79,847,71,855"/>
+<area shape="rect" id="Node000020" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="339,697,517,737"/>
+<area shape="poly" id="edge20_Node000001_Node000020" title=" " alt="" coords="530,697,593,676,624,661,652,644,678,619,701,591,729,540,734,543,705,594,682,623,655,648,626,666,595,681,532,702"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="regen::BoundingShape" name="regen::BoundingShape">
+<area shape="rect" id="Node000001" title="Bounding shape." alt="" coords="419,199,587,225"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,13,178,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,30,241,34,294,43,347,58,396,80,431,107,460,140,497,198,493,201,456,143,427,111,393,85,345,63,292,48,240,39,191,35"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="33,78,160,103"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,94,281,110,339,124,396,143,447,169,487,197,484,201,444,174,394,148,338,129,279,116,173,99"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,128,188,168"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="202,160,395,189,436,197,435,202,394,195,201,165"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,192,188,232"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="202,209,418,209,418,215,202,215"/>
+<area shape="rect" id="Node000006" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="44,257,149,282"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="163,260,394,229,437,222,438,227,395,235,163,265"/>
+<area shape="rect" id="Node000007" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="18,306,175,331"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="189,320,290,313,343,304,394,288,422,274,448,257,487,223,491,227,451,261,424,279,396,293,344,309,290,318,189,325"/>
+<area shape="rect" id="Node000008" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="13,355,180,381"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="194,376,242,376,294,371,345,360,393,340,428,315,457,282,479,250,493,224,498,226,483,252,461,286,432,319,396,345,347,365,294,376,242,381,194,381"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="regen::StagingSystem" name="regen::StagingSystem">
+<area shape="rect" id="Node000001" title="A staging system that manages staging buffers for buffer objects (BOs)." alt="" coords="5,108,171,133"/>
+<area shape="rect" id="Node000002" href="$d6/dd7/structregen_1_1_staging_system_1_1_staging_statistics.html" title=" " alt="" coords="5,5,171,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,59,91,108,85,108,85,59"/>
+</map>

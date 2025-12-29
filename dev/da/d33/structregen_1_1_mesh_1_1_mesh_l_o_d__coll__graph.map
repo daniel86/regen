@@ -1,0 +1,7 @@
+<map id="regen::Mesh::MeshLOD" name="regen::Mesh::MeshLOD">
+<area shape="rect" id="Node000001" title="A mesh level of detail (LOD) description." alt="" coords="147,108,319,133"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,240,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,52,221,106,218,110,154,56"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="264,5,427,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="314,56,249,110,246,106,310,52"/>
+</map>

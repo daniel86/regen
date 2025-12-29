@@ -1,0 +1,23 @@
+<map id="regen::PrefixScan" name="regen::PrefixScan">
+<area shape="rect" id="Node000001" title="Prefix scan state. This state is used to compute a prefix sum (scan) over a buffer...." alt="" coords="1283,217,1417,242"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="945,71,1047,97"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1061,71,1107,69,1158,71,1211,80,1260,100,1292,126,1317,158,1335,190,1346,215,1341,217,1330,192,1312,161,1288,130,1257,105,1209,86,1158,76,1107,74,1061,77"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="645,22,792,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="805,47,945,72,944,78,804,52"/>
+<area shape="rect" id="Node000004" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="352,15,499,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="512,32,645,32,645,37,512,37"/>
+<area shape="rect" id="Node000005" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,15,177,55"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,32,352,32,352,37,191,37"/>
+<area shape="rect" id="Node000006" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="655,71,782,97"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="796,81,945,81,945,87,796,87"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,121,812,175"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="825,121,944,93,946,98,826,126"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="915,128,1077,168"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1092,147,1174,155,1260,175,1300,193,1333,214,1330,218,1297,198,1258,180,1173,160,1091,152"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="915,291,1077,331"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1091,327,1131,330,1174,329,1217,324,1258,312,1283,298,1306,279,1338,241,1342,244,1310,282,1286,302,1260,317,1218,329,1174,335,1131,335,1091,332"/>
+<area shape="rect" id="Node000010" href="$dc/d65/classregen_1_1_state_configurer.html" title="Shader configuration based on State&#39;s." alt="" coords="912,387,1080,413"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1057,413,1103,420,1156,422,1209,415,1234,407,1257,395,1277,380,1294,361,1319,318,1336,274,1344,241,1349,243,1341,276,1324,320,1298,364,1281,384,1260,400,1236,412,1210,420,1156,427,1103,425,1056,418"/>
+<area shape="rect" id="Node000011" href="$d8/db5/structregen_1_1_state_config.html" title="Configures a Shader object." alt="" coords="647,387,790,413"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="803,397,912,397,912,403,803,403"/>
+</map>

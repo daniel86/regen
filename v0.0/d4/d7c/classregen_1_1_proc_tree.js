@@ -1,0 +1,35 @@
+var classregen_1_1_proc_tree =
+[
+    [ "ProcMesh", "db/dae/structregen_1_1_proc_tree_1_1_proc_mesh.html", "db/dae/structregen_1_1_proc_tree_1_1_proc_mesh" ],
+    [ "TreeMesh", "d3/d6e/structregen_1_1_proc_tree_1_1_tree_mesh.html", "d3/d6e/structregen_1_1_proc_tree_1_1_tree_mesh" ],
+    [ "Preset", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44", [
+      [ "PRESET_NONE", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44a5658baa22432097aa365577ad2fbe43a", null ],
+      [ "PRESET_FIR", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44a6fc7c1e029da0f945462342c386e90a5", null ],
+      [ "PRESET_OAK_GREEN", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44ae9c97df19df5983aee383bf01b187342", null ],
+      [ "PRESET_OAK_RED", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44add7da8b1429234682ae3f288334819d7", null ],
+      [ "PRESET_OLIVE", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44ab43ccf4e9ffe59c3dc0859fcc459781e", null ],
+      [ "PRESET_PINE", "d4/d7c/classregen_1_1_proc_tree.html#a7a265d4d18bf691b2fc699773c943b44a989c86271e4a6fe986dd7ce91f361809", null ]
+    ] ],
+    [ "ProcTree", "d4/d7c/classregen_1_1_proc_tree.html#a0add4cc00b976b61dc1c995143237122", null ],
+    [ "ProcTree", "d4/d7c/classregen_1_1_proc_tree.html#a131d0437402bbc5c940b08757824c00a", null ],
+    [ "ProcTree", "d4/d7c/classregen_1_1_proc_tree.html#ad50bc9a8e723b1dce5d2c4432c1ca444", null ],
+    [ "computeLowDetailTree", "d4/d7c/classregen_1_1_proc_tree.html#a91e04721d3aee1ea33cc4f5fdd69288d", null ],
+    [ "computeMediumDetailTree", "d4/d7c/classregen_1_1_proc_tree.html#aa08038f151ba9aac90be12f5ecabaa80", null ],
+    [ "loadPreset", "d4/d7c/classregen_1_1_proc_tree.html#a55c903b5d82d385559778d0631bf73d7", null ],
+    [ "properties", "d4/d7c/classregen_1_1_proc_tree.html#aacbc0961a460e7112618813c48c4c541", null ],
+    [ "setUseLODs", "d4/d7c/classregen_1_1_proc_tree.html#a09efc9e171dcab79362c289223492971", null ],
+    [ "trunkMesh", "d4/d7c/classregen_1_1_proc_tree.html#ada23a0334d3c91c69ab75ab4640e7dba", null ],
+    [ "twigMesh", "d4/d7c/classregen_1_1_proc_tree.html#a519c57923fcdbab3f826882e30f5bd9d", null ],
+    [ "update", "d4/d7c/classregen_1_1_proc_tree.html#a4526c5b0eab7b93e03f58f70e912ef70", null ],
+    [ "updateAttributes", "d4/d7c/classregen_1_1_proc_tree.html#a85e99c5fe7c19fe742dd029a07ba2145", null ],
+    [ "updateTrunkAttributes", "d4/d7c/classregen_1_1_proc_tree.html#a296b1a306365511473d8f86b78746040", null ],
+    [ "updateTwigAttributes", "d4/d7c/classregen_1_1_proc_tree.html#a83f08b81159839c0e8f703a0b933fe30", null ],
+    [ "handle", "d4/d7c/classregen_1_1_proc_tree.html#a2d54182fe96a553e56733addec9231bc", null ],
+    [ "lodLow_", "d4/d7c/classregen_1_1_proc_tree.html#adf85b8b20a646d5030814c4a562b438d", null ],
+    [ "lodMedium_", "d4/d7c/classregen_1_1_proc_tree.html#a3142f85934a4a90113a4be3c4246c0e6", null ],
+    [ "trunk", "d4/d7c/classregen_1_1_proc_tree.html#a8fca41580b88de84201250e21b078dc5", null ],
+    [ "trunkMaterial_", "d4/d7c/classregen_1_1_proc_tree.html#a112aab7876c1141ea62bd3bb7a43a8db", null ],
+    [ "twig", "d4/d7c/classregen_1_1_proc_tree.html#a54af01d53facafcfa75ec88b2516cba6", null ],
+    [ "twigMaterial_", "d4/d7c/classregen_1_1_proc_tree.html#a43b7adc848c606bf6cfeb07ea7af5b63", null ],
+    [ "useLODs_", "d4/d7c/classregen_1_1_proc_tree.html#a7149795c65baf0710c277677f3e80a64", null ]
+];

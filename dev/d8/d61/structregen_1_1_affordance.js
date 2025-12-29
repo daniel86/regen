@@ -1,0 +1,26 @@
+var structregen_1_1_affordance =
+[
+    [ "Affordance", "d8/d61/structregen_1_1_affordance.html#a090a71648b4455331143dd5560b01cea", null ],
+    [ "computeSlotPosition", "d8/d61/structregen_1_1_affordance.html#aef2b495ddd65be01936de6774ab5cec8", null ],
+    [ "hasFreeSlot", "d8/d61/structregen_1_1_affordance.html#ac56a3af2591e8595653fca23b7becac8", null ],
+    [ "initialize", "d8/d61/structregen_1_1_affordance.html#aa31c058f0f5eb10df4c2e8a3d41db674", null ],
+    [ "releaseSlot", "d8/d61/structregen_1_1_affordance.html#a5667a9cd94b8d34139ec6235a8fa6e2a", null ],
+    [ "reserveSlot", "d8/d61/structregen_1_1_affordance.html#a90f922bc149810d1515edc8879c32c6a", null ],
+    [ "slotPosition", "d8/d61/structregen_1_1_affordance.html#a6f3078a5fc099a6276d035e87f8c12f7", null ],
+    [ "tfStamp", "d8/d61/structregen_1_1_affordance.html#a635e648412733d2737d51d1a2640c39b", null ],
+    [ "baseOffset", "d8/d61/structregen_1_1_affordance.html#aebcb582f3b97ebcea40c8a1ffbe2a469", null ],
+    [ "freeSlots", "d8/d61/structregen_1_1_affordance.html#a254f8f4799e558ca45fb389405c206f3", null ],
+    [ "layout", "d8/d61/structregen_1_1_affordance.html#aabd967dabfe630847e4df1ac0212858f", null ],
+    [ "localStamp_", "d8/d61/structregen_1_1_affordance.html#a1ddae4a89fe27768c534938f9fff280d", null ],
+    [ "minDistance", "d8/d61/structregen_1_1_affordance.html#a32c8fc3b0c51335b9356449092033b12", null ],
+    [ "name", "d8/d61/structregen_1_1_affordance.html#aab4f07cf49db16e347c79734d91d2b51", null ],
+    [ "numRings", "d8/d61/structregen_1_1_affordance.html#af969da11bb53eff7fabe06d12513aca4", null ],
+    [ "owner", "d8/d61/structregen_1_1_affordance.html#afc4024cb5b6933e819c1d3808365b300", null ],
+    [ "radius", "d8/d61/structregen_1_1_affordance.html#add69c275aaafa373fe62df55a6eec8ec", null ],
+    [ "slotCount", "d8/d61/structregen_1_1_affordance.html#a0eb8ef211046b2532052cb6be8ee419b", null ],
+    [ "slotPositions", "d8/d61/structregen_1_1_affordance.html#afacaf92f6b7484ecb8b9a73acdc9ffb4", null ],
+    [ "slotStamps", "d8/d61/structregen_1_1_affordance.html#a072846677a820cc33db79e9d6ec273ac", null ],
+    [ "spacing", "d8/d61/structregen_1_1_affordance.html#aced2f45f2d39fc7e7f300c640b0029d8", null ],
+    [ "type", "d8/d61/structregen_1_1_affordance.html#a1943cffb37d0cdbf52d12aaca563aedc", null ],
+    [ "users", "d8/d61/structregen_1_1_affordance.html#a9338d1016826755a2f2940e15051e53a", null ]
+];

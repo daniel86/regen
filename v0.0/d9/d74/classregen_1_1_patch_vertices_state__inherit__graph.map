@@ -1,0 +1,9 @@
+<map id="regen::PatchVerticesState" name="regen::PatchVerticesState">
+<area shape="rect" id="Node000001" title="Specifies the number of vertices that will be used to make up a single patch primitive." alt="" coords="5,225,193,251"/>
+<area shape="rect" id="Node000002" href="$d5/d27/classregen_1_1_server_side_state.html" title="Base class for &#39;atomic&#39; states." alt="" coords="14,152,185,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,191,102,225,97,225,97,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="49,79,150,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="102,118,102,152,97,152,97,118"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="26,5,173,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="102,44,102,79,97,79,97,44"/>
+</map>

@@ -1,0 +1,25 @@
+var structregen_1_1_buffer_flags =
+[
+    [ "BufferFlags", "d8/d35/structregen_1_1_buffer_flags.html#aa7f52f8009ed4daba8df443524ac9ceb", null ],
+    [ "BufferFlags", "d8/d35/structregen_1_1_buffer_flags.html#ad29ac42ccbd35b584643f2702e75ea8d", null ],
+    [ "areUpdatesFrequent", "d8/d35/structregen_1_1_buffer_flags.html#a185b7d1b5e03ad24bc281b44d2191845", null ],
+    [ "areUpdatesPartial", "d8/d35/structregen_1_1_buffer_flags.html#a0657f146c1e33da4183be96fcaae00fb", null ],
+    [ "areUpdatesPerDraw", "d8/d35/structregen_1_1_buffer_flags.html#ae7b80ed2e7c847bde6f424556b091785", null ],
+    [ "areUpdatesPerFrame", "d8/d35/structregen_1_1_buffer_flags.html#ac014734a6d3371a2e03c7aec5a5ce3d1", null ],
+    [ "areUpdatesRare", "d8/d35/structregen_1_1_buffer_flags.html#a4d56cc55a34fedefe708ccbff0bcfb7f", null ],
+    [ "areUpdatesVeryFrequent", "d8/d35/structregen_1_1_buffer_flags.html#a4df3c7726bb4331c4f14799a9a100213", null ],
+    [ "isMappable", "d8/d35/structregen_1_1_buffer_flags.html#a83fc9648a1c393192a15277af7e6e6a6", null ],
+    [ "isReadable", "d8/d35/structregen_1_1_buffer_flags.html#a6dd18d8c976e8b23a21abd49db2d6371", null ],
+    [ "isWritable", "d8/d35/structregen_1_1_buffer_flags.html#acdbb166105698d5026ae17e661aa42b5", null ],
+    [ "useExplicitFlushing", "d8/d35/structregen_1_1_buffer_flags.html#a76ed5383f626e4ce9a569c61e8949b16", null ],
+    [ "useExplicitStaging", "d8/d35/structregen_1_1_buffer_flags.html#a099b75fa8149d12d5a5edb09b0cedb98", null ],
+    [ "useFrameDropping", "d8/d35/structregen_1_1_buffer_flags.html#aa03a9b5fd62da259c72ac09ba29253ab", null ],
+    [ "useImplicitStaging", "d8/d35/structregen_1_1_buffer_flags.html#a106959b75ce372f6465766e4c0928d1d", null ],
+    [ "useSyncFences", "d8/d35/structregen_1_1_buffer_flags.html#af55e5dcf5eb5c85b843e134243cacce6", null ],
+    [ "accessMode", "d8/d35/structregen_1_1_buffer_flags.html#a8e374d309655f4d5994f045aa38b54c9", null ],
+    [ "bufferingMode", "d8/d35/structregen_1_1_buffer_flags.html#a65874a3d807ba8fad8caebf715806ff7", null ],
+    [ "mapMode", "d8/d35/structregen_1_1_buffer_flags.html#aa6734aa60090b38f0bcf537e92ad4045", null ],
+    [ "syncFlags", "d8/d35/structregen_1_1_buffer_flags.html#abcfc2cc0eebdcdbcab842a0d156226d8", null ],
+    [ "target", "d8/d35/structregen_1_1_buffer_flags.html#acd9354c0e27cb48df0813c554f04db64", null ],
+    [ "updateHints", "d8/d35/structregen_1_1_buffer_flags.html#ac4b60218c9d718c61bdc3b7a2b63115d", null ]
+];
