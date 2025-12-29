@@ -25,7 +25,8 @@ jobs:
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
             libpng-dev libalut-dev \
             qtbase5-dev libgtest-dev \
-            doxygen graphviz
+            doxygen graphviz \
+            nlohmann-json3-dev
         mkdir build
         cd build
         cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DBUILD_VIDEO_PLAYER=ON
