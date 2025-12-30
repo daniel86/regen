@@ -17,6 +17,7 @@ jobs:
     - name: Build REGEN workspace
       shell: bash
       run: |
+        set -euo pipefail
         sudo apt-get update -y -qq
         sudo apt-get install libgl-dev \
             libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
@@ -61,6 +62,7 @@ jobs:
         path: ./gtest-regen.xml
   ##############################
   debian-package:
+    needs: build-linux
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
@@ -68,6 +70,7 @@ jobs:
       if: ${{github.event_name == 'push' || github.event_name == 'release'}}
       shell: bash
       run: |
+        set -euo pipefail
         sudo apt-get update -y -qq
         sudo apt-get install libgl-dev \
             libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
@@ -98,6 +101,7 @@ jobs:
         path: ./build/regen-*.deb
   ##############################
   doxygen:
+    needs: build-linux
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
@@ -105,6 +109,7 @@ jobs:
       if: ${{github.event_name == 'push' || github.event_name == 'release'}}
       shell: bash
       run: |
+        set -euo pipefail
         sudo apt-get update -y -qq
         sudo apt-get install libgl-dev \
             libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
