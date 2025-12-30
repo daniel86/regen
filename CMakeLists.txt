@@ -75,7 +75,7 @@ endif()
 # given in the books "Effective C++" and "More Effective C++"
 # add_definitions( -Weffc++ )
 
-if(UNIX) # gcc options
+if(UNIX AND NOT APPLE)
     add_definitions( -mfpmath=sse -march=native )
 endif()
 
