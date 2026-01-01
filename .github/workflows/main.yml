@@ -12,7 +12,6 @@ jobs:
   build-linux:
     runs-on: ubuntu-24.04
     steps:
-    # Note: some steps require the checkout in the root directory
     - uses: actions/checkout@v3
     - name: Build REGEN workspace
       shell: bash
@@ -31,13 +30,16 @@ jobs:
             nlohmann-json3-dev
         mkdir build
         cd build
-        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DBUILD_VIDEO_PLAYER=ON
+        cmake ../ \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_UNIT_TESTS=ON \
+          -DBUILD_TESTS=ON \
+          -DBUILD_VIDEO_PLAYER=ON
         make -j$(nproc) 2> >(tee "make-output.txt")
     - name: Annotate compilation warnings/errors
       if: ${{github.event_name == 'pull_request'}}
       uses: JacobDomagala/CompileResult@master
       # just so that in case this step fails, the workflow doesn't stop.
-      # this is done as it is unclear how well the action is maintained.
       continue-on-error: true
       with:
         comment_title: Compilation
@@ -60,6 +62,25 @@ jobs:
       with:
         name: test results
         path: ./gtest-regen.xml
+  ##############################
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: brew install cmake gcc simde boost assimp openal-soft freetype bullet \
+            glew qt5 doxygen graphviz devil ffmpeg alut nlohmann-json googletest
+      - name: Build REGEN workspace
+        run: |
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-14 -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-14 \
+            -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/qt@5" \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON \
+            -DREGEN_EXTRA_INCLUDE_DIRS="/opt/homebrew/opt/openal-soft/include/" \
+            ../
+          make
   ##############################
   debian-package:
     needs: build-linux
