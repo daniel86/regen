@@ -20,7 +20,7 @@ jobs:
         sudo apt-get update -y -qq
         sudo apt-get install libgl-dev \
             libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
-            libboost-regex-dev libboost-timer-dev \
+            libboost-regex-dev libboost-timer-dev libsimde-dev \
             libassimp-dev libopenal-dev libdevil-dev libfreetype-dev libbullet-dev \
             libglew-dev libglu1-mesa-dev libgl1-mesa-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
@@ -94,7 +94,7 @@ jobs:
         sudo apt-get update -y -qq
         sudo apt-get install libgl-dev \
             libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
-            libboost-regex-dev libboost-timer-dev \
+            libboost-regex-dev libboost-timer-dev libsimde-dev \
             libassimp-dev libopenal-dev libdevil-dev libfreetype-dev libbullet-dev \
             libglew-dev libglu1-mesa-dev libgl1-mesa-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
@@ -133,7 +133,7 @@ jobs:
         sudo apt-get update -y -qq
         sudo apt-get install libgl-dev \
             libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
-            libboost-regex-dev libboost-timer-dev \
+            libboost-regex-dev libboost-timer-dev libsimde-dev \
             libassimp-dev libopenal-dev libdevil-dev libfreetype-dev libbullet-dev \
             libglew-dev libglu1-mesa-dev libgl1-mesa-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
