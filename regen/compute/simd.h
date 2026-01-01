@@ -4,21 +4,31 @@
 #include <regen/compute/vector.h>
 #include <regen/memory/aligned-allocator.h>
 
-// NOTE: Check for REGEN_HAS_SIMD, if it is not defined, the SIMD operations will be disabled
-//       and the code here will fall back to scalar operations.
-// NOLINTBEGIN(portability-simd-intrinsics)
-#if defined(__AVX__)
-	#include <immintrin.h> // AVX
-	#define REGEN_SIMD_MODE AVX
-	#define REGEN_SIMD_WIDTH 8
-	#define REGEN_HAS_SIMD
-#elif defined(__SSE__)
-	#include <xmmintrin.h> // SSE
-	#define REGEN_SIMD_MODE SSE
-	#define REGEN_SIMD_WIDTH 4
-	#define REGEN_HAS_SIMD
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/simde-common.h>
+#include <simde/x86/avx.h>
+#include <simde/x86/avx2.h>
+#include <simde/x86/fma.h>
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
+
+#define REGEN_SIMD_NONE 0
+#define REGEN_SIMD_SSE 1
+#define REGEN_SIMD_AVX 2
+
+#if defined(SIMDE_NATURAL_VECTOR_SIZE)
+	#if SIMDE_NATURAL_VECTOR_SIZE >= 32
+		#define REGEN_SIMD_MODE  REGEN_SIMD_AVX
+		#define REGEN_SIMD_WIDTH 8
+	#elif SIMDE_NATURAL_VECTOR_SIZE >= 16
+		#define REGEN_SIMD_MODE  REGEN_SIMD_SSE
+		#define REGEN_SIMD_WIDTH 4
+	#else
+		#define REGEN_SIMD_MODE  REGEN_SIMD_NONE
+		#define REGEN_SIMD_WIDTH 1
+	#endif
 #else
-	#define REGEN_SIMD_MODE NONE
+	#define REGEN_SIMD_MODE  REGEN_SIMD_NONE
 	#define REGEN_SIMD_WIDTH 1
 #endif
 
@@ -32,236 +42,236 @@ namespace regen::simd {
 		return bitIndex;
 	}
 
-#if REGEN_SIMD_MODE == AVX
+#if REGEN_SIMD_MODE == REGEN_SIMD_AVX
 	static constexpr int8_t RegisterMask = 0xFF; // 8 bits for AVX
-	using Register = __m256; // 8 floats
-	using Register_i = __m256i; // 8 integers
+	using Register = simde__m256; // 8 floats
+	using Register_i = simde__m256i; // 8 integers
 
-	inline __m256 set1_ps(float v) { return _mm256_set1_ps(v); }
-	inline __m256i set1_epi32(int32_t v) { return _mm256_set1_epi32(v); }
-	inline __m256i set1_epi16(uint16_t v) { return _mm256_set1_epi16(v); }
-	inline __m256i set1_epi64(int64_t v) { return _mm256_set1_epi64x(v); }
-	inline __m256i set1_epi64u(uint64_t v) { return _mm256_set1_epi64x(v); }
+	inline Register set1_ps(float v) { return simde_mm256_set1_ps(v); }
+	inline Register_i set1_epi32(int32_t v) { return simde_mm256_set1_epi32(v); }
+	inline Register_i set1_epi16(uint16_t v) { return simde_mm256_set1_epi16(v); }
+	inline Register_i set1_epi64(int64_t v) { return simde_mm256_set1_epi64x(v); }
+	inline Register_i set1_epi64u(uint64_t v) { return simde_mm256_set1_epi64x(v); }
 
-	inline __m256 setzero_ps() { return _mm256_setzero_ps(); }
-	inline __m256i setzero_si256() { return _mm256_setzero_si256(); }
+	inline Register setzero_ps() { return simde_mm256_setzero_ps(); }
+	inline Register_i setzero_si256() { return simde_mm256_setzero_si256(); }
 
-	inline __m256 load_ps(const float *p) { return _mm256_load_ps(p); }
-	inline __m256 loadu_ps(const float *p) { return _mm256_loadu_ps(p); }
+	inline Register load_ps(const float *p) { return simde_mm256_load_ps(p); }
+	inline Register loadu_ps(const float *p) { return simde_mm256_loadu_ps(p); }
 
-	inline __m256i load_si256(const uint16_t *p) {
-		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	inline Register_i load_si256(const uint16_t *p) {
+		return simde_mm256_load_si256(reinterpret_cast<const Register_i*>(p));
 	}
-	inline __m256i load_si256(const uint32_t *p) {
-		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	inline Register_i load_si256(const uint32_t *p) {
+		return simde_mm256_load_si256(reinterpret_cast<const Register_i*>(p));
 	}
-	inline __m256i load_si256(const uint64_t *p) {
-		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	inline Register_i load_si256(const uint64_t *p) {
+		return simde_mm256_load_si256(reinterpret_cast<const Register_i*>(p));
 	}
-	inline __m256i load_si256(const int32_t *p) {
-		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
-	}
-
-	inline __m256i loadu_si256(const uint16_t *p) {
-		return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
-	}
-	inline __m256i loadu_si256(const uint32_t *p) {
-		return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
-	}
-	inline __m256i loadu_si256(const uint64_t *p) {
-		return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
-	}
-	inline __m256i loadu_si256(const int32_t *p) {
-		return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
+	inline Register_i load_si256(const int32_t *p) {
+		return simde_mm256_load_si256(reinterpret_cast<const Register_i*>(p));
 	}
 
-	inline __m256 epi_to_ps(const __m256i &v) { return _mm256_castsi256_ps(v); }
-
-	inline __m256 i32gather_ps(const float *p, const __m256i &indices) {
-		return _mm256_i32gather_ps(p, indices, sizeof(float));
+	inline Register_i loadu_si256(const uint16_t *p) {
+		return simde_mm256_loadu_si256(reinterpret_cast<const Register_i*>(p));
+	}
+	inline Register_i loadu_si256(const uint32_t *p) {
+		return simde_mm256_loadu_si256(reinterpret_cast<const Register_i*>(p));
+	}
+	inline Register_i loadu_si256(const uint64_t *p) {
+		return simde_mm256_loadu_si256(reinterpret_cast<const Register_i*>(p));
+	}
+	inline Register_i loadu_si256(const int32_t *p) {
+		return simde_mm256_loadu_si256(reinterpret_cast<const Register_i*>(p));
 	}
 
-	inline void storeu_ps(float *p, const __m256 &v) { _mm256_storeu_ps(p, v); }
-	inline void store_ps(float *p, const __m256 &v) { _mm256_store_ps(p, v); }
+	inline Register epi_to_ps(const Register_i &v) { return simde_mm256_castsi256_ps(v); }
 
-	inline void storeu_epi32(int32_t *p, const __m256i &v) {
-		_mm256_storeu_si256(reinterpret_cast<__m256i*>(p), v);
-	}
-	inline void storeu_epi32(uint32_t *p, const __m256i &v) {
-		_mm256_storeu_si256(reinterpret_cast<__m256i*>(p), v);
-	}
-	inline void store_epi32(int32_t *p, const __m256i &v) {
-		_mm256_store_si256(reinterpret_cast<__m256i*>(p), v);
-	}
-	inline void store_epi32(uint32_t *p, const __m256i &v) {
-		_mm256_store_si256(reinterpret_cast<__m256i*>(p), v);
+	inline Register i32gather_ps(const float *p, const Register_i &indices) {
+		return simde_mm256_i32gather_ps(p, indices, sizeof(float));
 	}
 
-	inline __m256 add_ps(const __m256 &a, const __m256 &b) { return _mm256_add_ps(a, b); }
-	inline __m256 sub_ps(const __m256 &a, const __m256 &b) { return _mm256_sub_ps(a, b); }
-	inline __m256 mul_ps(const __m256 &a, const __m256 &b) { return _mm256_mul_ps(a, b); }
-	inline __m256 div_ps(const __m256 &a, const __m256 &b) { return _mm256_div_ps(a, b); }
+	inline void storeu_ps(float *p, const Register &v) { simde_mm256_storeu_ps(p, v); }
+	inline void store_ps(float *p, const Register &v) { simde_mm256_store_ps(p, v); }
+
+	inline void storeu_epi32(int32_t *p, const Register_i &v) {
+		simde_mm256_storeu_si256(reinterpret_cast<Register_i*>(p), v);
+	}
+	inline void storeu_epi32(uint32_t *p, const Register_i &v) {
+		simde_mm256_storeu_si256(reinterpret_cast<Register_i*>(p), v);
+	}
+	inline void store_epi32(int32_t *p, const Register_i &v) {
+		simde_mm256_store_si256(reinterpret_cast<Register_i*>(p), v);
+	}
+	inline void store_epi32(uint32_t *p, const Register_i &v) {
+		simde_mm256_store_si256(reinterpret_cast<Register_i*>(p), v);
+	}
+
+	inline Register add_ps(const Register &a, const Register &b) { return simde_mm256_add_ps(a, b); }
+	inline Register sub_ps(const Register &a, const Register &b) { return simde_mm256_sub_ps(a, b); }
+	inline Register mul_ps(const Register &a, const Register &b) { return simde_mm256_mul_ps(a, b); }
+	inline Register div_ps(const Register &a, const Register &b) { return simde_mm256_div_ps(a, b); }
 
 	/**
 	 * Fused multiply-add: (a * b) + c
 	 */
-	inline __m256 mul_add_ps(const __m256 &a, const __m256 &b, const __m256 &c) {
-		return _mm256_fmadd_ps(a, b, c);
+	inline Register mul_add_ps(const Register &a, const Register &b, const Register &c) {
+		return simde_mm256_fmadd_ps(a, b, c);
 	}
 
-	inline __m256i add_epi32(const __m256i &a, const __m256i &b) { return _mm256_add_epi32(a, b); }
-	inline __m256i sub_epi32(const __m256i &a, const __m256i &b) { return _mm256_sub_epi32(a, b); }
-	inline __m256i mul_epi32(const __m256i &a, const __m256i &b) { return _mm256_mullo_epi32(a, b); }
+	inline Register_i add_epi32(const Register_i &a, const Register_i &b) { return simde_mm256_add_epi32(a, b); }
+	inline Register_i sub_epi32(const Register_i &a, const Register_i &b) { return simde_mm256_sub_epi32(a, b); }
+	inline Register_i mul_epi32(const Register_i &a, const Register_i &b) { return simde_mm256_mullo_epi32(a, b); }
 
-	inline __m256 min_ps(const __m256 &a, const __m256 &b) { return _mm256_min_ps(a, b); }
-	inline __m256 max_ps(const __m256 &a, const __m256 &b) { return _mm256_max_ps(a, b); }
-	inline __m256 sqrt_ps(const __m256 &a) { return _mm256_sqrt_ps(a); }
+	inline Register min_ps(const Register &a, const Register &b) { return simde_mm256_min_ps(a, b); }
+	inline Register max_ps(const Register &a, const Register &b) { return simde_mm256_max_ps(a, b); }
+	inline Register sqrt_ps(const Register &a) { return simde_mm256_sqrt_ps(a); }
 
-	inline __m256i min_epi32(const __m256i &a, const __m256i &b) { return _mm256_min_epi32(a, b); }
-	inline __m256i max_epi32(const __m256i &a, const __m256i &b) { return _mm256_max_epi32(a, b); }
-
-	/**
-	 * Horizontal sum of all elements in an __m256
-	 */
-	inline float hsum_ps(__m256 v) {
-		__m128 vlow  = _mm256_castps256_ps128(v);        // low 128
-		__m128 vhigh = _mm256_extractf128_ps(v, 1);   // high 128
-		__m128 sum   = _mm_add_ps(vlow, vhigh);       // add low and high parts
-		__m128 shuf  = _mm_movehdup_ps(sum);             // (sum.y, sum.y, sum.w, sum.w)
-		__m128 sums  = _mm_add_ps(sum, shuf);
-		shuf         = _mm_movehl_ps(shuf, sums);     // high half of sums
-		sums         = _mm_add_ss(sums, shuf);
-		return _mm_cvtss_f32(sums);
-	}
+	inline Register_i min_epi32(const Register_i &a, const Register_i &b) { return simde_mm256_min_epi32(a, b); }
+	inline Register_i max_epi32(const Register_i &a, const Register_i &b) { return simde_mm256_max_epi32(a, b); }
 
 	/**
-	 * Horizontal min of all elements in an __m256
+	 * Horizontal sum of all elements in an Register
 	 */
-	inline float hmin_ps(__m256 v) {
-		__m128 vlow  = _mm256_castps256_ps128(v);        // low 128
-		__m128 vhigh = _mm256_extractf128_ps(v, 1);   // high 128
-		__m128 min   = _mm_min_ps(vlow, vhigh);       // min low and high parts
-		__m128 shuf  = _mm_movehdup_ps(min);             // (min.y, min.y, min.w, min.w)
-		__m128 mins  = _mm_min_ps(min, shuf);
-		shuf         = _mm_movehl_ps(shuf, mins);     // high half of mins
-		mins         = _mm_min_ss(mins, shuf);
-		return _mm_cvtss_f32(mins);
+	inline float hsum_ps(Register v) {
+		simde__m128 vlow  = simde_mm256_castps256_ps128(v);        // low 128
+		simde__m128 vhigh = simde_mm256_extractf128_ps(v, 1);   // high 128
+		simde__m128 sum   = simde_mm_add_ps(vlow, vhigh);       // add low and high parts
+		simde__m128 shuf  = simde_mm_movehdup_ps(sum);             // (sum.y, sum.y, sum.w, sum.w)
+		simde__m128 sums  = simde_mm_add_ps(sum, shuf);
+		shuf         = simde_mm_movehl_ps(shuf, sums);     // high half of sums
+		sums         = simde_mm_add_ss(sums, shuf);
+		return simde_mm_cvtss_f32(sums);
 	}
 
 	/**
-	 * Horizontal max of all elements in an __m256
+	 * Horizontal min of all elements in an Register
 	 */
-	inline float hmax_ps(__m256 v) {
-		__m128 vlow  = _mm256_castps256_ps128(v);        // low 128
-		__m128 vhigh = _mm256_extractf128_ps(v, 1);   // high 128
-		__m128 max   = _mm_max_ps(vlow, vhigh);       // max low and high parts
-		__m128 shuf  = _mm_movehdup_ps(max);             // (max.y, max.y, max.w, max.w)
-		__m128 maxs  = _mm_max_ps(max, shuf);
-		shuf         = _mm_movehl_ps(shuf, maxs);     // high half of maxs
-		maxs         = _mm_max_ss(maxs, shuf);
-		return _mm_cvtss_f32(maxs);
+	inline float hmin_ps(Register v) {
+		simde__m128 vlow  = simde_mm256_castps256_ps128(v);        // low 128
+		simde__m128 vhigh = simde_mm256_extractf128_ps(v, 1);   // high 128
+		simde__m128 min   = simde_mm_min_ps(vlow, vhigh);       // min low and high parts
+		simde__m128 shuf  = simde_mm_movehdup_ps(min);             // (min.y, min.y, min.w, min.w)
+		simde__m128 mins  = simde_mm_min_ps(min, shuf);
+		shuf         = simde_mm_movehl_ps(shuf, mins);     // high half of mins
+		mins         = simde_mm_min_ss(mins, shuf);
+		return simde_mm_cvtss_f32(mins);
 	}
 
-	inline __m256 rcp_ps(const __m256 &a) { return _mm256_rcp_ps(a); }
-
-	inline __m256 cmp_lt(const __m256 &a, const __m256 &b) {
-		return _mm256_cmp_ps(a, b, _CMP_LT_OQ);
-	}
-	inline __m256 cmp_gt(const __m256 &a, const __m256 &b) {
-		return _mm256_cmp_ps(a, b, _CMP_GT_OQ);
-	}
-	inline __m256 cmp_eq(const __m256 &a, const __m256 &b) {
-		return _mm256_cmp_ps(a, b, _CMP_EQ_OQ);
-	}
-	inline __m256 cmp_neq(const __m256 &a, const __m256 &b) {
-		return _mm256_cmp_ps(a, b, _CMP_NEQ_OQ);
-	}
-	inline __m256 cmp_or(const __m256 &a, const __m256 &b) {
-		return _mm256_or_ps(a, b);
-	}
-	inline __m256 cmp_and(const __m256 &a, const __m256 &b) {
-		return _mm256_and_ps(a, b);
-	}
-	inline __m256 cmp_and_not(const __m256 &a, const __m256 &b) {
-		return _mm256_andnot_ps(a, b);
+	/**
+	 * Horizontal max of all elements in an Register
+	 */
+	inline float hmax_ps(Register v) {
+		simde__m128 vlow  = simde_mm256_castps256_ps128(v);        // low 128
+		simde__m128 vhigh = simde_mm256_extractf128_ps(v, 1);   // high 128
+		simde__m128 max   = simde_mm_max_ps(vlow, vhigh);       // max low and high parts
+		simde__m128 shuf  = simde_mm_movehdup_ps(max);             // (max.y, max.y, max.w, max.w)
+		simde__m128 maxs  = simde_mm_max_ps(max, shuf);
+		shuf         = simde_mm_movehl_ps(shuf, maxs);     // high half of maxs
+		maxs         = simde_mm_max_ss(maxs, shuf);
+		return simde_mm_cvtss_f32(maxs);
 	}
 
-	inline __m256i cvttps_epi32(const __m256 &a) { return _mm256_cvttps_epi32(a); }
+	inline Register rcp_ps(const Register &a) { return simde_mm256_rcp_ps(a); }
 
-	inline int movemask_ps(const __m256 &v) { return _mm256_movemask_ps(v); }
-
-	inline __m256 blendv_ps(const __m256 &a, const __m256 &b, const __m256 &mask) {
-		return _mm256_blendv_ps(a, b, mask);
+	inline Register cmp_lt(const Register &a, const Register &b) {
+		return simde_mm256_cmp_ps(a, b, _CMP_LT_OQ);
+	}
+	inline Register cmp_gt(const Register &a, const Register &b) {
+		return simde_mm256_cmp_ps(a, b, _CMP_GT_OQ);
+	}
+	inline Register cmp_eq(const Register &a, const Register &b) {
+		return simde_mm256_cmp_ps(a, b, _CMP_EQ_OQ);
+	}
+	inline Register cmp_neq(const Register &a, const Register &b) {
+		return simde_mm256_cmp_ps(a, b, _CMP_NEQ_OQ);
+	}
+	inline Register cmp_or(const Register &a, const Register &b) {
+		return simde_mm256_or_ps(a, b);
+	}
+	inline Register cmp_and(const Register &a, const Register &b) {
+		return simde_mm256_and_ps(a, b);
+	}
+	inline Register cmp_and_not(const Register &a, const Register &b) {
+		return simde_mm256_andnot_ps(a, b);
 	}
 
-#elif REGEN_SIMD_MODE == SSE
+	inline Register_i cvttps_epi32(const Register &a) { return simde_mm256_cvttps_epi32(a); }
+
+	inline int movemask_ps(const Register &v) { return simde_mm256_movemask_ps(v); }
+
+	inline Register blendv_ps(const Register &a, const Register &b, const Register &mask) {
+		return simde_mm256_blendv_ps(a, b, mask);
+	}
+
+#elif REGEN_SIMD_MODE == REGEN_SIMD_SSE
 	static constexpr int8_t RegisterMask = 0x0F; // 4 bits for SSE
 	using Register = __m128; // 4 floats
 	using Register_i = __m128i; // 4 integers
 
-	inline __m128 set1_ps(float v) { return _mm_set1_ps(v); }
-	inline __m128i set1_epi32(int32_t v) { return _mm_set1_epi32(v); }
+	inline Register set1_ps(float v) { return simde_mm_set1_ps(v); }
+	inline Register_i set1_epi32(int32_t v) { return simde_mm_set1_epi32(v); }
 
-	inline __m128 setzero_ps() { return _mm_setzero_ps(); }
-	inline __m128i setzero_si256() { return _mm_setzero_si128(); }
+	inline Register setzero_ps() { return simde_mm_setzero_ps(); }
+	inline Register_i setzero_si256() { return simde_mm_setzero_si128(); }
 
-	inline __m128 load_ps(const float *p) { return _mm_load_ps(p); }
-	inline __m128 loadu_ps(const float *p) { return _mm_loadu_ps(p); }
+	inline Register load_ps(const float *p) { return simde_mm_load_ps(p); }
+	inline Register loadu_ps(const float *p) { return simde_mm_loadu_ps(p); }
 
-	inline __m128i loadu_si256(const uint32_t *p) {
-		return _mm_loadu_si128(reinterpret_cast<const __m128i*>(indices));
+	inline Register_i loadu_si256(const uint32_t *p) {
+		return simde_mm_loadu_si128(reinterpret_cast<const Register_i*>(indices));
 	}
 
-	inline __m128 epi_to_ps(const __m128i &v) { return _mm_castsi128_ps(v); }
+	inline Register epi_to_ps(const Register_i &v) { return simde_mm_castsi128_ps(v); }
 
-	inline __m128 i32gather_ps(const float *p, const __m128i &indices) {
-		return _mm_i32gather_ps(p, indices, sizeof(float));
+	inline Register i32gather_ps(const float *p, const Register_i &indices) {
+		return simde_mm_i32gather_ps(p, indices, sizeof(float));
 	}
 
-	inline void storeu_ps(float *p, const __m128 &v) { _mm_storeu_ps(p, v); }
+	inline void storeu_ps(float *p, const Register &v) { simde_mm_storeu_ps(p, v); }
 
-	inline __m128 add_ps(const __m128 &a, const __m128 &b) { return _mm_add_ps(a, b); }
-	inline __m128 sub_ps(const __m128 &a, const __m128 &b) { return _mm_sub_ps(a, b); }
-	inline __m128 mul_ps(const __m128 &a, const __m128 &b) { return _mm_mul_ps(a, b); }
-	inline __m128 div_ps(const __m128 &a, const __m128 &b) { return _mm_div_ps(a, b); }
+	inline Register add_ps(const Register &a, const Register &b) { return simde_mm_add_ps(a, b); }
+	inline Register sub_ps(const Register &a, const Register &b) { return simde_mm_sub_ps(a, b); }
+	inline Register mul_ps(const Register &a, const Register &b) { return simde_mm_mul_ps(a, b); }
+	inline Register div_ps(const Register &a, const Register &b) { return simde_mm_div_ps(a, b); }
 
-	inline __m128i add_epi32(const __m128i &a, const __m128i &b) { return _mm_add_epi32(a, b); }
-	inline __m128i sub_epi32(const __m128i &a, const __m128i &b) { return _mm_sub_epi32(a, b); }
-	inline __m128i mul_epi32(const __m128i &a, const __m128i &b) { return _mm_mullo_epi32(a, b); }
+	inline Register_i add_epi32(const Register_i &a, const Register_i &b) { return simde_mm_add_epi32(a, b); }
+	inline Register_i sub_epi32(const Register_i &a, const Register_i &b) { return simde_mm_sub_epi32(a, b); }
+	inline Register_i mul_epi32(const Register_i &a, const Register_i &b) { return simde_mm_mullo_epi32(a, b); }
 
-	inline __m128 min_ps(const __m128 &a, const __m128 &b) { return _mm_min_ps(a, b); }
-	inline __m128 max_ps(const __m128 &a, const __m128 &b) { return _mm_max_ps(a, b); }
-	inline __m128 sqrt_ps(const __m128 &a) { return _mm_sqrt_ps(a); }
+	inline Register min_ps(const Register &a, const Register &b) { return simde_mm_min_ps(a, b); }
+	inline Register max_ps(const Register &a, const Register &b) { return simde_mm_max_ps(a, b); }
+	inline Register sqrt_ps(const Register &a) { return simde_mm_sqrt_ps(a); }
 
-	inline __m128i min_epi32(const __m128i &a, const __m128i &b) { return _mm_min_epi32(a, b); }
-	inline __m128i max_epi32(const __m128i &a, const __m128i &b) { return _mm_max_epi32(a, b); }
+	inline Register_i min_epi32(const Register_i &a, const Register_i &b) { return simde_mm_min_epi32(a, b); }
+	inline Register_i max_epi32(const Register_i &a, const Register_i &b) { return simde_mm_max_epi32(a, b); }
 
-	inline float hsum_ps(__m128 v) {
-		__m128 shuf = _mm_movehdup_ps(v);  // (v1, v1, v3, v3)
-		__m128 sums = _mm_add_ps(v, shuf);
-		shuf = _mm_movehl_ps(shuf, sums); // (v2 + v3, v3, -, -)
-		sums = _mm_add_ss(sums, shuf);
-		return _mm_cvtss_f32(sums);
+	inline float hsum_ps(Register v) {
+		Register shuf = simde_mm_movehdup_ps(v);  // (v1, v1, v3, v3)
+		Register sums = simde_mm_add_ps(v, shuf);
+		shuf = simde_mm_movehl_ps(shuf, sums); // (v2 + v3, v3, -, -)
+		sums = simde_mm_add_ss(sums, shuf);
+		return simde_mm_cvtss_f32(sums);
 	}
 
-	inline __m128 rcp_ps(const __m128 &a) { return _mm_rcp_ps(a); }
+	inline Register rcp_ps(const Register &a) { return simde_mm_rcp_ps(a); }
 
-	inline __m128 cmp_lt(const __m128 &a, const __m128 &b)  { return _mm_cmplt_ps(a, b); }
-	inline __m128 cmp_gt(const __m128 &a, const __m128 &b)  { return _mm_cmplt_ps(b, a); }
-	inline __m128 cmp_eq(const __m128 &a, const __m128 &b)  { return _mm_cmpeq_ps(a, b); }
-	inline __m128 cmp_neq(const __m128 &a, const __m128 &b) {
-		__m128 eq = _mm_cmpeq_ps(a, b);
-		return _mm_andnot_ps(eq, _mm_castsi128_ps(_mm_set1_epi32(-1)));  // ~eq & all_ones
+	inline Register cmp_lt(const Register &a, const Register &b)  { return simde_mm_cmplt_ps(a, b); }
+	inline Register cmp_gt(const Register &a, const Register &b)  { return simde_mm_cmplt_ps(b, a); }
+	inline Register cmp_eq(const Register &a, const Register &b)  { return simde_mm_cmpeq_ps(a, b); }
+	inline Register cmp_neq(const Register &a, const Register &b) {
+		Register eq = simde_mm_cmpeq_ps(a, b);
+		return simde_mm_andnot_ps(eq, simde_mm_castsi128_ps(simde_mm_set1_epi32(-1)));  // ~eq & all_ones
 	}
-	inline __m128 cmp_or(const __m128 &a, const __m128 &b) { return _mm_or_ps(a, b); }
-	inline __m128 cmp_and(const __m128 &a, const __m128 &b) { return _mm_and_ps(a, b); }
+	inline Register cmp_or(const Register &a, const Register &b) { return simde_mm_or_ps(a, b); }
+	inline Register cmp_and(const Register &a, const Register &b) { return simde_mm_and_ps(a, b); }
 
-	inline __m128i cvttps_epi32(const __m128 &a) { return _mm_cvttps_epi32(a); }
+	inline Register_i cvttps_epi32(const Register &a) { return simde_mm_cvttps_epi32(a); }
 
-	inline int movemask_ps(const __m128 &v) { return _mm_movemask_ps(v); }
+	inline int movemask_ps(const Register &v) { return simde_mm_movemask_ps(v); }
 
-	inline __m128 blendv_ps(const __m128 &a, const __m128 &b, const __m128 &mask) {
-		return _mm_blendv_ps(a, b, mask);
+	inline Register blendv_ps(const Register &a, const Register &b, const Register &mask) {
+		return simde_mm_blendv_ps(a, b, mask);
 	}
 
 #else // Fallback to scalar operations
@@ -752,7 +762,7 @@ namespace regen {
 		}
 
 		static BatchOf_int32 castFloatBatch(const BatchOf_float &v) {
-			return BatchOf_int32{_mm256_castps_si256(v.c)};
+			return BatchOf_int32{simde_mm256_castps_si256(v.c)};
 		}
 
 		/**
@@ -832,7 +842,7 @@ namespace regen {
 		}
 
 		BatchOf_int32 operator&(const BatchOf_int32 &other) const {
-			return BatchOf_int32{_mm256_and_si256(c, other.c)};
+			return BatchOf_int32{simde_mm256_and_si256(c, other.c)};
 		}
 
 		static BatchOf_int32 allZeros() {
@@ -1199,7 +1209,7 @@ namespace regen {
 
 		/**
 		 * Computes the length squared of each vector in the batch.
-		 * @return __m128 containing the length squared for each vector.
+		 * @return Register containing the length squared for each vector.
 		 */
 		BatchOf_float lengthSquared() const {
 			return x*x + y*y + z*z;
@@ -1271,7 +1281,5 @@ namespace regen {
 	 */
 	template<typename T> using vectorSIMD = std::vector<T, AlignedAllocator<T, 32>>;
 }
-
-// NOLINTEND(portability-simd-intrinsics)
 
 #endif /* REGEN_SIMD_H_ */

@@ -139,23 +139,23 @@ namespace regen {
 					if constexpr (KEY_TYPE_BITS == 16) {
 						// Gather 8 keys manually, and promote to 32-bit
 						for (int k = 0; k < 8; ++k) tmpKeys32[k] = static_cast<int32_t>(keys[src[keyIdx+k]]);
-						r0 = _mm256_load_si256(reinterpret_cast<const __m256i*>(tmpKeys32));
-						r0 = _mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
+						r0 = simde_mm256_load_si256(reinterpret_cast<const simde__m256i*>(tmpKeys32));
+						r0 = simde_mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
 						keyIdx += 8; // processed 8 keys, not 16!
 					}
 					else if constexpr (KEY_TYPE_BITS == 32) {
-						simd::Register_i idx = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&src[keyIdx]));
+						simd::Register_i idx = simde_mm256_loadu_si256(reinterpret_cast<const simde__m256i*>(&src[keyIdx]));
 						// Gather 8 scattered keys, and apply shift and mask to get bucket ids
-						r0 = _mm256_i32gather_epi32(reinterpret_cast<const int*>(keys), idx, 4);
-						r0 = _mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
+						r0 = simde_mm256_i32gather_epi32(reinterpret_cast<const int*>(keys), idx, 4);
+						r0 = simde_mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
 						keyIdx += KEYS_PER_SIMD_PASS;
 					}
 					else if constexpr (KEY_TYPE_BITS == 64) {
 						// note: values have 32 bits, use __m128i to load only 4
-						__m128i idx32 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&src[keyIdx]));
+						simde__m128i idx32 = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(&src[keyIdx]));
 						// Gather 4 scattered keys, and apply shift and mask to get bucket ids
-						r0 = _mm256_i32gather_epi64(reinterpret_cast<const long long*>(keys), idx32, 8);
-						r0 = _mm256_and_si256(_mm256_srli_epi64(r0, SHIFT), mask);
+						r0 = simde_mm256_i32gather_epi64(reinterpret_cast<const long long*>(keys), idx32, 8);
+						r0 = simde_mm256_and_si256(simde_mm256_srli_epi64(r0, SHIFT), mask);
 						keyIdx += KEYS_PER_SIMD_PASS;
 					}
 					else {
@@ -163,7 +163,7 @@ namespace regen {
 						break;
 					}
 					// Store results into tmpBins_ and increment histogram
-					_mm256_storeu_si256(reinterpret_cast<__m256i*>(tmpBins_), r0);
+					simde_mm256_storeu_si256(reinterpret_cast<simde__m256i*>(tmpBins_), r0);
 					for (auto x : tmpBins_) ++histogram_[x];
 				}
 			}
