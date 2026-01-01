@@ -140,14 +140,14 @@ namespace regen {
 						// Gather 8 keys manually, and promote to 32-bit
 						for (int k = 0; k < 8; ++k) tmpKeys32[k] = static_cast<int32_t>(keys[src[keyIdx+k]]);
 						r0 = simde_mm256_load_si256(reinterpret_cast<const simde__m256i*>(tmpKeys32));
-						r0 = simde_mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
+						r0 = simde_mm256_and_si256(simde_mm256_srli_epi32(r0, SHIFT), mask);
 						keyIdx += 8; // processed 8 keys, not 16!
 					}
 					else if constexpr (KEY_TYPE_BITS == 32) {
 						simd::Register_i idx = simde_mm256_loadu_si256(reinterpret_cast<const simde__m256i*>(&src[keyIdx]));
 						// Gather 8 scattered keys, and apply shift and mask to get bucket ids
 						r0 = simde_mm256_i32gather_epi32(reinterpret_cast<const int*>(keys), idx, 4);
-						r0 = simde_mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
+						r0 = simde_mm256_and_si256(simde_mm256_srli_epi32(r0, SHIFT), mask);
 						keyIdx += KEYS_PER_SIMD_PASS;
 					}
 					else if constexpr (KEY_TYPE_BITS == 64) {

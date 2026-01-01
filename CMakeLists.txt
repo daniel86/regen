@@ -75,9 +75,11 @@ endif()
 # given in the books "Effective C++" and "More Effective C++"
 # add_definitions( -Weffc++ )
 
-# -march=native enables all instruction subsets supported by the local machine
-# e.g. SSE2, SSE3, SSE4, AVX, AVX2, etc.
-add_definitions( -march=native )
+if(UNIX)
+    # -march=native enables all instruction subsets supported by the local machine
+    # e.g. SSE2, SSE3, SSE4, AVX, AVX2, etc.
+    add_definitions( -march=native )
+endif()
 
 # perform more aggressive floating-point optimizations
 # add_definitions( -ffast-math )

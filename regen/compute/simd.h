@@ -206,8 +206,8 @@ namespace regen::simd {
 
 #elif REGEN_SIMD_MODE == REGEN_SIMD_SSE
 	static constexpr int8_t RegisterMask = 0x0F; // 4 bits for SSE
-	using Register = __m128; // 4 floats
-	using Register_i = __m128i; // 4 integers
+	using Register = simde__m128; // 4 floats
+	using Register_i = simde__m128i; // 4 integers
 
 	inline Register set1_ps(float v) { return simde_mm_set1_ps(v); }
 	inline Register_i set1_epi32(int32_t v) { return simde_mm_set1_epi32(v); }
@@ -219,7 +219,7 @@ namespace regen::simd {
 	inline Register loadu_ps(const float *p) { return simde_mm_loadu_ps(p); }
 
 	inline Register_i loadu_si256(const uint32_t *p) {
-		return simde_mm_loadu_si128(reinterpret_cast<const Register_i*>(indices));
+		return simde_mm_loadu_si128(reinterpret_cast<const Register_i*>(p));
 	}
 
 	inline Register epi_to_ps(const Register_i &v) { return simde_mm_castsi128_ps(v); }
