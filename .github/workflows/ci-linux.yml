@@ -1,5 +1,4 @@
-
-name: CI
+name: CI Linux
 on:
   push:
     branches: [ dev ]
@@ -62,24 +61,6 @@ jobs:
       with:
         name: test results
         path: ./gtest-regen.xml
-  ##############################
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies
-        run: brew install cmake gcc simde boost assimp openal-soft freetype bullet glew qt5 doxygen graphviz devil ffmpeg alut nlohmann-json googletest
-      - name: Build REGEN workspace
-        run: |
-          mkdir build
-          cd build
-          cmake \
-            -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-14 -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-14 \
-            -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/qt@5" \
-            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON \
-            -DREGEN_EXTRA_INCLUDE_DIRS="/opt/homebrew/opt/openal-soft/include/" \
-            ../
-          make
   ##############################
   debian-package:
     needs: build-linux

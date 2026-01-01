@@ -10,7 +10,8 @@
     <img src="img/gallery.gif" width="160" height="100" />
 </p>
 
-![CI](https://github.com/daniel86/regen/workflows/CI/badge.svg)
+![Linux](https://github.com/daniel86/regen/actions/workflows/ci-linux.yml/badge.svg)
+![MacOS](https://github.com/daniel86/regen/actions/workflows/ci-macos.yml/badge.svg)
 ![Warnings](https://img.shields.io/badge/compiler%20warnings-clean-brightgreen)
 [![Docs](https://img.shields.io/badge/docs-online-blue)](https://daniel86.github.io/regen/)
 ![Debian](https://img.shields.io/badge/debian-.deb%20package-blue)
