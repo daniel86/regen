@@ -68,8 +68,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: brew install cmake gcc simde boost assimp openal-soft freetype bullet \
-            glew qt5 doxygen graphviz devil ffmpeg alut nlohmann-json googletest
+        run: brew install cmake gcc simde boost assimp openal-soft freetype bullet glew qt5 doxygen graphviz devil ffmpeg alut nlohmann-json googletest
       - name: Build REGEN workspace
         run: |
           mkdir build
