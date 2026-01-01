@@ -1,0 +1,9 @@
+<map id="regen::ImpostorBillboard::ImitatedMesh" name="regen::ImpostorBillboard::ImitatedMesh">
+<area shape="rect" id="Node000001" title=" " alt="" coords="299,69,481,109"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,43,299,68,298,73,181,48"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,69,168,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,87,299,87,299,92,182,92"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,133,168,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,131,298,106,299,111,182,136"/>
+</map>

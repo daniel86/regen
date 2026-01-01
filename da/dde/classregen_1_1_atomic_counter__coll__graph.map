@@ -1,0 +1,14 @@
+<map id="regen::AtomicCounter" name="regen::AtomicCounter">
+<area shape="rect" id="Node000001" title="An atomic counter buffer object." alt="" coords="40,423,204,448"/>
+<area shape="rect" id="Node000002" href="$dd/df9/classregen_1_1_buffer_object_t.html" title=" " alt="" coords="5,333,239,373"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,387,125,422,119,422,119,387"/>
+<area shape="rect" id="Node000003" href="$dc/d41/classregen_1_1_buffer_object.html" title="Base class for OpenGL buffer objects." alt="" coords="48,259,196,284"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="125,298,125,333,119,333,119,298"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="37,171,164,196"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="109,209,122,257,116,259,104,210"/>
+<area shape="rect" id="Node000005" href="$d8/d35/structregen_1_1_buffer_flags.html" title="Buffer configuration structure." alt="" coords="189,171,330,196"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="231,206,142,261,139,256,228,201"/>
+<area shape="rect" id="Node000006" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="165,44,353,69"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="262,83,262,171,257,171,257,83"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="314,39,358,41,374,46,380,57,372,68,353,74,300,72,301,67,352,68,369,64,375,57,370,51,357,46,314,45"/>
+</map>

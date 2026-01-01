@@ -1,0 +1,39 @@
+<map id="regen::NavigationController" name="regen::NavigationController">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1316,411,1519,437"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="1004,79,1139,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1153,104,1226,129,1262,149,1294,174,1320,203,1343,236,1378,304,1402,366,1415,410,1410,412,1397,368,1373,306,1338,238,1316,206,1290,178,1259,153,1224,134,1151,109"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="645,22,792,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="806,46,948,69,1004,78,1003,84,948,75,805,51"/>
+<area shape="rect" id="Node000004" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="352,15,499,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="512,32,645,32,645,37,512,37"/>
+<area shape="rect" id="Node000005" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,15,177,55"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,32,352,32,352,37,191,37"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="637,72,800,112"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="814,89,1004,89,1004,95,814,95"/>
+<area shape="rect" id="Node000007" href="$d0/d72/classregen_1_1_collision_monitor.html" title=" " alt="" coords="985,133,1158,158"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1171,159,1235,181,1266,197,1294,217,1318,240,1339,266,1374,321,1399,373,1414,410,1409,412,1394,375,1369,324,1335,269,1314,243,1290,221,1263,201,1233,186,1169,164"/>
+<area shape="rect" id="Node000008" href="$dc/d22/classregen_1_1_perception_monitor.html" title=" " alt="" coords="625,137,812,162"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="826,145,984,144,984,149,826,151"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="980,183,1163,223"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1166,225,1231,250,1294,286,1331,317,1364,352,1409,409,1405,413,1360,355,1327,321,1290,290,1228,255,1164,229"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="990,247,1153,287"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1149,289,1171,296,1233,315,1293,339,1354,375,1401,409,1398,413,1351,380,1291,344,1232,320,1170,301,1147,294"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="990,311,1153,351"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1167,351,1293,384,1376,409,1375,414,1291,389,1165,356"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="990,375,1153,415"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1166,400,1316,413,1315,418,1166,405"/>
+<area shape="rect" id="Node000013" href="$dc/d5f/structregen_1_1_quaternion.html" title="A number system that extends the complex numbers." alt="" coords="1002,439,1141,465"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="1154,445,1292,436,1316,434,1316,439,1292,441,1155,451"/>
+<area shape="rect" id="Node000014" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="990,489,1153,529"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="1166,491,1291,464,1382,434,1384,439,1293,469,1167,497"/>
+<area shape="rect" id="Node000015" href="$d7/d0a/structregen_1_1math_1_1_bezier.html" title=" " alt="" coords="996,553,1147,593"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="1159,552,1225,533,1291,507,1353,470,1399,435,1403,439,1355,475,1293,512,1227,538,1161,557"/>
+<area shape="rect" id="Node000016" href="$d1/dc3/structregen_1_1_vec2.html" title="A 2D vector." alt="" coords="651,561,787,586"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="800,571,996,571,996,576,800,576"/>
+<area shape="rect" id="Node000017" href="$dc/dbc/structregen_1_1math_1_1_arc_length_l_u_t.html" title=" " alt="" coords="972,618,1171,643"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="1168,612,1231,593,1291,563,1329,532,1362,496,1406,435,1410,439,1366,500,1332,536,1293,568,1233,598,1170,617"/>
+<area shape="rect" id="Node000018" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="993,773,1150,798"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="1139,798,1177,801,1217,799,1256,791,1290,773,1328,736,1357,692,1379,643,1394,593,1410,499,1413,437,1419,437,1415,500,1400,594,1384,645,1362,694,1332,739,1294,777,1257,796,1217,805,1177,806,1139,803"/>
+<area shape="rect" id="Node000019" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="1019,822,1124,847"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="1138,847,1176,850,1216,848,1255,839,1290,821,1332,778,1363,727,1386,671,1401,613,1409,557,1413,507,1414,437,1419,437,1419,507,1415,558,1406,614,1391,673,1368,730,1336,781,1294,825,1257,844,1217,854,1176,855,1137,852"/>
+</map>

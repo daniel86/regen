@@ -1,0 +1,27 @@
+<map id="regen::Moon" name="regen::Moon">
+<area shape="rect" id="Node000001" title="Moon layer of the sky. The moon is rendered using a textured quad with alpha blending...." alt="" coords="837,298,940,323"/>
+<area shape="rect" id="Node000002" href="$d0/de9/classregen_1_1_sky_layer.html" title=" " alt="" coords="523,81,650,106"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="664,90,702,94,742,103,780,117,815,139,833,157,848,177,869,222,882,265,888,297,883,298,877,266,864,224,843,180,829,160,812,143,778,122,740,108,701,99,664,95"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="275,81,410,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,91,523,91,523,96,424,96"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="319,66,326,57,343,54,357,56,366,63,368,72,364,82,359,79,362,72,361,66,355,61,343,59,329,62,323,69"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,23,168,63"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="182,25,298,17,362,19,424,27,464,37,501,50,563,78,560,83,499,55,462,42,424,32,361,24,298,22,182,30"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="182,59,278,78,277,83,181,64"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,131,424,171"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="436,126,531,103,532,109,438,131"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,131,668,171"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="683,155,750,171,784,184,815,202,840,224,860,250,885,297,880,299,855,253,836,227,812,206,781,189,749,176,681,160"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,195,668,235"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="682,220,748,232,814,254,849,274,875,296,872,300,846,278,812,258,747,237,681,225"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,259,668,299"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="682,286,837,303,837,308,681,291"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,323,668,363"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="682,333,813,320,837,317,838,322,814,325,682,339"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,387,668,427"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="681,389,746,374,812,352,842,337,868,321,871,326,845,342,814,357,748,379,682,394"/>
+<area shape="rect" id="Node000011" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="508,451,665,477"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="678,454,747,439,781,426,812,408,835,389,854,365,879,322,884,325,858,368,839,392,815,413,783,430,748,444,680,460"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,501,668,541"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="681,518,715,513,749,505,782,491,812,473,828,456,842,437,864,395,876,354,883,323,888,324,882,356,869,397,847,440,832,460,815,477,785,496,751,510,716,519,682,524"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="/home/runner/work/regen/regen/regen/compute" name="/home/runner/work/regen/regen/regen/compute">
+<area shape="rect" id="node1" href="dir_12f4b3d7230a9fb313c0702e4508f117.html" title="memory" alt="" coords="27,125,104,151"/>
+<area shape="rect" id="node2" href="dir_37945fe6942da98ae846479c20944be4.html" title="gl" alt="" coords="129,125,167,151"/>
+<area shape="rect" id="node3" href="dir_6cbedb1091e1ff88c2dc0e721c5d2c3a.html" title="scene" alt="" coords="191,125,251,151"/>
+<area shape="rect" id="node4" href="dir_9b0d25f083ce3058922e8bb4000894a5.html" title="utility" alt="" coords="275,125,335,151"/>
+<area shape="rect" id="node5" href="dir_b7a53d8e673c5f866a1f44e46045be31.html" title="shader" alt="" coords="360,125,427,151"/>
+<area shape="rect" id="node6" href="dir_c4127f864dff7a16c887417a5a401e67.html" title="compute" alt="" coords="182,52,261,77"/>
+<area shape="poly" id="edge1" href="dir_000004_000009.html" alt="" coords="197,80,104,122,102,117,195,75"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000004_000009.html" title="3" alt="" coords="106,118,116,133"/>
+<area shape="poly" id="edge2" href="dir_000004_000006.html" alt="" coords="211,80,172,118,168,114,207,76"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000004_000006.html" title="2" alt="" coords="174,111,183,126"/>
+<area shape="poly" id="edge3" href="dir_000004_000025.html" alt="" coords="224,78,224,112,219,112,219,78"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000004_000025.html" title="6" alt="" coords="225,100,234,114"/>
+<area shape="poly" id="edge4" href="dir_000004_000037.html" alt="" coords="237,75,283,114,279,118,233,79"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000004_000037.html" title="2" alt="" coords="278,100,288,114"/>
+<area shape="poly" id="edge5" href="dir_000004_000026.html" alt="" coords="250,75,354,118,352,122,248,80"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000004_000026.html" title="1" alt="" coords="347,103,356,118"/>
+<area shape="rect" id="clust1" href="dir_b96892ed0b55fde8c8b16c9c3e10f960.html" title="regen" alt="" coords="16,16,437,161"/>
+</map>

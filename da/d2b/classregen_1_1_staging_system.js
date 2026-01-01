@@ -1,0 +1,38 @@
+var classregen_1_1_staging_system =
+[
+    [ "StagingStatistics", "d6/dd7/structregen_1_1_staging_system_1_1_staging_statistics.html", "d6/dd7/structregen_1_1_staging_system_1_1_staging_statistics" ],
+    [ "BlockPtr", "da/d2b/classregen_1_1_staging_system.html#a30fade268dcc7f339aab75076fcd2284", null ],
+    [ "ArenaType", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95", [
+      [ "WRITE_PER_FRAME_LARGE_DATA", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95a4f7c6a9275df81836c6a6809c3a618df", null ],
+      [ "WRITE_PER_FRAME_SMALL_DATA", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95a253d360048ab46a720e693bbd53b1856", null ],
+      [ "WRITE_PER_FRAME_HUGE_DATA", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95ae75a0aba0c19dac1d79190738acf8589", null ],
+      [ "READ_PER_FRAME", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95a9c00a155a338ac841c7c10bd971b3392", null ],
+      [ "READ_RARELY", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95a924c3ead92449dce19f98fd65da6cb72", null ],
+      [ "WRITE_RARELY", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95af3aaea4d48f4668f4953fd26c127d1d1", null ],
+      [ "WRITE_ALMOST_NEVER", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95a4e735eb1bd45c13d379dbc4078530121", null ],
+      [ "ARENA_TYPE_LAST", "da/d2b/classregen_1_1_staging_system.html#ad975c634763afbc66b54e82e2c495e95a06a52bd18e1fd00b2e5844b8451e6324", null ]
+    ] ],
+    [ "~StagingSystem", "da/d2b/classregen_1_1_staging_system.html#adbfb4dd5ab0ac8eeb697004c82243849", null ],
+    [ "StagingSystem", "da/d2b/classregen_1_1_staging_system.html#aba81c62ac7c780226f8dd2e3e5e724bd", null ],
+    [ "addBufferBlock", "da/d2b/classregen_1_1_staging_system.html#ada8e542c2e5f25aef0c0454fb980409f", null ],
+    [ "addBufferBlock_readOnly", "da/d2b/classregen_1_1_staging_system.html#a4d06a07244efa3a8138519201f41752a", null ],
+    [ "addBufferBlock_writeOnly", "da/d2b/classregen_1_1_staging_system.html#a711403abb07281b2a885761dee2ef4d5", null ],
+    [ "addToArena", "da/d2b/classregen_1_1_staging_system.html#a4861f69514134d7d4e2d1dd154b6df49", null ],
+    [ "clear", "da/d2b/classregen_1_1_staging_system.html#ab17788aef3a68a715ce8249f026edc68", null ],
+    [ "isCopyInProgress", "da/d2b/classregen_1_1_staging_system.html#a29eb4a1f40e493868ec8273cf24f5894", null ],
+    [ "moveAdaptive", "da/d2b/classregen_1_1_staging_system.html#a2df3f8457307d56d2ab3fa22759979aa", null ],
+    [ "moveToArena", "da/d2b/classregen_1_1_staging_system.html#a39ed1792279abbe37fd1bf45923472b5", null ],
+    [ "operator=", "da/d2b/classregen_1_1_staging_system.html#aea758bb574ecefd47d127cca0f7284e7", null ],
+    [ "removeBufferBlock", "da/d2b/classregen_1_1_staging_system.html#a1505672b3034f234b7423d73e1b4cd48", null ],
+    [ "scheduledCopy", "da/d2b/classregen_1_1_staging_system.html#ac3aea7655d62b10b2bcd5e588c795e43", null ],
+    [ "setIsCopyInProgress", "da/d2b/classregen_1_1_staging_system.html#a033335125382358f092a0a08b99fe002", null ],
+    [ "swapClientData", "da/d2b/classregen_1_1_staging_system.html#ad0371d8a262f23a4f2fa040cf0deaed9", null ],
+    [ "updateArenaSize", "da/d2b/classregen_1_1_staging_system.html#afb255d17c7705e2f7c0b2286e9708162", null ],
+    [ "updateBuffers", "da/d2b/classregen_1_1_staging_system.html#a5fabd2c2e78f1a843248f55ad80bf87d", null ],
+    [ "updateData", "da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1", null ],
+    [ "arenas_", "da/d2b/classregen_1_1_staging_system.html#a71eeb1485c71400746c4c6210a89842c", null ],
+    [ "copyInProgress_", "da/d2b/classregen_1_1_staging_system.html#ab73f6aa42f29c81e014244cb983d7b93", null ],
+    [ "numScheduledCopies_", "da/d2b/classregen_1_1_staging_system.html#ac0b32ae72c64ccba8391b4848c9d0940", null ],
+    [ "scheduledCopies_", "da/d2b/classregen_1_1_staging_system.html#aa47c4852545db4d5e7df237f91622ce4", null ],
+    [ "stats_", "da/d2b/classregen_1_1_staging_system.html#a3c3eae23db54a054c663fbea15f75380", null ]
+];

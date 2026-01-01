@@ -1,0 +1,27 @@
+<map id="regen::CameraController" name="regen::CameraController">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1359,343,1541,369"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="988,79,1123,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1137,83,1185,85,1237,92,1289,107,1336,132,1362,155,1384,183,1418,243,1438,301,1449,342,1444,343,1433,302,1413,245,1380,186,1358,159,1333,137,1287,112,1236,97,1185,90,1137,88"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="633,22,780,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="794,46,988,78,987,84,793,51"/>
+<area shape="rect" id="Node000004" href="$da/d56/structregen_1_1_event_object_1_1_static_data.html" title=" " alt="" coords="352,15,499,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="512,32,633,32,633,37,512,37"/>
+<area shape="rect" id="Node000005" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,15,177,55"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="191,32,352,32,352,37,191,37"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,72,788,112"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="802,89,988,89,988,95,802,95"/>
+<area shape="rect" id="Node000007" href="$d2/d32/classregen_1_1_camera_controller_base.html" title="Computes the transformation matrices of a Camera." alt="" coords="948,135,1163,161"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1164,132,1206,133,1251,138,1295,149,1336,168,1360,186,1381,208,1414,258,1436,306,1448,342,1443,344,1431,308,1409,261,1377,212,1356,190,1333,173,1293,154,1250,143,1206,138,1163,137"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="625,136,788,176"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="802,151,948,148,948,153,802,156"/>
+<area shape="rect" id="Node000009" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="1003,185,1108,210"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1122,187,1170,186,1226,189,1282,200,1336,220,1374,247,1405,281,1429,315,1445,342,1440,345,1425,318,1401,285,1370,251,1333,225,1281,205,1225,195,1170,191,1122,193"/>
+<area shape="rect" id="Node000010" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="977,331,1134,357"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1148,350,1187,352,1358,355,1358,360,1187,357,1148,355"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="964,381,1147,421"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1160,392,1334,375,1386,366,1387,371,1335,380,1161,397"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="974,445,1137,485"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1150,452,1240,436,1334,411,1384,389,1426,367,1429,371,1387,394,1336,416,1241,441,1151,457"/>
+<area shape="rect" id="Node000013" href="$dc/d5f/structregen_1_1_quaternion.html" title="A number system that extends the complex numbers." alt="" coords="986,510,1125,535"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="1138,516,1235,501,1285,486,1333,466,1367,443,1396,416,1438,367,1442,371,1400,420,1370,447,1336,470,1287,491,1236,506,1139,522"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="regen::CharacterObject" name="regen::CharacterObject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="170,152,342,177"/>
+<area shape="rect" id="Node000004" href="$d9/d3a/classregen_1_1_n_p_c_object.html" title=" " alt="" coords="104,225,240,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,188,187,227,184,223,230,184"/>
+<area shape="rect" id="Node000007" href="$d3/dc7/classregen_1_1_player_object.html" title=" " alt="" coords="265,225,415,251"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="282,184,328,223,325,227,278,188"/>
+<area shape="rect" id="Node000002" href="$da/dec/classregen_1_1_world_object.html" title=" " alt="" coords="183,79,329,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="259,118,259,152,253,152,253,118"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="193,5,319,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="259,44,259,79,253,79,253,44"/>
+<area shape="rect" id="Node000005" href="$de/d79/classregen_1_1_animal_object.html" title=" " alt="" coords="5,299,160,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="149,261,99,301,96,296,145,257"/>
+<area shape="rect" id="Node000006" href="$d4/dad/classregen_1_1_person_object.html" title=" " alt="" coords="185,299,338,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="199,257,248,296,245,301,195,261"/>
+</map>

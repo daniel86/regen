@@ -1,0 +1,21 @@
+<map id="regen::Rectangle" name="regen::Rectangle">
+<area shape="rect" id="Node000001" title="A polygon with four edges, vertices and right angles." alt="" coords="161,225,293,251"/>
+<area shape="rect" id="Node000006" href="$d7/d33/classregen_1_1_blanket.html" title="A blanket mesh." alt="" coords="19,299,135,324"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="192,259,102,301,100,296,190,254"/>
+<area shape="rect" id="Node000008" href="$d8/d27/classregen_1_1_mask_mesh.html" title="A series of patches in xz plane covering a mask defined by a texture." alt="" coords="159,299,296,324"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="230,264,230,299,225,299,225,264"/>
+<area shape="rect" id="Node000009" href="$d9/de8/classregen_1_1_skirt_quad.html" title="A quad mesh where boundary vertices are duplicated and pulled down to form a skirt or curtain around ..." alt="" coords="321,299,451,324"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="266,254,361,296,359,301,264,259"/>
+<area shape="rect" id="Node000002" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="176,152,279,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,191,230,225,225,225,225,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="177,79,278,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="230,118,230,152,225,152,225,118"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="74,5,221,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="172,38,216,76,212,80,168,42"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="245,5,372,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="287,42,242,80,239,76,284,38"/>
+<area shape="rect" id="Node000007" href="$d5/dca/classregen_1_1_blanket_trail.html" title="A trail of blankets." alt="" coords="5,372,148,397"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="79,338,79,372,74,372,74,338"/>
+<area shape="rect" id="Node000010" href="$d0/dde/classregen_1_1_ground.html" title="Ground mesh." alt="" coords="329,372,443,397"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="389,338,389,372,383,372,383,338"/>
+</map>

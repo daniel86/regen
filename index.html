@@ -1,124 +1,346 @@
-<!DOCTYPE html>
-<html lang="es">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
-	
-		<title>KnowRob API Documentation</title>
-		<style>
-.top-navbar {
-	height: 30px;
-	width: 100%;
-	padding: 0;
-	flex-flow: row nowrap;
-	justify-content: flex-start;
-}
-.top-bar {
-	z-index: 1;
-	width: 100%;
-}
-.navbar-select {	
-	flex-flow: row nowrap;
-}
-.frame {
-	height: calc(100% - 30px);
-	width: 100%;
-	position: absolute;
-	top: 30px;
- 	left: 0;
-	overflow-x: hidden;
-	overflow-y: hidden;
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-	z-index: 0;
-}
-.topnav-centered div {
-	float: none;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	font-weight: bold;
-}
-.mytoggle {	
-	flex-flow: row nowrap;
-}
-#version {	
-	background-color: white !important;
-    border: 1px solid #b9cde3;
-    padding-left: 6px;
-    padding-right: 6px;
-    color: #287bd3;
-}
-.myicon {	
-	color: #6a9db7;
-}
-</style>
-<script>
-function selectVersion(elem) {
-	var btn = document.getElementById("version");
-	var btnValue = elem.innerText;
-	btn.innerText = btnValue;
-	
-	var frame = document.getElementById("docu");
-	docu.src = btnValue + "/index.html";
-}
-function maximize() {
-	var btn = document.getElementById("version");
-	var btnValue = btn.innerText;
-	window.location.href = btnValue + "/index.html";
-}
-</script>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>regen: regen</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
 </head>
-
 <body>
-<div class="navbar navbar-expand-md navbar-light bg-light top-navbar border-bottom">
-	<div class="container-fluid top-bar">
-		<div class="topnav-centered">
-			<div class="nav-item">KnowRob API Documentation</div>
-		</div>
-		
-		<ul class="nav navbar-nav mr-auto navbar-select">
-			<li class="nav-item">
-				<a class="nav-item m-2">Version</a>
-			</li>
-				
-			<li class="nav-item dropdown">
-				<a class="mytoggle nav-item dropdown-toggle" id="version" href="#"
-					  data-toggle="dropdown" aria-expanded="false">dev</a>
-				<div class="dropdown-menu">
-					<a class="dropdown-item" onclick="selectVersion(this)">dev</a>
-					<a class="dropdown-item" onclick="selectVersion(this)">v0.0</a>
-				</div>
-			</li>
-		</ul>
-		
-		<div class="nav-item">
-			<a class="nav-link p-2 myicon" href="#" onclick="maximize()"><i class="fa-solid fa-maximize"></i></a>
-		</div>
-		<div class="nav-item">
-			<div class="vr m-2 border-right" style="width: 2px; height: 15px;"></div>
-		</div>
-    <!--
-		<div class="nav-item">
-			<a class="nav-link p-2 myicon" href="https://binder.intel4coro.de/v2/gh/knowrob/knowrob.git/dev?labpath=jupyter%2Fintro.ipynb"><i class="fa-solid fa-gears"></i></a>
-		</div>
-		<div class="nav-item">
-			<a class="nav-link p-2 myicon" href="https://github.com/knowrob/knowrob"><i class="fa-brands fa-github"></i></a>
-		</div>
-		<div class="nav-item">
-			<a class="nav-link p-2 myicon" href="https://ease-crc.org"><i class="fa-solid fa-robot"></i></a>
-		</div>
-    -->
-	</div>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">regen
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
 </div>
-	
-<iframe id="docu" src="dev/index.html" class="frame" frameborder="0"
-        scrolling="yes" width='100%' height='100%'></iframe>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('index.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title">regen </div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p align="center"><a class="anchor" id="md__2home_2runner_2work_2regen_2regen_2_r_e_a_d_m_e"></a></p>
+<p><img src="img/fluid-text-white.gif" alt="" width="320" height="90" class="inline"/> </p>
+<p align="center"></p>
+<p><img src="img/physics.gif" alt="" width="160" height="100" class="inline"/> <img src="img/instancing.gif" alt="" width="160" height="100" class="inline"/> <img src="img/transparency.gif" alt="" width="160" height="100" class="inline"/> <img src="img/gallery.gif" alt="" width="160" height="100" class="inline"/> </p>
+<p><img src="https://github.com/daniel86/regen/actions/workflows/ci-linux.yml/badge.svg" alt="Linux" style="pointer-events: none;" class="inline"/> <img src="https://github.com/daniel86/regen/actions/workflows/ci-macos.yml/badge.svg" alt="MacOS" style="pointer-events: none;" class="inline"/> <img src="https://img.shields.io/badge/compiler%20warnings-clean-brightgreen" alt="Warnings" class="inline"/> <a href="https://daniel86.github.io/regen/"><img src="https://img.shields.io/badge/docs-online-blue" alt="Docs" class="inline"/></a> <img src="https://img.shields.io/badge/debian-.deb%20package-blue" alt="Debian" class="inline"/> <img src="https://img.shields.io/github/v/release/daniel86/regen?include_prereleases" alt="GitHub release" class="inline"/> <img src="https://img.shields.io/github/license/daniel86/regen" alt="License" class="inline"/></p>
+<p><code>regen</code> &ndash; <b>Real-time Graphics Engine</b> &ndash; is a modular OpenGL-based C++ engine designed for research and experimentation in real-time rendering, GPU compute, and virtual world simulation.</p>
+<p>Unlike typical game engines, <code>regen</code> is built as a <b>computational framework</b>: it provides a unified runtime environment for <b>rendering</b>, <b>simulation</b>, and <b>AI behavior control</b>, where CPU and GPU workloads are explicitly modeled, profiled, and optimized. It serves as a testbed for exploring <b>hybrid CPU–GPU algorithms</b>, <b>procedural world generation</b>, and <b>agent-based systems</b> in dynamic 3D environments.</p>
+<p>A graphics card supporting the OpenGL 4.6 API is required for <code>regen</code>. The engine was tested with NVIDIA, ATI and Intel drivers and should work with Unix based operating systems and Windows.</p>
+<p>Some example renderings created by regen are shown in the GIFs above. For each of them you can find an example configuration for regen <a href="https://github.com/daniel86/regen/tree/master/applications/scene-display/examples">here</a>.</p>
+<h1><a class="anchor" id="autotoc_md0"></a>
+Overview</h1>
+<p><img src="img/modules.png" alt="" width="800" height="370" class="inline"/> </p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Subsystem   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Rendering Core   </td><td class="markdownTableBodyNone">Modern OpenGL 4.6 pipeline with deferred and forward rendering paths, HDR lighting, PBR materials, post-processing, and volumetric effects.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">GPU Compute Framework   </td><td class="markdownTableBodyNone">Compute-shader-based LOD, culling, and simulation modules with shared memory abstractions and radix sorting for high parallel throughput.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">AI &amp; Simulation   </td><td class="markdownTableBodyNone">Integrated support for multi-agent behavior control, including behavior trees, collision avoidance, flocking, and navigation with A* pathfinding.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">World Model   </td><td class="markdownTableBodyNone">Semantic representation of environment entities (locations, groups, and relationships), enabling high-level reasoning about scene composition and interaction.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Physics &amp; Dynamics   </td><td class="markdownTableBodyNone">GPU/CPU particle and boid systems, rigid-body interfaces, and environmental dynamics such as weather, wind, and water.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Animation System   </td><td class="markdownTableBodyNone">Skeletal animation controller with per-bone updates, procedural blending, and integration with NPC decision layers.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Tools &amp; Extensibility   </td><td class="markdownTableBodyNone">XML-based scene descriptions, GLSL preprocessor extensions, and an easily hackable modular architecture for research and prototyping.   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Recent Highlights (Summer 2025)</h1>
+<p>Recent developments focus on agent intelligence and environmental interaction within the Regen framework:</p>
+<ul>
+<li>🧭 <b>Navigation Controller</b>: Modular path planning based on A*, integrated with dynamic collision avoidance using quad-tree spatial indexing.</li>
+<li>🤝 <b>Social Flocking</b>: Multi-agent behavior layer for group formation, coordination, and motion blending.</li>
+<li>🧩 <b>Behavior Tree System</b>: Real-time decision logic for NPCs, allowing parallelized evaluation and seamless integration with animation and navigation layers.</li>
+<li>🌍 <b>Semantic World Model</b>: World graph representing spatial relations, group memberships, and environmental semantics — enabling AI behaviors that respond to world structure.</li>
+<li>💀 <b>Bone Animation Controller</b>: Procedural and data-driven animation blending for humanoid and animal agents, supporting layered control from behavior trees.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md2"></a>
+Features at a Glance</h1>
+<ul>
+<li>🔁 <b>Hybrid CPU &amp; GPU LOD System</b>: Efficient Level of Detail (LOD) management using custom SIMD-optimized CPU code and GPU-based compute shaders. Includes GPU-based radix sort and dynamic LOD selection.</li>
+<li>🧠 <b>Culling Optimizations</b>: Real-time view frustum culling on both CPU and GPU to minimize draw calls.</li>
+<li>🪐 <b>Weather &amp; Atmosphere Simulation</b>: Realistic dynamic weather including procedural thunderstorms, lightning flashes, wind, rain, snow, and atmospheric scattering.</li>
+<li>🌲 <b>Procedural Terrain &amp; Environment</b>:<ul>
+<li>Large-scale terrain rendering</li>
+<li>Procedural grass and vegetation generation</li>
+<li>Water surfaces with reflection, refraction, and wave animation</li>
+</ul>
+</li>
+<li>🐟 <b>GPU Flocking Simulation</b>: Real-time simulation of flocking behavior (boids) running both on GPU and CPU for benchmarking and experimentation.</li>
+<li>🔥 <b>Particles</b>: GPU-simulated systems with configurable behaviors</li>
+<li>🌌 <b>High-Quality Scene Rendering</b>: Deferred shading, volumetric effects, post-processing, physically-based lighting, and sky simulation.</li>
+</ul>
+<p>These systems together form a complete simulation loop: from perception and reasoning to motion and rendering; within a fully customizable engine architecture.</p>
+<h1><a class="anchor" id="autotoc_md3"></a>
+Research &amp; Experimentation Focus</h1>
+<p><code>regen</code> is designed for <b>algorithmic exploration</b> and <b>systems research</b>. It enables controlled experimentation with:</p>
+<ul>
+<li>GPU-driven simulation and procedural content generation.</li>
+<li>Hybrid CPU–GPU workload balancing.</li>
+<li>SIMD optimization and data-oriented design.</li>
+<li>Integration of world semantics into real-time systems.</li>
+<li>Benchmarking between CPU and GPU implementations.</li>
+</ul>
+<p>This makes it ideal not only for graphics programming but also for <b>AI–graphics integration research</b> and <b>engine architecture prototyping</b>.</p>
+<h1><a class="anchor" id="autotoc_md4"></a>
+Feature List</h1>
+<p>Here you find a brief list of supported features in this library.</p>
+<ul>
+<li><code>Portability</code>: Tested on Windows and various Linux distributions. Tested with AMD, NVIDIA and Intel driver.</li>
+<li><code>GPU + CPU Level-of-Detail (LOD) Handling</code>:<ul>
+<li>SIMD-optimized CPU implementation of LOD updates and sorting.</li>
+<li>GPU compute shader implementation using parallel radix sort for fast LOD ranking.</li>
+<li>Procedural mesh simplification<ul>
+<li>Mesh simplification using edge collapse</li>
+<li>Impostor rendering: renders mesh from multiple angles to a texture atlas for billboarding</li>
+</ul>
+</li>
+<li>Frustum culling implemented both on CPU (with SSE) and GPU:<ul>
+<li>Per-object and per-instance frustum culling using compute shaders.</li>
+<li>Optional CPU-side culling with SIMD acceleration and quad tree spatial index</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Boid Simulation</code>:<ul>
+<li>Flocking algorithm with spatial partitioning.</li>
+<li>GPU implementation using compute shaders, scales well to &gt;100K boids</li>
+<li>CPU version for comparison and debugging.</li>
+</ul>
+</li>
+<li><code>Procedural Terrain &amp; Environments</code>:<ul>
+<li>Large-scale terrain rendering with LOD and tiled streaming.</li>
+<li>Multi-layer procedural texturing and blending (e.g., grass, rock, snow).</li>
+<li>Water rendering with reflections/refractions</li>
+<li>Configurable weather system: thunder, rain, snow, fog, wind</li>
+</ul>
+</li>
+<li><code>Augmented GLSL</code>:<ul>
+<li>GLSL preprocessor extensions: <code>#include</code>, <code>#for</code>, and instanced attribute injection.</li>
+</ul>
+</li>
+<li><code>Modern GPU Resource Management</code><ul>
+<li>Unified memory abstraction ("Coil") dynamically selects between UBO, SSBO, and TBO depending on platform limits and usage</li>
+<li>Proper support for <code>std140</code> and <code>std430</code> layouts</li>
+<li>Virtual memory allocator using buddy allocation, with precise alignment and bound checking</li>
+</ul>
+</li>
+<li><code>Scene Graph &amp; Resource Loading</code>:<ul>
+<li>XML-based scene configuration.</li>
+<li>Assimp integration for loading animated models (OBJ, PLY, 3DS, etc.).</li>
+</ul>
+</li>
+<li><code>Rendering Pipeline</code>:<ul>
+<li>Deferred and forward shading.</li>
+<li>SSAO, FXAA, volumetric fog, tone mapping.</li>
+</ul>
+</li>
+<li><code>Realistic Sky Rendering</code>: Rayleigh and Mie scattering model, time-of-day transitions.</li>
+<li><code>Volume Rendering</code>: Lightweight raycasting for scientific and artistic purposes.</li>
+<li><code>Instancing &amp; Picking</code>: Hardware instancing and robust object/instance picking.</li>
+<li><code>Audio/Video</code>: 3D positional audio and video texture streaming support.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md5"></a>
+Dependency List</h1>
+<p>Following you can find a list of libraries that must be installed in order to compile <code>regen</code>.</p><ul>
+<li><a href="http://www.opengl.org/">OpenGL</a> &gt;=3.3</li>
+<li><a href="http://assimp.sourceforge.net/">Assimp</a> &gt;= 2.0<ul>
+<li>You have to copy the dll manually to binary dir on Win (.dll is not named like .lib)</li>
+</ul>
+</li>
+<li><a href="http://openil.sourceforge.net/">DevIL</a> &gt;= 1.4.0</li>
+<li><a href="http://www.freetype.org/">FreeType</a> &gt;= 2.4.0<ul>
+<li>You might have to compile FreeType manually on Win. I had troubles linking against the binary distribution using VisualStudio, probably incompatible compilers.</li>
+</ul>
+</li>
+<li><a href="http://www.boost.org/">Boost</a><ul>
+<li>components: thread system date_time filesystem regex</li>
+<li>compile options: &ndash;build-type=complete</li>
+</ul>
+</li>
+<li><a href="http://bulletphysics.org">Bullet</a></li>
+<li><a href="http://www.ffmpeg.org/">FFmpeg</a><ul>
+<li>Optional, required for audio/video support.</li>
+<li>Download <code>Dev</code> and <code>Shared</code> package from <a href="http://ffmpeg.zeranoe.com/builds/">here</a> on Win. You have to copy the dll manually to binary dir (.dll is not named like .lib).</li>
+</ul>
+</li>
+<li><a href="http://kcat.strangesoft.net/openal.html">OpenAL Soft</a> &gt;=1.1 and <a href="http://connect.creativelabs.com/openal/Documentation/The%20OpenAL%20Utility%20Toolkit.htm">ALUT</a><ul>
+<li>Optional, required for audio/video support.</li>
+<li>You might have to compile ALUT manually on Win. I had troubles linking against the binary distribution using VisualStudio, probably incompatible compilers.</li>
+</ul>
+</li>
+</ul>
+<p>In order to compile the test applications you will also need to install the following list of libraries:</p><ul>
+<li><a href="http://qt-project.org/">Qt</a> &gt;=5.0 (QtCore, QtGui, QtOpenGL)<ul>
+<li>Note: use Qt5 installer for Win</li>
+</ul>
+</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md6"></a>
+Downloading</h1>
+<p>Clone the code from <a href="https://github.com/daniel86/regen">github</a>. The dev branch contains the most up to date source code. For each release you will find a custom branch.</p>
+<h1><a class="anchor" id="autotoc_md7"></a>
+Compiling</h1>
+<p><code>regen</code> builds with <a href="http://www.cmake.org/">CMake</a>. Run <code>cmake .</code> in the root directory to generate files needed for compiling. On Unix systems CMake will generate Makefile's with usual targets. Running <code>make</code> invokes the compiler and linker and if <code>make</code> was successfull a static library <code>libregen.a</code> was created in the root directory. On Windows CMake generates Visual Studio files, just open them and compile from the IDE.</p>
+<p><code>regen</code> defines following build targets:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Target   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>all</code>   </td><td class="markdownTableBodyNone">Compile and link the engine.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>install</code>   </td><td class="markdownTableBodyNone">Install compiled library.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>doc</code>   </td><td class="markdownTableBodyNone">Generate doxygen documentation.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>package</code>   </td><td class="markdownTableBodyNone">Generate a regen package (archive file on Linux).   </td></tr>
+</table>
+<p>CMake supports some default parameters for compiler and build path setup, consider the CMake documentations for a complete socumentation of these arguments. Some important argument are listed below.</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">CMake argument   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">CMAKE_INSTALL_PREFIX   </td><td class="markdownTableBodyNone">Path were the engine should get installed when the <code>install</code> target is used.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">CMAKE_INCLUDE_PATH   </td><td class="markdownTableBodyNone">Path were you installed the dependency library headers.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">CMAKE_LIBRARY_PATH   </td><td class="markdownTableBodyNone">Path were you installed the dependency libraries.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">-G $GENERATOR_NAME   </td><td class="markdownTableBodyNone">Specifies custom build file generator. You might need to set this to "Visual Studio 11 Win64" when you intend to build the library for Win 64 Bit.   </td></tr>
+</table>
+<p>Following you can find a list of <code>cmake</code> arguments with special handling in the <code>regen</code> build files:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">CMake argument   </th><th class="markdownTableHeadNone">Default   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">-DCMAKE_BUILD_TYPE   </td><td class="markdownTableBodyNone">Release   </td><td class="markdownTableBodyNone">One of <code>Release</code> or <code>Debug</code>. With Debug mode the engine is compiled with additional debugging symbols.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">-DBUILD_TESTS   </td><td class="markdownTableBodyNone">0   </td><td class="markdownTableBodyNone">If set to 1 the test applications will be compiled by <code>all</code> target    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">-DBUILD_VIDEO_PLAYER   </td><td class="markdownTableBodyNone">0   </td><td class="markdownTableBodyNone">If set to 1 the video player application will be compiled by <code>all</code> target   </td></tr>
+</table>
+<p>On Windows you might have to set environment variables for the dependency libraries. Following you can find a list of those variables:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Environment variable   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">GLEW_DIR   </td><td class="markdownTableBodyNone">Base path for GLEW library.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Boost_DIR   </td><td class="markdownTableBodyNone">Base path for Boost library.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">ASSIMP_DIR   </td><td class="markdownTableBodyNone">Base path for Assimp library.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">FREETYPE_DIR   </td><td class="markdownTableBodyNone">Base path for Freetype library.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">DEVIL_DIR   </td><td class="markdownTableBodyNone">Base path for DevIL library.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">FFMPEG_DIR   </td><td class="markdownTableBodyNone">Base path for FFmpeg library.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">OPENAL_DIR   </td><td class="markdownTableBodyNone">Base path for OpenAL library.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">ALUT_DIR   </td><td class="markdownTableBodyNone">Base path for ALut library.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">BULLET_DIR   </td><td class="markdownTableBodyNone">Base path for Bullet library.   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md8"></a>
+Videos of regen in action</h1>
+<p><a href="http://www.youtube.com/watch?v=7zD6GoNz72U"><img src="http://img.youtube.com/vi/7zD6GoNz72U/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=waBatPmNW9Y"><img src="http://img.youtube.com/vi/waBatPmNW9Y/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=iL94kSPJ4Ic"><img src="http://img.youtube.com/vi/iL94kSPJ4Ic/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=VYKM_JCpGYk"><img src="http://img.youtube.com/vi/VYKM_JCpGYk/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=7nJSMTlSmjo"><img src="http://img.youtube.com/vi/7nJSMTlSmjo/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="https://www.youtube.com/watch?v=SYN62gZrNe4"><img src="http://img.youtube.com/vi/SYN62gZrNe4/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="https://www.youtube.com/watch?v=b1BqlESlgdM"><img src="http://img.youtube.com/vi/b1BqlESlgdM/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=nNI9y0Ey_m8"><img src="http://img.youtube.com/vi/nNI9y0Ey_m8/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=jaFgTxK6WjU"><img src="http://img.youtube.com/vi/jaFgTxK6WjU/0.jpg" alt="" width="160" height="120" class="inline"/> </a> <a href="http://www.youtube.com/watch?v=Mk0Nc-UMAMM"><img src="http://img.youtube.com/vi/Mk0Nc-UMAMM/0.jpg" alt="" width="160" height="120" class="inline"/> </a> </p>
+<h1><a class="anchor" id="autotoc_md9"></a>
+📚 Documentation</h1>
+<p>Documentation is available at: <a href="https://daniel86.github.io/regen/">https://daniel86.github.io/regen/</a></p>
+<h1><a class="anchor" id="autotoc_md10"></a>
+📬 Contact</h1>
+<p>Bug reports or feature requests? Use the GitHub issue tracker. You can also reach me via email: daniel(at)orgizm.net.</p>
+<h1><a class="anchor" id="autotoc_md11"></a>
+❤️ Contributions</h1>
+<p>This engine was primarily developed for fun and exploration of real-time rendering techniques. If you find it useful or want to contribute, feel free to reach out or submit a PR. </p>
+</div></div><!-- PageDoc -->
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
 </body>
 </html>

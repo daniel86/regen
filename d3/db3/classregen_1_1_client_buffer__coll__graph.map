@@ -1,0 +1,10 @@
+<map id="regen::ClientBuffer" name="regen::ClientBuffer">
+<area shape="rect" id="Node000001" title="A client buffer that can be used to store data on the client side. This class is used to manage clien..." alt="" coords="356,77,500,102"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="400,62,408,54,428,50,444,52,454,59,457,68,452,78,447,75,452,68,450,62,443,57,428,55,411,58,404,66"/>
+<area shape="rect" id="Node000002" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="5,5,213,45"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="227,45,333,67,368,74,367,79,331,72,226,51"/>
+<area shape="rect" id="Node000003" href="$dd/d22/structregen_1_1_cache_padded.html" title=" " alt="" coords="31,69,187,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="201,87,356,87,356,92,201,92"/>
+<area shape="rect" id="Node000004" href="$dd/d4c/classregen_1_1_dirty_list.html" title="A list of dirty ranges in a buffer." alt="" coords="48,134,171,159"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="184,132,332,107,368,99,369,105,332,112,185,138"/>
+</map>

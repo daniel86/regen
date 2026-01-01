@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['simde_5fenable_5fnative_5faliases_0',['SIMDE_ENABLE_NATIVE_ALIASES',['../d8/de1/simd_8h.html#a3d7b10d1c02ef12d64d7a6fa90e9a1e9',1,'simd.h']]],
+  ['simplifier_5fuse_5fpath_5fcompression_1',['SIMPLIFIER_USE_PATH_COMPRESSION',['../d5/de4/mesh-simplifier_8cpp.html#ae241f34152166ce98d545c57c0f1306c',1,'mesh-simplifier.cpp']]],
+  ['simplifier_5fuse_5fvalence_5fcost_2',['SIMPLIFIER_USE_VALENCE_COST',['../d5/de4/mesh-simplifier_8cpp.html#a1d00dbc36f962a6fd785f759d8be729e',1,'mesh-simplifier.cpp']]]
+];

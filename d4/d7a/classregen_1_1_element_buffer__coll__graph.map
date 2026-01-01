@@ -1,0 +1,16 @@
+<map id="regen::ElementBuffer" name="regen::ElementBuffer">
+<area shape="rect" id="Node000001" title="Buffer object that is used for element/index data." alt="" coords="856,160,1016,185"/>
+<area shape="rect" id="Node000002" href="$dc/d41/classregen_1_1_buffer_object.html" title="Base class for OpenGL buffer objects." alt="" coords="565,103,713,128"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="719,128,833,150,870,157,869,163,831,155,718,133"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="333,83,459,108"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="474,99,565,107,564,112,473,104"/>
+<area shape="rect" id="Node000004" href="$d8/d35/structregen_1_1_buffer_flags.html" title="Buffer configuration structure." alt="" coords="325,132,467,157"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="480,132,564,122,565,127,481,137"/>
+<area shape="rect" id="Node000005" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="5,132,193,157"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="207,142,325,142,325,147,207,147"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="68,117,77,109,99,105,118,108,129,114,132,124,126,133,122,131,127,123,125,117,116,113,99,111,80,114,71,121"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="557,153,720,193"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="734,170,856,170,856,175,734,175"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="557,217,720,257"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="733,214,875,183,877,188,734,219"/>
+</map>

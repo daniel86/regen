@@ -1,0 +1,61 @@
+<map id="regen::Mesh" name="regen::Mesh">
+<area shape="rect" id="Node000001" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="349,425,452,451"/>
+<area shape="rect" id="Node000005" href="$d0/d6e/classregen_1_1_attribute_less_mesh.html" title="Mesh that can be used when no vertex shader input is required." alt="" coords="503,5,691,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="402,412,414,328,434,217,462,110,479,69,498,40,514,29,517,33,502,44,483,71,467,112,439,218,419,329,408,412"/>
+<area shape="rect" id="Node000006" href="$d8/dbb/classregen_1_1_box.html" title="Three&#45;dimensional solid object bounded by six square faces, facets or sides, with three meeting at ea..." alt="" coords="551,55,643,80"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="398,411,401,347,413,260,426,214,443,169,467,126,498,89,523,74,550,66,552,72,525,79,502,93,472,129,448,171,431,215,419,261,406,347,404,412"/>
+<area shape="rect" id="Node000008" href="$dd/dc6/classregen_1_1_cone.html" title=" " alt="" coords="547,104,647,129"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="400,411,405,355,420,281,433,242,449,205,471,169,498,139,521,124,546,117,548,122,523,129,502,143,475,173,454,207,438,244,425,283,411,355,405,412"/>
+<area shape="rect" id="Node000011" href="$de/d68/classregen_1_1_disc.html" title="A disc is a 2D geometric shape that is defined by a center and a radius. The disc is centered at (0,..." alt="" coords="550,153,645,179"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="402,411,410,363,427,303,455,241,475,213,498,188,523,174,549,166,551,171,525,178,502,192,479,216,460,244,432,304,415,364,407,412"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1_frame_mesh.html" title="Three&#45;dimensional solid box&#45;shape frame with a whole in the middle." alt="" coords="526,203,669,228"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="405,411,416,372,434,325,461,278,478,256,498,237,525,223,527,227,502,241,482,260,466,281,439,327,421,374,410,412"/>
+<area shape="rect" id="Node000013" href="$d6/d9c/classregen_1_1_grass_patch.html" title=" " alt="" coords="528,252,667,277"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="410,411,443,349,468,316,498,288,526,274,529,278,502,292,472,319,447,352,414,414"/>
+<area shape="rect" id="Node000014" href="$dd/da4/classregen_1_1_ground_path.html" title=" " alt="" coords="526,301,669,327"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="417,413,452,374,474,354,499,337,528,324,530,329,501,342,477,358,456,378,421,416"/>
+<area shape="rect" id="Node000015" href="$df/de3/classregen_1_1_impostor_billboard.html" title="A billboard mesh that mimics a more complex mesh." alt="" coords="506,351,689,376"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="435,416,499,386,539,374,540,379,501,391,437,421"/>
+<area shape="rect" id="Node000016" href="$d2/d73/classregen_1_1_lightning_bolt.html" title="A lightning bolt." alt="" coords="521,400,674,425"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="466,427,520,420,521,425,466,432"/>
+<area shape="rect" id="Node000017" href="$da/d31/classregen_1_1_particles.html" title="Point sprite particle system." alt="" coords="536,449,659,475"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="466,443,536,452,535,457,466,449"/>
+<area shape="rect" id="Node000018" href="$d6/dd0/classregen_1_1_point.html" title=" " alt="" coords="547,499,647,524"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="437,455,501,485,548,499,546,504,499,490,435,460"/>
+<area shape="rect" id="Node000019" href="$d5/dd4/classregen_1_1_rectangle.html" title="A polygon with four edges, vertices and right angles." alt="" coords="531,548,663,573"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="421,460,456,499,477,518,501,534,532,547,530,552,499,539,474,522,452,502,417,463"/>
+<area shape="rect" id="Node000025" href="$d0/d58/classregen_1_1_silhouette_mesh.html" title=" " alt="" coords="513,597,681,623"/>
+<area shape="poly" id="edge24_Node000001_Node000025" title=" " alt="" coords="414,462,447,524,472,557,502,584,522,595,520,600,498,588,468,560,443,527,410,465"/>
+<area shape="rect" id="Node000026" title=" " alt="" coords="531,647,663,672"/>
+<area shape="poly" id="edge25_Node000001_Node000026" title=" " alt="" coords="410,463,421,502,439,548,466,594,502,633,532,649,530,654,498,637,461,597,434,550,416,503,405,465"/>
+<area shape="rect" id="Node000027" href="$de/d08/classregen_1_1_sphere.html" title="Round geometrical object in three&#45;dimensional space &#45; a sphere ;)" alt="" coords="541,696,653,721"/>
+<area shape="poly" id="edge26_Node000001_Node000027" title=" " alt="" coords="407,464,416,512,432,571,460,631,479,659,502,683,520,694,542,702,540,707,518,699,498,687,475,662,455,634,427,573,410,513,402,465"/>
+<area shape="rect" id="Node000028" href="$d6/d1c/classregen_1_1_sphere_sprite.html" title="A sprite that generates sphere normals." alt="" coords="522,745,673,771"/>
+<area shape="poly" id="edge27_Node000001_Node000028" title=" " alt="" coords="405,464,411,520,425,593,438,631,454,668,475,702,502,732,523,745,520,750,498,736,471,705,449,670,433,633,420,594,405,521,400,465"/>
+<area shape="rect" id="Node000029" href="$d4/d74/classregen_1_1_texture_mapped_text.html" title="Implements texture mapped text rendering." alt="" coords="500,795,695,820"/>
+<area shape="poly" id="edge28_Node000001_Node000029" title=" " alt="" coords="404,464,406,529,419,614,431,660,448,704,472,745,502,781,517,792,514,797,498,785,467,748,444,706,426,661,414,615,401,529,399,464"/>
+<area shape="rect" id="Node000030" href="$d7/df1/classregen_1_1_torus.html" title="Three&#45;dimensional solid object bounded by six square faces, facets or sides, with three meeting at ea..." alt="" coords="547,844,648,869"/>
+<area shape="poly" id="edge29_Node000001_Node000030" title=" " alt="" coords="408,464,419,548,439,658,467,763,483,804,502,831,523,845,547,852,546,857,520,849,498,835,479,806,462,765,434,659,414,549,402,465"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="200,425,301,451"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="315,435,349,435,349,441,315,441"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,400,152,425"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="166,423,200,428,199,433,165,428"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="15,449,142,475"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="155,449,200,442,200,448,156,454"/>
+<area shape="rect" id="Node000007" href="$d3/d74/classregen_1_1_sky_box.html" title="A special Box that is not translated by camera movement." alt="" coords="761,55,875,80"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="657,65,760,65,760,70,657,70"/>
+<area shape="rect" id="Node000009" href="$d4/d0b/classregen_1_1_cone_closed.html" title="A cone is an n&#45;dimensional geometric shape that tapers smoothly from a base to a point called the ape..." alt="" coords="746,104,890,129"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="661,114,746,114,746,119,661,119"/>
+<area shape="rect" id="Node000010" href="$df/d53/classregen_1_1_cone_opened.html" title="A cone is an n&#45;dimensional geometric shape that tapers smoothly from a base to a point called the ape..." alt="" coords="743,153,893,179"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="661,128,761,151,760,156,660,133"/>
+<area shape="rect" id="Node000020" href="$d7/d33/classregen_1_1_blanket.html" title="A blanket mesh." alt="" coords="760,499,876,524"/>
+<area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="668,542,760,521,761,527,669,548"/>
+<area shape="rect" id="Node000022" href="$d8/d27/classregen_1_1_mask_mesh.html" title="A series of patches in xz plane covering a mask defined by a texture." alt="" coords="749,548,887,573"/>
+<area shape="poly" id="edge21_Node000019_Node000022" title=" " alt="" coords="677,558,749,558,749,563,677,563"/>
+<area shape="rect" id="Node000023" href="$d9/de8/classregen_1_1_skirt_quad.html" title="A quad mesh where boundary vertices are duplicated and pulled down to form a skirt or curtain around ..." alt="" coords="753,597,883,623"/>
+<area shape="poly" id="edge22_Node000019_Node000023" title=" " alt="" coords="669,574,761,595,760,600,668,579"/>
+<area shape="rect" id="Node000021" href="$d5/dca/classregen_1_1_blanket_trail.html" title="A trail of blankets." alt="" coords="941,499,1084,524"/>
+<area shape="poly" id="edge20_Node000020_Node000021" title=" " alt="" coords="890,509,941,509,941,514,890,514"/>
+<area shape="rect" id="Node000024" href="$d0/dde/classregen_1_1_ground.html" title="Ground mesh." alt="" coords="955,597,1070,623"/>
+<area shape="poly" id="edge23_Node000023_Node000024" title=" " alt="" coords="898,607,955,607,955,613,898,613"/>
+</map>

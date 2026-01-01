@@ -1,0 +1,6 @@
+<map id="regen::ConeClosed::Config" name="regen::ConeClosed::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="23,171,175,211"/>
+<area shape="rect" id="Node000002" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="5,44,193,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,83,102,170,97,170,97,83"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="154,39,198,41,214,46,220,57,212,68,193,74,140,72,141,67,192,68,209,64,215,57,210,51,197,46,154,45"/>
+</map>

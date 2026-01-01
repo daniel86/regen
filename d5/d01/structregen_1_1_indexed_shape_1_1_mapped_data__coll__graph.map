@@ -1,0 +1,9 @@
+<map id="regen::IndexedShape::MappedData" name="regen::IndexedShape::MappedData">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,240,256,280"/>
+<area shape="rect" id="Node000002" href="$d1/d37/structregen_1_1_client_data__rw.html" title=" " alt="" coords="97,108,256,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,162,179,240,174,240,174,162"/>
+<area shape="rect" id="Node000003" href="$df/d33/classregen_1_1_read_accessor.html" title=" " alt="" coords="5,5,164,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,54,161,106,157,110,109,57"/>
+<area shape="rect" id="Node000004" href="$d6/d75/classregen_1_1_write_accessor.html" title=" " alt="" coords="189,5,349,45"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="244,57,196,110,192,106,240,54"/>
+</map>

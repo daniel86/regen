@@ -1,0 +1,12 @@
+<map id="regen::SilhouetteMesh::Config" name="regen::SilhouetteMesh::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="325,82,493,122"/>
+<area shape="rect" id="Node000002" href="$d8/d34/structregen_1_1_silhouette_config.html" title=" " alt="" coords="12,5,187,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,26,251,36,302,49,373,79,371,84,300,54,250,41,200,32"/>
+<area shape="rect" id="Node000003" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="21,63,178,88"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,81,325,92,325,97,191,86"/>
+<area shape="rect" id="Node000004" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="21,112,178,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="191,124,301,119,325,116,325,122,302,125,192,129"/>
+<area shape="rect" id="Node000005" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="5,288,193,313"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="130,278,376,120,378,124,133,283"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="68,273,77,265,99,261,118,264,129,270,132,280,126,289,122,287,127,279,125,273,116,269,99,267,80,270,71,277"/>
+</map>

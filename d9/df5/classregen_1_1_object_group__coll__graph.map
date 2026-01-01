@@ -1,0 +1,28 @@
+<map id="regen::ObjectGroup" name="regen::ObjectGroup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="653,401,801,427"/>
+<area shape="rect" id="Node000002" href="$da/dec/classregen_1_1_world_object.html" title=" " alt="" coords="339,240,486,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="452,269,703,399,700,404,450,274"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,55,150,80"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="164,76,236,96,272,110,307,129,340,155,368,186,406,238,402,241,364,189,336,159,304,134,270,115,234,101,163,81"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,105,168,145"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,145,244,164,306,188,355,213,394,238,391,242,352,217,304,192,242,169,180,150"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,169,168,209"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="182,205,348,237,347,243,181,210"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,233,168,273"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="182,250,339,250,339,255,182,255"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,297,168,337"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="181,296,347,263,348,268,182,301"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,361,168,401"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="180,356,242,338,304,314,353,289,392,263,395,268,355,293,306,319,244,343,182,361"/>
+<area shape="rect" id="Node000009" href="$dd/da3/structregen_1_1_vec3.html" title="A 3D vector." alt="" coords="19,431,155,456"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="167,427,236,406,271,391,304,373,316,361,327,346,398,264,402,267,331,349,320,364,307,377,274,396,238,411,169,432"/>
+<area shape="rect" id="Node000011" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="329,359,496,399"/>
+<area shape="poly" id="edge11_Node000011_Node000009" title=" " alt="" coords="134,458,173,468,217,473,263,470,284,464,304,455,313,445,316,435,319,422,327,409,345,397,348,402,331,413,324,424,321,436,317,448,307,459,286,469,263,475,217,478,172,473,133,463"/>
+<area shape="rect" id="Node000010" href="$d1/dc3/structregen_1_1_vec2.html" title="A 2D vector." alt="" coords="19,5,155,31"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="169,28,239,50,275,67,307,88,344,125,374,168,409,238,404,241,369,170,340,128,304,92,272,71,238,55,167,33"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="510,387,654,403,653,409,510,393"/>
+<area shape="rect" id="Node000012" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="334,424,491,449"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="505,434,629,427,656,424,656,429,630,433,505,439"/>
+<area shape="rect" id="Node000013" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="334,473,491,499"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="505,477,566,468,629,454,667,440,701,424,703,429,669,445,630,459,567,473,506,482"/>
+</map>

@@ -1,0 +1,29 @@
+<map id="regen::Atmosphere" name="regen::Atmosphere">
+<area shape="rect" id="Node000001" title="Atmospheric scattering, and some simple cloud rendering. A cube map is created on updated,..." alt="" coords="849,330,996,355"/>
+<area shape="rect" id="Node000002" href="$d0/de9/classregen_1_1_sky_layer.html" title=" " alt="" coords="523,81,650,106"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="664,91,705,95,747,105,789,120,827,143,849,164,868,188,895,241,913,292,922,329,916,330,908,293,890,244,863,191,845,168,824,147,787,125,746,110,704,101,664,96"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="275,81,410,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,91,523,91,523,96,424,96"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="319,66,326,57,343,54,357,56,366,63,368,72,364,82,359,79,362,72,361,66,355,61,343,59,329,62,323,69"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,23,168,63"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="182,25,298,17,362,19,424,27,464,37,501,50,563,78,560,83,499,55,462,42,424,32,361,24,298,22,182,30"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="182,59,278,78,277,83,181,64"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,131,424,171"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="436,126,531,103,532,109,438,131"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,131,668,171"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="682,159,756,179,793,194,827,214,858,241,884,273,917,328,913,331,880,276,854,245,824,218,790,199,754,184,681,165"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,195,668,235"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="683,230,754,249,826,276,872,302,907,328,904,332,869,306,824,281,752,254,681,235"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,259,668,299"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="682,293,826,320,862,327,861,333,825,325,681,298"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,323,668,363"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="682,340,849,340,849,345,682,345"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,387,668,427"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="681,387,825,360,861,353,862,358,826,365,682,392"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,451,668,491"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="681,460,753,446,824,420,849,405,873,388,908,354,912,358,876,392,852,410,826,425,754,451,682,465"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,515,668,555"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="681,527,754,511,790,498,824,479,856,450,882,415,914,354,919,357,887,418,860,454,827,484,793,502,756,516,682,532"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,579,668,619"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="682,602,718,599,756,592,791,580,824,561,847,538,867,512,894,453,910,396,917,355,923,356,916,397,899,455,871,515,851,542,827,565,794,585,757,597,719,605,682,608"/>
+</map>

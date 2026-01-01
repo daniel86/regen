@@ -1,0 +1,5 @@
+<map id="regen::BatchOfFrustums" name="regen::BatchOfFrustums">
+<area shape="rect" id="Node000001" title="Batch structure for frustum shapes. This structure holds the necessary data for performing intersecti..." alt="" coords="5,79,184,104"/>
+<area shape="rect" id="Node000002" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="11,5,178,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,44,97,79,92,79,92,44"/>
+</map>

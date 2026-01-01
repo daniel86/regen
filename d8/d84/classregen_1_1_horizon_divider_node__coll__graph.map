@@ -1,0 +1,12 @@
+<map id="regen::HorizonDividerNode" name="regen::HorizonDividerNode">
+<area shape="rect" id="Node000001" title="A node that divides scene graph traversal based on camera position relative to a horizon level." alt="" coords="608,101,807,127"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="275,44,410,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="424,66,584,91,630,99,629,104,584,97,423,72"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="317,29,325,21,343,17,358,20,367,26,369,36,365,45,360,43,364,35,362,29,356,25,343,23,328,25,321,33"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,37,168,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="182,54,275,54,275,59,182,59"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,94,424,134"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="438,111,608,111,608,117,438,117"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,158,424,198"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="438,167,583,146,666,124,668,129,585,151,438,173"/>
+</map>

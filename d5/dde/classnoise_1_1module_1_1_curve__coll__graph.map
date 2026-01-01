@@ -1,0 +1,8 @@
+<map id="noise::module::Curve" name="noise::module::Curve">
+<area shape="rect" id="Node000001" title=" " alt="" coords="280,93,440,119"/>
+<area shape="rect" id="Node000002" href="$d5/dad/classnoise_1_1module_1_1_module.html" title=" " alt="" coords="5,5,176,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,32,325,91,323,96,139,37"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="191,10,203,18,194,25,177,28,176,23,192,20,197,18,189,15"/>
+<area shape="rect" id="Node000003" href="$d3/deb/structnoise_1_1module_1_1_control_point.html" title=" " alt="" coords="349,5,552,31"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="430,42,374,95,371,91,427,38"/>
+</map>

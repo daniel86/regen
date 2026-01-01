@@ -1,0 +1,7 @@
+<map id="regen::SilhouetteGenerator" name="regen::SilhouetteGenerator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="89,108,288,133"/>
+<area shape="rect" id="Node000002" href="$d8/d34/structregen_1_1_silhouette_config.html" title=" " alt="" coords="5,13,180,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,46,179,106,175,110,112,49"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="205,5,367,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,57,203,110,199,106,255,53"/>
+</map>

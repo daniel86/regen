@@ -1,0 +1,7 @@
+<map id="regen::OrthogonalProjection" name="regen::OrthogonalProjection">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,211,209,236"/>
+<area shape="rect" id="Node000002" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="24,108,191,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,162,110,210,105,210,105,162"/>
+<area shape="rect" id="Node000003" href="$d1/dc3/structregen_1_1_vec2.html" title="A 2D vector." alt="" coords="39,5,175,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="110,45,110,108,105,108,105,45"/>
+</map>

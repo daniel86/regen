@@ -1,0 +1,9 @@
+<map id="regen::BoneTree::BoneEvent" name="regen::BoneTree::BoneEvent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="26,181,231,207"/>
+<area shape="rect" id="Node000002" href="$d2/da8/classregen_1_1_event_data.html" title="Data passed from event emitter to event handlers." alt="" coords="5,93,140,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,129,123,179,119,182,85,132"/>
+<area shape="rect" id="Node000003" href="$d5/d88/structregen_1_1_active_bone_range.html" title=" " alt="" coords="164,93,347,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,129,147,183,144,179,225,124"/>
+<area shape="rect" id="Node000004" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="169,5,341,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="258,45,258,93,253,93,253,45"/>
+</map>

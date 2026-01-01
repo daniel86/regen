@@ -1,0 +1,15 @@
+<map id="regen::DrawIndirectBuffer" name="regen::DrawIndirectBuffer">
+<area shape="rect" id="Node000001" title="A buffer for storing draw indirect commands. This buffer is used to store draw commands that can be e..." alt="" coords="70,372,259,397"/>
+<area shape="rect" id="Node000002" href="$d1/d84/classregen_1_1_s_s_b_o.html" title="A Shader Storage Buffer Object is a Buffer Object that is used to store and retrieve data from within..." alt="" coords="113,299,216,324"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,338,167,372,162,372,162,338"/>
+<area shape="rect" id="Node000003" href="$de/dbe/classregen_1_1_buffer_block.html" title="Manages data in a buffer object that can be bound as buffer blocks in shaders." alt="" coords="93,225,236,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="167,264,167,299,162,299,162,264"/>
+<area shape="rect" id="Node000004" href="$db/d5b/classregen_1_1_staged_buffer.html" title="A buffer object that can be used for staging data in a staging system." alt="" coords="89,152,240,177"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="167,191,167,225,162,225,162,191"/>
+<area shape="rect" id="Node000005" href="$dc/d41/classregen_1_1_buffer_object.html" title="Base class for OpenGL buffer objects." alt="" coords="5,79,153,104"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="105,110,152,150,149,154,102,115"/>
+<area shape="rect" id="Node000006" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="16,5,143,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="82,44,82,79,77,79,77,44"/>
+<area shape="rect" id="Node000007" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="177,79,323,104"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="228,115,180,154,177,150,224,110"/>
+</map>

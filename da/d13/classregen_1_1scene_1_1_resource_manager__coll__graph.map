@@ -1,0 +1,49 @@
+<map id="regen::scene::ResourceManager" name="regen::scene::ResourceManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="677,365,908,390"/>
+<area shape="rect" id="Node000002" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,5,524,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="539,42,600,64,629,81,655,101,685,132,711,168,751,245,777,315,791,364,786,365,772,317,747,247,707,171,681,136,652,105,626,85,597,69,537,47"/>
+<area shape="rect" id="Node000003" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,13,280,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="294,23,337,23,337,28,294,28"/>
+<area shape="rect" id="Node000004" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="336,69,525,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="534,111,596,137,627,154,655,174,702,223,741,277,770,327,788,363,783,365,765,329,736,280,698,226,652,178,624,158,594,141,532,116"/>
+<area shape="rect" id="Node000005" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,77,280,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="294,87,336,87,336,92,294,92"/>
+<area shape="rect" id="Node000006" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,133,524,173"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="512,175,533,183,596,205,623,217,655,236,695,269,732,304,784,363,780,366,728,308,692,273,652,241,620,222,594,210,531,188,510,180"/>
+<area shape="rect" id="Node000007" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,141,280,166"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="294,151,337,151,337,156,294,156"/>
+<area shape="rect" id="Node000008" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,197,524,237"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="510,239,533,247,595,266,654,291,722,328,774,362,771,367,719,333,652,296,593,271,531,252,508,244"/>
+<area shape="rect" id="Node000009" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,205,280,230"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="294,215,337,215,337,220,294,220"/>
+<area shape="rect" id="Node000010" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,261,524,301"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="528,302,654,335,749,362,748,367,653,340,527,307"/>
+<area shape="rect" id="Node000011" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,269,280,294"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="294,279,337,279,337,284,294,284"/>
+<area shape="rect" id="Node000012" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,325,524,365"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="538,352,677,364,677,370,537,357"/>
+<area shape="rect" id="Node000013" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,333,280,358"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="294,343,337,343,337,348,294,348"/>
+<area shape="rect" id="Node000014" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,389,524,429"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="537,397,677,385,677,390,538,403"/>
+<area shape="rect" id="Node000015" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,397,280,422"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="294,407,337,407,337,412,294,412"/>
+<area shape="rect" id="Node000016" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,453,524,493"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="530,447,653,416,750,388,751,393,654,421,531,453"/>
+<area shape="rect" id="Node000017" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,461,280,486"/>
+<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="294,471,337,471,337,476,294,476"/>
+<area shape="rect" id="Node000018" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="329,517,532,557"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="508,510,531,503,593,485,652,462,720,424,772,388,775,392,723,428,654,466,595,490,533,508,510,515"/>
+<area shape="rect" id="Node000019" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,525,280,550"/>
+<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="294,535,329,535,329,540,294,540"/>
+<area shape="rect" id="Node000020" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="337,581,524,621"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="510,574,531,567,594,546,620,534,652,515,692,483,728,448,780,388,784,392,732,451,696,487,655,520,623,539,596,551,533,572,512,579"/>
+<area shape="rect" id="Node000021" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,589,280,614"/>
+<area shape="poly" id="edge20_Node000020_Node000021" title=" " alt="" coords="294,599,337,599,337,604,294,604"/>
+<area shape="rect" id="Node000022" href="$d5/d68/classregen_1_1_loadable_resource.html" title=" " alt="" coords="331,645,530,685"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="535,639,596,614,625,598,652,579,699,531,737,476,766,426,783,389,788,391,771,428,742,479,703,534,655,583,628,603,598,619,537,644"/>
+<area shape="rect" id="Node000023" href="$d7/db5/classregen_1_1scene_1_1_resource_processor.html" title=" " alt="" coords="5,653,280,678"/>
+<area shape="poly" id="edge22_Node000022_Node000023" title=" " alt="" coords="294,663,331,663,331,668,294,668"/>
+<area shape="rect" id="Node000024" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="349,709,512,749"/>
+<area shape="poly" id="edge23_Node000001_Node000024" title=" " alt="" coords="525,712,591,690,623,674,652,653,682,621,707,586,747,509,773,439,786,390,791,391,778,440,752,511,712,589,686,625,655,657,626,678,593,695,526,717"/>
+</map>

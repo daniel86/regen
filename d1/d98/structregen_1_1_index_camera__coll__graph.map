@@ -1,0 +1,13 @@
+<map id="regen::IndexCamera" name="regen::IndexCamera">
+<area shape="rect" id="Node000001" title="Index camera data." alt="" coords="247,211,402,236"/>
+<area shape="rect" id="Node000002" href="$df/dfa/classregen_1_1_spatial_index.html" title="Spatial index." alt="" coords="71,101,219,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,131,307,208,304,213,174,135"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="5,5,132,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,39,137,99,133,102,85,43"/>
+<area shape="rect" id="Node000004" href="$db/dfd/structregen_1_1_job_frame.html" title="A structure representing a frame of jobs." alt="" coords="157,5,285,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="205,43,156,102,152,99,201,39"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="243,93,406,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="327,147,327,210,322,210,322,147"/>
+<area shape="rect" id="Node000006" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="431,101,576,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="482,137,449,163,410,189,358,213,356,208,407,184,446,159,479,133"/>
+</map>

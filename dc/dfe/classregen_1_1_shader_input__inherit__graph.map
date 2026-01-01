@@ -1,0 +1,99 @@
+<map id="regen::ShaderInput" name="regen::ShaderInput">
+<area shape="rect" id="Node000001" title="Provides input to shader programs." alt="" coords="5,778,151,803"/>
+<area shape="rect" id="Node000002" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="199,5,433,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,764,84,619,102,407,117,297,137,196,163,113,179,80,197,56,211,44,214,48,201,59,184,83,168,115,142,197,122,298,107,407,89,619,83,765"/>
+<area shape="rect" id="Node000004" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="221,69,411,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="78,764,86,630,106,437,121,337,141,246,166,171,181,142,197,119,219,103,222,107,201,123,185,145,171,173,146,248,126,338,111,438,91,631,83,764"/>
+<area shape="rect" id="Node000007" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="214,133,418,173"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="78,764,88,641,110,467,125,378,145,297,168,230,182,204,197,183,212,171,215,175,201,187,186,206,173,232,150,298,131,379,115,468,94,642,84,764"/>
+<area shape="rect" id="Node000032" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="225,198,407,253"/>
+<area shape="poly" id="edge8_Node000001_Node000032" title=" " alt="" coords="79,764,92,656,116,506,132,430,150,360,172,302,197,262,223,242,226,247,201,266,177,304,155,361,137,431,121,507,97,656,85,764"/>
+<area shape="rect" id="Node000034" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="223,277,409,331"/>
+<area shape="poly" id="edge10_Node000001_Node000034" title=" " alt="" coords="76,764,78,684,83,630,92,571,107,509,128,449,158,392,197,341,221,323,224,327,201,345,162,394,133,451,112,511,97,572,88,630,83,684,81,764"/>
+<area shape="rect" id="Node000036" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="225,355,407,410"/>
+<area shape="poly" id="edge12_Node000001_Node000036" title=" " alt="" coords="78,764,84,696,102,605,117,556,138,507,164,461,197,421,223,402,226,406,200,425,168,464,142,509,122,557,107,606,89,697,83,765"/>
+<area shape="rect" id="Node000038" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="201,435,431,475"/>
+<area shape="poly" id="edge14_Node000001_Node000038" title=" " alt="" coords="79,764,89,706,109,631,124,591,144,552,168,516,197,485,214,473,217,477,200,489,172,520,148,555,129,593,114,632,94,707,85,764"/>
+<area shape="rect" id="Node000040" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="217,499,415,539"/>
+<area shape="poly" id="edge16_Node000001_Node000040" title=" " alt="" coords="82,764,95,718,118,659,151,600,172,572,197,549,215,537,218,541,200,553,176,576,156,603,123,662,100,719,87,765"/>
+<area shape="rect" id="Node000042" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="219,563,413,603"/>
+<area shape="poly" id="edge18_Node000001_Node000042" title=" " alt="" coords="87,764,104,730,128,689,159,648,197,613,218,600,221,605,200,617,163,651,132,692,108,732,92,766"/>
+<area shape="rect" id="Node000044" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="225,627,407,682"/>
+<area shape="poly" id="edge20_Node000001_Node000044" title=" " alt="" coords="100,766,144,729,197,692,223,680,226,685,200,697,147,733,104,770"/>
+<area shape="rect" id="Node000046" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="201,707,431,747"/>
+<area shape="poly" id="edge22_Node000001_Node000046" title=" " alt="" coords="139,772,240,744,242,749,140,777"/>
+<area shape="rect" id="Node000048" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="217,771,415,811"/>
+<area shape="poly" id="edge24_Node000001_Node000048" title=" " alt="" coords="165,788,216,788,216,793,165,793"/>
+<area shape="rect" id="Node000050" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="219,835,413,875"/>
+<area shape="poly" id="edge26_Node000001_Node000050" title=" " alt="" coords="140,804,242,832,240,837,139,810"/>
+<area shape="rect" id="Node000052" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="225,899,407,954"/>
+<area shape="poly" id="edge28_Node000001_Node000052" title=" " alt="" coords="104,811,147,848,200,884,226,897,223,902,197,889,144,852,100,815"/>
+<area shape="rect" id="Node000054" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="201,979,431,1019"/>
+<area shape="poly" id="edge30_Node000001_Node000054" title=" " alt="" coords="92,815,109,848,132,889,163,929,200,963,223,976,221,981,197,967,159,933,128,892,104,851,87,817"/>
+<area shape="rect" id="Node000056" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="217,1043,415,1083"/>
+<area shape="poly" id="edge32_Node000001_Node000056" title=" " alt="" coords="87,816,100,862,123,920,156,979,176,1005,200,1029,218,1040,215,1045,197,1033,172,1009,151,982,118,922,95,864,82,817"/>
+<area shape="rect" id="Node000058" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="219,1107,413,1147"/>
+<area shape="poly" id="edge34_Node000001_Node000058" title=" " alt="" coords="85,817,94,874,114,949,129,988,148,1026,172,1062,200,1093,220,1106,217,1110,197,1097,168,1065,144,1029,124,990,109,951,89,876,79,818"/>
+<area shape="rect" id="Node000060" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="225,1171,407,1226"/>
+<area shape="poly" id="edge36_Node000001_Node000060" title=" " alt="" coords="83,817,89,884,107,975,122,1024,142,1072,168,1117,200,1157,226,1175,223,1179,197,1161,164,1120,138,1074,117,1026,102,977,84,885,78,817"/>
+<area shape="rect" id="Node000062" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="216,1251,416,1291"/>
+<area shape="poly" id="edge38_Node000001_Node000062" title=" " alt="" coords="86,817,100,910,125,1036,159,1157,179,1204,201,1236,217,1248,214,1253,197,1239,175,1206,154,1159,120,1037,95,911,80,818"/>
+<area shape="rect" id="Node000064" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="216,1315,416,1355"/>
+<area shape="poly" id="edge40_Node000001_Node000064" title=" " alt="" coords="85,817,97,923,121,1068,137,1142,155,1209,177,1264,201,1301,218,1314,214,1318,197,1304,172,1266,150,1211,132,1143,116,1069,92,923,79,818"/>
+<area shape="rect" id="Node000066" href="$db/dab/classregen_1_1_shader_input_typed.html" title="Provides typed input to shader programs." alt="" coords="225,1379,407,1434"/>
+<area shape="poly" id="edge42_Node000001_Node000066" title=" " alt="" coords="84,817,95,934,118,1098,134,1182,153,1259,175,1322,201,1365,226,1384,223,1389,197,1368,170,1324,148,1260,129,1183,113,1099,90,934,79,817"/>
+<area shape="rect" id="Node000067" href="$d1/dd0/classregen_1_1_shader_struct_base.html" title=" " alt="" coords="225,1458,407,1483"/>
+<area shape="poly" id="edge43_Node000001_Node000067" title=" " alt="" coords="83,817,91,949,111,1138,126,1235,146,1323,171,1395,185,1423,200,1443,226,1460,223,1464,197,1447,180,1426,166,1397,141,1325,121,1236,105,1139,86,949,78,817"/>
+<area shape="rect" id="Node000069" href="$db/d5b/classregen_1_1_staged_buffer.html" title="A buffer object that can be used for staging data in a staging system." alt="" coords="241,1523,391,1549"/>
+<area shape="poly" id="edge45_Node000001_Node000069" title=" " alt="" coords="83,817,91,956,111,1159,126,1264,146,1360,171,1439,185,1470,201,1493,220,1509,244,1521,241,1526,217,1514,197,1496,180,1472,166,1441,141,1361,121,1265,105,1160,86,957,78,817"/>
+<area shape="rect" id="Node000003" href="$d1/d6f/classregen_1_1_shader_input1d.html" title="Provides 1D double input to shader programs." alt="" coords="495,13,656,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="447,23,494,23,494,28,447,28"/>
+<area shape="rect" id="Node000005" href="$df/df5/classregen_1_1_shader_input1f.html" title="Provides 1D float input to shader programs." alt="" coords="496,77,655,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="425,87,496,87,496,92,425,92"/>
+<area shape="rect" id="Node000006" href="$d2/dd0/classregen_1_1_timer_input.html" title=" " alt="" coords="717,77,856,102"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="669,87,717,87,717,92,669,92"/>
+<area shape="rect" id="Node000008" href="$d8/d87/classregen_1_1_shader_input1i.html" title="Provides 1D int input to shader programs." alt="" coords="497,141,654,166"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="432,151,497,151,497,156,432,156"/>
+<area shape="rect" id="Node000033" href="$d4/dc3/classregen_1_1_shader_input1ui.html" title="Provides 1D unsigned int input to shader programs." alt="" coords="493,213,658,238"/>
+<area shape="poly" id="edge9_Node000032_Node000033" title=" " alt="" coords="421,223,493,223,493,228,421,228"/>
+<area shape="rect" id="Node000035" href="$df/d89/classregen_1_1_shader_input1ui__16.html" title="Provides 1D unsigned short input to shader programs." alt="" coords="481,291,669,317"/>
+<area shape="poly" id="edge11_Node000034_Node000035" title=" " alt="" coords="423,301,481,301,481,307,423,307"/>
+<area shape="rect" id="Node000037" href="$d0/df1/classregen_1_1_shader_input1ui__8.html" title="Provides 1D unsigned byte input to shader programs." alt="" coords="485,370,665,395"/>
+<area shape="poly" id="edge13_Node000036_Node000037" title=" " alt="" coords="421,380,485,380,485,385,421,385"/>
+<area shape="rect" id="Node000039" href="$d4/d6a/classregen_1_1_shader_input2d.html" title="Provides 2D double input to shader programs." alt="" coords="495,442,656,467"/>
+<area shape="poly" id="edge15_Node000038_Node000039" title=" " alt="" coords="445,452,495,452,495,457,445,457"/>
+<area shape="rect" id="Node000041" href="$d5/d9c/classregen_1_1_shader_input2f.html" title="Provides 2D float input to shader programs." alt="" coords="496,506,655,531"/>
+<area shape="poly" id="edge17_Node000040_Node000041" title=" " alt="" coords="429,516,496,516,496,521,429,521"/>
+<area shape="rect" id="Node000043" href="$df/d0c/classregen_1_1_shader_input2i.html" title="Provides 2D int input to shader programs." alt="" coords="497,570,654,595"/>
+<area shape="poly" id="edge19_Node000042_Node000043" title=" " alt="" coords="427,580,496,580,496,585,427,585"/>
+<area shape="rect" id="Node000045" href="$dd/d78/classregen_1_1_shader_input2ui.html" title="Provides 2D unsigned int input to shader programs." alt="" coords="493,642,658,667"/>
+<area shape="poly" id="edge21_Node000044_Node000045" title=" " alt="" coords="421,652,493,652,493,657,421,657"/>
+<area shape="rect" id="Node000047" href="$d5/d65/classregen_1_1_shader_input3d.html" title="Provides 3D double input to shader programs." alt="" coords="495,714,656,739"/>
+<area shape="poly" id="edge23_Node000046_Node000047" title=" " alt="" coords="445,724,495,724,495,729,445,729"/>
+<area shape="rect" id="Node000049" href="$d7/d52/classregen_1_1_shader_input3f.html" title="Provides 3D float input to shader programs." alt="" coords="496,778,655,803"/>
+<area shape="poly" id="edge25_Node000048_Node000049" title=" " alt="" coords="429,788,496,788,496,793,429,793"/>
+<area shape="rect" id="Node000051" href="$dd/d12/classregen_1_1_shader_input3i.html" title="Provides 3D int input to shader programs." alt="" coords="497,842,654,867"/>
+<area shape="poly" id="edge27_Node000050_Node000051" title=" " alt="" coords="427,852,496,852,496,857,427,857"/>
+<area shape="rect" id="Node000053" href="$d9/d53/classregen_1_1_shader_input3ui.html" title="Provides 3D unsigned int input to shader programs." alt="" coords="493,914,658,939"/>
+<area shape="poly" id="edge29_Node000052_Node000053" title=" " alt="" coords="421,924,493,924,493,929,421,929"/>
+<area shape="rect" id="Node000055" href="$d0/d43/classregen_1_1_shader_input4d.html" title="Provides 4D double input to shader programs." alt="" coords="495,986,656,1011"/>
+<area shape="poly" id="edge31_Node000054_Node000055" title=" " alt="" coords="445,996,495,996,495,1001,445,1001"/>
+<area shape="rect" id="Node000057" href="$d3/d72/classregen_1_1_shader_input4f.html" title="Provides 4D float input to shader programs." alt="" coords="496,1050,655,1075"/>
+<area shape="poly" id="edge33_Node000056_Node000057" title=" " alt="" coords="429,1060,496,1060,496,1065,429,1065"/>
+<area shape="rect" id="Node000059" href="$dd/d1b/classregen_1_1_shader_input4i.html" title="Provides 4D int input to shader programs." alt="" coords="497,1114,654,1139"/>
+<area shape="poly" id="edge35_Node000058_Node000059" title=" " alt="" coords="427,1124,496,1124,496,1129,427,1129"/>
+<area shape="rect" id="Node000061" href="$d7/d4b/classregen_1_1_shader_input4ui.html" title="Provides 4D unsigned int input to shader programs." alt="" coords="493,1186,658,1211"/>
+<area shape="poly" id="edge37_Node000060_Node000061" title=" " alt="" coords="421,1196,493,1196,493,1201,421,1201"/>
+<area shape="rect" id="Node000063" href="$dd/d86/classregen_1_1_shader_input_mat3.html" title="Provides 3x3 matrix input to shader programs." alt="" coords="486,1258,665,1283"/>
+<area shape="poly" id="edge39_Node000062_Node000063" title=" " alt="" coords="430,1268,486,1268,486,1273,430,1273"/>
+<area shape="rect" id="Node000065" href="$d2/d74/classregen_1_1_shader_input_mat4.html" title="Provides 4x4 matrix input to shader programs." alt="" coords="486,1322,665,1347"/>
+<area shape="poly" id="edge41_Node000064_Node000065" title=" " alt="" coords="430,1332,486,1332,486,1337,430,1337"/>
+<area shape="rect" id="Node000068" href="$db/d68/classregen_1_1_shader_input_struct.html" title="Provides typed input to shader programs using a struct type. User needs to take care of padding." alt="" coords="484,1433,667,1473"/>
+<area shape="poly" id="edge44_Node000067_Node000068" title=" " alt="" coords="421,1461,483,1457,484,1462,421,1466"/>
+<area shape="rect" id="Node000070" href="$de/dbe/classregen_1_1_buffer_block.html" title="Manages data in a buffer object that can be bound as buffer blocks in shaders." alt="" coords="504,1498,647,1523"/>
+<area shape="poly" id="edge46_Node000069_Node000070" title=" " alt="" coords="405,1525,504,1515,504,1520,405,1530"/>
+<area shape="rect" id="Node000075" href="$df/de5/classregen_1_1_t_b_o.html" title="A buffer object that can be bound to a texture." alt="" coords="528,1547,623,1573"/>
+<area shape="poly" id="edge47_Node000069_Node000075" title=" " alt="" coords="406,1542,528,1553,528,1558,405,1547"/>
+<area shape="rect" id="Node000076" href="$dd/d9a/classregen_1_1_v_b_o.html" title="Buffer object that is used for vertex data." alt="" coords="528,1597,623,1622"/>
+<area shape="poly" id="edge48_Node000069_Node000076" title=" " alt="" coords="372,1550,482,1583,528,1595,527,1600,481,1588,370,1555"/>
+</map>

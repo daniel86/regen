@@ -1,0 +1,5 @@
+<map id="regen::IntersectionData_AABB" name="regen::IntersectionData_AABB">
+<area shape="rect" id="Node000001" title="Intersection shape data for axis&#45;aligned bounding box (AABB) shapes." alt="" coords="5,79,224,104"/>
+<area shape="rect" id="Node000002" href="$da/d6d/structregen_1_1_intersection_shape_data.html" title="Base structure for intersection shape data used in batched intersection tests. This shape data is fix..." alt="" coords="7,5,222,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,44,117,79,112,79,112,44"/>
+</map>

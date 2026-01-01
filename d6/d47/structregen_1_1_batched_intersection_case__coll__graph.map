@@ -1,0 +1,27 @@
+<map id="regen::BatchedIntersectionCase" name="regen::BatchedIntersectionCase">
+<area shape="rect" id="Node000001" title="Structure representing a case of intersection tests." alt="" coords="756,471,985,497"/>
+<area shape="rect" id="Node000002" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="442,222,610,247"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="558,253,854,469,850,473,554,258"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,13,178,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="192,30,241,34,294,43,346,58,396,80,439,113,475,152,502,191,520,220,516,223,498,194,471,156,436,117,393,85,345,63,293,48,241,40,192,35"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="33,78,160,103"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="174,94,281,110,339,125,396,144,430,161,463,182,512,220,509,224,460,186,428,166,394,149,338,130,280,116,173,99"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,128,188,168"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="202,160,395,196,483,219,482,224,394,201,201,166"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,192,188,232"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="202,215,442,228,442,233,202,220"/>
+<area shape="rect" id="Node000007" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="44,257,149,282"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="163,263,394,245,442,241,442,246,395,251,163,268"/>
+<area shape="rect" id="Node000008" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="18,306,175,331"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="189,318,289,313,342,306,394,295,455,271,503,245,506,250,457,276,395,300,343,311,289,318,189,324"/>
+<area shape="rect" id="Node000009" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="13,375,180,401"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="194,397,768,469,767,474,193,403"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="194,383,293,370,344,357,394,339,430,318,464,292,512,245,515,249,467,296,433,322,396,344,346,362,294,375,195,388"/>
+<area shape="rect" id="Node000010" href="$d7/d7a/structregen_1_1_aligned_array.html" title=" " alt="" coords="21,488,172,528"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="186,501,212,500,756,484,756,489,212,505,186,506"/>
+<area shape="rect" id="Node000012" href="$d5/d1a/structregen_1_1_hit_buffer.html" title="Buffer for storing hit shape indices." alt="" coords="463,533,589,558"/>
+<area shape="poly" id="edge13_Node000012_Node000010" title=" " alt="" coords="186,513,464,537,463,543,186,518"/>
+<area shape="rect" id="Node000011" href="$da/d6d/structregen_1_1_intersection_shape_data.html" title="Base structure for intersection shape data used in batched intersection tests. This shape data is fix..." alt="" coords="419,582,633,607"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="617,577,674,564,731,547,794,521,845,494,848,499,796,526,733,552,675,569,618,582"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="602,534,732,515,821,494,823,499,732,520,603,540"/>
+</map>

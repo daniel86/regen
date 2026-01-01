@@ -1,0 +1,25 @@
+<map id="regen::BoidSimulation" name="regen::BoidSimulation">
+<area shape="rect" id="Node000001" title="Boids simulation. The boids simulation is a simple flocking simulation." alt="" coords="603,342,769,367"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="223,9,405,49"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="419,16,460,18,503,26,544,40,580,62,611,93,636,130,654,171,668,212,683,288,687,341,682,342,677,289,662,213,649,173,631,133,607,97,577,66,541,44,502,31,460,24,419,22"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="233,73,395,113"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="409,81,452,82,497,88,541,101,580,123,606,147,628,175,646,206,659,238,677,298,686,341,680,342,672,299,654,240,641,208,624,178,603,151,577,128,538,106,496,93,452,87,409,86"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="233,173,395,213"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="409,198,507,211,550,220,580,231,614,256,643,286,680,340,675,343,639,289,610,260,577,236,548,225,507,216,409,203"/>
+<area shape="rect" id="Node000005" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="231,237,397,277"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="411,262,494,274,580,296,627,317,667,340,664,344,625,322,578,301,493,280,411,267"/>
+<area shape="rect" id="Node000006" href="$dd/da3/structregen_1_1_vec3.html" title="A 3D vector." alt="" coords="5,245,141,270"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="155,255,231,255,231,260,155,260"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="233,301,395,341"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="409,327,602,345,602,350,409,332"/>
+<area shape="rect" id="Node000008" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="235,379,393,405"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="407,399,490,400,578,392,621,380,658,365,660,370,622,385,579,397,491,406,406,404"/>
+<area shape="rect" id="Node000009" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="235,434,393,459"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="407,455,492,454,536,448,578,436,607,422,633,403,672,365,676,369,637,407,610,426,580,441,537,453,492,459,407,460"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="233,484,395,524"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="409,510,450,509,494,504,537,494,577,478,612,453,640,422,676,366,681,369,644,426,615,457,580,482,539,499,495,509,451,514,409,515"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="233,772,395,812"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="407,811,450,815,495,813,539,802,577,781,600,750,620,703,637,644,652,578,671,452,681,367,686,368,677,452,657,579,643,645,625,705,605,753,580,785,541,807,496,818,450,821,406,817"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="233,836,395,876"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="409,872,453,874,497,870,540,858,577,835,590,821,602,800,623,746,641,678,655,604,673,461,681,367,687,368,679,462,660,605,646,680,628,747,607,803,594,824,580,839,542,863,498,876,453,880,409,878"/>
+</map>

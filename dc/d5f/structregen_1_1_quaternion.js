@@ -1,0 +1,27 @@
+var structregen_1_1_quaternion =
+[
+    [ "calculateDirection", "dc/d5f/structregen_1_1_quaternion.html#ae701a902f736a45a469ed4ee05ec0ed0", null ],
+    [ "calculateMatrix", "dc/d5f/structregen_1_1_quaternion.html#ad3e5ce43d8228a4edbeaaf6fe89872ea", null ],
+    [ "conjugate", "dc/d5f/structregen_1_1_quaternion.html#aa3be4185cd1e884409a4402d218c643a", null ],
+    [ "dot", "dc/d5f/structregen_1_1_quaternion.html#abbcced145aca068a263de584a5720677", null ],
+    [ "interpolate", "dc/d5f/structregen_1_1_quaternion.html#a104ba76cf09ba5e620039fb5c51b9c19", null ],
+    [ "interpolateLinear", "dc/d5f/structregen_1_1_quaternion.html#abda429d6f338fa1ef61eb53764a91f26", null ],
+    [ "normalize", "dc/d5f/structregen_1_1_quaternion.html#a5d421b525059aeea0ed6420d11415de0", null ],
+    [ "operator!=", "dc/d5f/structregen_1_1_quaternion.html#a8db8750a92660412bedf5b90f5f197cb", null ],
+    [ "operator*", "dc/d5f/structregen_1_1_quaternion.html#a67e1f7821e951c733fe536074a4545c8", null ],
+    [ "operator*", "dc/d5f/structregen_1_1_quaternion.html#aaa0a1f4a0a5b91608816e9d1db67070a", null ],
+    [ "operator+=", "dc/d5f/structregen_1_1_quaternion.html#a5a9641dc0d417aafd1f128bc2b20f965", null ],
+    [ "operator-", "dc/d5f/structregen_1_1_quaternion.html#a861b51c88382441f95011d7bb22d092d", null ],
+    [ "operator<", "dc/d5f/structregen_1_1_quaternion.html#a6812813352100fad050cbf6f28c8c698", null ],
+    [ "operator<<", "dc/d5f/structregen_1_1_quaternion.html#ab3b4eacbf48d446690a9cbd144121d23", null ],
+    [ "operator==", "dc/d5f/structregen_1_1_quaternion.html#aeeea7d2642f9199956a2b5dfe0e2b413", null ],
+    [ "rotate", "dc/d5f/structregen_1_1_quaternion.html#ac7149945a29bfe30a3d876a1bcad9542", null ],
+    [ "setAxisAngle", "dc/d5f/structregen_1_1_quaternion.html#a6696e9290114bac2f061e7b27960d714", null ],
+    [ "setEuler", "dc/d5f/structregen_1_1_quaternion.html#a445db89d1eece6e0cbd2ac4647e53c68", null ],
+    [ "setLookRotation", "dc/d5f/structregen_1_1_quaternion.html#a7a1343afef030ff958768c1b193cb02e", null ],
+    [ "setQuaternion", "dc/d5f/structregen_1_1_quaternion.html#a2b895d1d2357e54c433bbca85b3f4bee", null ],
+    [ "w", "dc/d5f/structregen_1_1_quaternion.html#a66ed08cd0270592936eedc55ee513c03", null ],
+    [ "x", "dc/d5f/structregen_1_1_quaternion.html#a199522ec488157cdb26a76583b4cc703", null ],
+    [ "y", "dc/d5f/structregen_1_1_quaternion.html#a70c3fca53b9088c799a9081a81784437", null ],
+    [ "z", "dc/d5f/structregen_1_1_quaternion.html#a492b9ee0f134c31ff1ccab7284b9fbf5", null ]
+];

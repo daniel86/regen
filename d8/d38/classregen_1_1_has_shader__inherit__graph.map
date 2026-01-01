@@ -1,0 +1,21 @@
+<map id="regen::HasShader" name="regen::HasShader">
+<area shape="rect" id="Node000001" title="can be used to mix in a shader." alt="" coords="5,153,143,179"/>
+<area shape="rect" id="Node000002" href="$d0/d1a/classregen_1_1_bullet_debug_drawer.html" title=" " alt="" coords="191,5,385,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,140,130,89,158,62,189,40,215,28,217,33,192,44,161,66,134,93,93,144"/>
+<area shape="rect" id="Node000003" href="$d8/d75/classregen_1_1_compute_pass.html" title="State that." alt="" coords="211,55,365,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="100,143,141,115,190,89,222,78,224,83,192,94,144,120,103,147"/>
+<area shape="rect" id="Node000004" href="$db/d3c/classregen_1_1_fullscreen_pass.html" title="State that updates each texel of the active render target." alt="" coords="207,104,369,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="142,148,231,127,233,132,144,153"/>
+<area shape="rect" id="Node000007" href="$d3/d74/classregen_1_1_sky_box.html" title="A special Box that is not translated by camera movement." alt="" coords="231,153,345,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="156,163,230,163,230,169,156,169"/>
+<area shape="rect" id="Node000008" href="$d8/daf/classregen_1_1_spatial_index_debug.html" title=" " alt="" coords="193,203,383,228"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="144,179,233,200,231,205,142,184"/>
+<area shape="rect" id="Node000009" href="$d6/d1c/classregen_1_1_sphere_sprite.html" title="A sprite that generates sphere normals." alt="" coords="213,252,363,277"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="104,185,145,212,192,237,228,249,226,254,190,242,142,216,101,189"/>
+<area shape="rect" id="Node000010" href="$d2/dc4/classregen_1_1_world_model_debug.html" title=" " alt="" coords="195,301,381,327"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="94,188,135,239,162,264,192,286,220,299,218,304,189,291,158,269,131,242,89,192"/>
+<area shape="rect" id="Node000005" href="$dd/d7e/classregen_1_1_filter.html" title="Apply a filter on input Texture." alt="" coords="453,80,553,105"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="383,103,452,96,453,101,383,109"/>
+<area shape="rect" id="Node000006" href="$d6/dc2/classregen_1_1_motion_blur.html" title=" " alt="" coords="433,129,572,155"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="383,125,434,131,433,137,383,130"/>
+</map>

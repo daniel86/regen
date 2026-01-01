@@ -1,0 +1,14 @@
+<map id="regen::DirectiveProcessor" name="regen::DirectiveProcessor">
+<area shape="rect" id="Node000001" title="Offline Processing of Shader PreProcessor directives." alt="" coords="608,94,797,119"/>
+<area shape="rect" id="Node000002" href="$df/d55/classregen_1_1_g_l_s_l_processor.html" title="Baseclass for GLSL pre&#45;processors." alt="" coords="309,21,472,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="459,47,648,91,647,96,458,52"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="19,5,181,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="195,25,309,28,309,34,195,31"/>
+<area shape="rect" id="Node000004" href="$db/d4a/structregen_1_1_directive_processor_1_1_macro_tree.html" title=" " alt="" coords="296,87,485,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="499,104,607,104,607,109,499,109"/>
+<area shape="rect" id="Node000005" href="$da/d2a/structregen_1_1_directive_processor_1_1_macro_branch.html" title=" " alt="" coords="5,108,195,148"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="208,117,296,111,296,116,209,123"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="73,92,83,84,100,81,115,83,125,89,130,98,128,108,123,107,124,99,121,93,113,88,100,87,85,89,76,96"/>
+<area shape="rect" id="Node000006" href="$d0/da1/structregen_1_1_directive_processor_1_1_for_branch.html" title=" " alt="" coords="296,151,485,191"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="498,146,639,117,640,122,499,151"/>
+</map>

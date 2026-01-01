@@ -1,0 +1,13 @@
+<map id="regen::DirectShading::DirectLight" name="regen::DirectShading::DirectLight">
+<area shape="rect" id="Node000001" title=" " alt="" coords="340,133,499,173"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,36,250,52,317,76,362,103,398,131,395,135,359,107,315,81,248,57,181,41"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,69,168,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,95,249,103,317,116,366,131,365,136,315,121,248,108,182,100"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,133,168,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="182,151,340,151,340,156,182,156"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,197,168,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="182,207,248,198,315,185,365,171,366,176,317,191,249,203,182,212"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,261,168,301"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="181,275,249,264,283,254,315,242,340,227,363,208,400,172,403,175,367,212,343,231,317,246,284,260,250,269,182,280"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="/home/runner/work/regen/regen/regen/scene/value&#45;generator.h" name="/home/runner/work/regen/regen/regen/scene/value&#45;generator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="489,5,676,60"/>
+<area shape="rect" id="Node000002" href="$df/d7a/model-transformation_8cpp.html" title=" " alt="" coords="373,108,573,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="546,72,504,110,500,106,542,68"/>
+<area shape="rect" id="Node000003" href="$d8/d6a/input-processor_8h.html" title=" " alt="" coords="597,108,787,163"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="623,68,665,106,662,110,620,72"/>
+<area shape="rect" id="Node000004" href="$d4/dc4/buffer-block_8cpp.html" title=" " alt="" coords="5,211,211,265"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="584,165,482,181,402,190,323,198,223,213,212,215,211,210,222,208,322,193,401,185,481,176,584,160"/>
+<area shape="rect" id="Node000005" href="$df/d61/staged-buffer_8cpp.html" title=" " alt="" coords="235,211,445,265"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="588,169,432,213,431,208,587,164"/>
+<area shape="rect" id="Node000006" href="$df/dff/ubo_8cpp.html" title=" " alt="" coords="469,218,688,258"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="654,174,602,220,598,216,650,170"/>
+<area shape="rect" id="Node000007" href="$db/d42/scene-loader_8cpp.html" title=" " alt="" coords="713,211,901,265"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="734,170,778,209,775,213,731,174"/>
+<area shape="rect" id="Node000008" href="$d2/d2d/light-pass_8cpp.html" title=" " alt="" coords="925,211,1117,265"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="791,164,936,208,935,213,790,169"/>
+<area shape="rect" id="Node000009" href="$db/d14/light-state_8cpp.html" title=" " alt="" coords="1141,211,1333,265"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="801,150,957,176,1130,208,1141,210,1140,216,1129,213,956,181,800,156"/>
+</map>

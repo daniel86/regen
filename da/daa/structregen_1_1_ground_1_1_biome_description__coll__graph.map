@@ -1,0 +1,7 @@
+<map id="regen::Ground::BiomeDescription" name="regen::Ground::BiomeDescription">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,255,244,280"/>
+<area shape="rect" id="Node000002" href="$da/d38/structregen_1_1_ground_1_1_smooth_range.html" title=" " alt="" coords="18,93,231,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,132,127,254,122,254,122,132"/>
+<area shape="rect" id="Node000003" href="$d1/dc3/structregen_1_1_vec2.html" title=" " alt="" coords="46,5,203,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="127,45,127,93,122,93,122,45"/>
+</map>

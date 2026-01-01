@@ -1,0 +1,17 @@
+<map id="regen::SSBO" name="regen::SSBO">
+<area shape="rect" id="Node000001" title="A Shader Storage Buffer Object is a Buffer Object that is used to store and retrieve data from within..." alt="" coords="119,299,221,324"/>
+<area shape="rect" id="Node000007" href="$d8/d21/classregen_1_1_b_box_buffer.html" title="A buffer object that stores the bounding box of a mesh." alt="" coords="5,372,145,397"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="145,334,92,374,89,370,142,330"/>
+<area shape="rect" id="Node000008" href="$dc/d43/classregen_1_1_draw_indirect_buffer.html" title="A buffer for storing draw indirect commands. This buffer is used to store draw commands that can be e..." alt="" coords="170,372,359,397"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="198,330,251,370,248,374,195,334"/>
+<area shape="rect" id="Node000002" href="$de/dbe/classregen_1_1_buffer_block.html" title="Manages data in a buffer object that can be bound as buffer blocks in shaders." alt="" coords="99,225,241,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,264,173,299,167,299,167,264"/>
+<area shape="rect" id="Node000003" href="$db/d5b/classregen_1_1_staged_buffer.html" title="A buffer object that can be used for staging data in a staging system." alt="" coords="95,152,245,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="173,191,173,225,167,225,167,191"/>
+<area shape="rect" id="Node000004" href="$dc/d41/classregen_1_1_buffer_object.html" title="Base class for OpenGL buffer objects." alt="" coords="11,79,159,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="110,110,158,150,154,154,107,115"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="21,5,148,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="87,44,87,79,82,79,82,44"/>
+<area shape="rect" id="Node000006" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="183,79,328,104"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="233,115,186,154,182,150,230,110"/>
+</map>

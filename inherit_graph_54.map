@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$d0/d24/structregen_1_1_batch_of_shapes.html" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="5,80,172,105"/>
+<area shape="rect" id="Node000001" href="$d7/d52/structregen_1_1_batch_of_a_a_b_bs.html" title="Batch structure for axis&#45;aligned bounding box (AABB) shapes. This structure holds the necessary data ..." alt="" coords="228,5,391,31"/>
+<area shape="poly" id="edge39_Node000000_Node000001" title=" " alt="" coords="132,72,219,39,257,28,259,33,221,45,134,77"/>
+<area shape="rect" id="Node000002" href="$d0/d57/structregen_1_1_batch_of_frustums.html" title="Batch structure for frustum shapes. This structure holds the necessary data for performing intersecti..." alt="" coords="220,55,399,80"/>
+<area shape="poly" id="edge40_Node000000_Node000002" title=" " alt="" coords="186,79,219,75,220,80,186,84"/>
+<area shape="rect" id="Node000003" href="$d5/d92/structregen_1_1_batch_of_o_b_bs.html" title="Batch structure for oriented bounding box (OBB) shapes. This structure holds the necessary data for p..." alt="" coords="232,104,387,129"/>
+<area shape="poly" id="edge41_Node000000_Node000003" title=" " alt="" coords="186,101,232,106,232,111,186,106"/>
+<area shape="rect" id="Node000004" href="$df/d0e/structregen_1_1_batch_of_spheres.html" title="Batch structure for sphere shapes. This structure holds the necessary data for performing intersectio..." alt="" coords="224,153,395,179"/>
+<area shape="poly" id="edge42_Node000000_Node000004" title=" " alt="" coords="136,108,221,138,262,151,260,156,219,143,134,113"/>
+</map>

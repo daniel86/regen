@@ -1,0 +1,27 @@
+<map id="/home/runner/work/regen/regen/regen/behavior/navigation/navigation&#45;controller.h" name="/home/runner/work/regen/regen/regen/behavior/navigation/navigation&#45;controller.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="216,5,403,75"/>
+<area shape="rect" id="Node000002" href="$d8/d22/navigation-controller_8cpp.html" title=" " alt="" coords="111,123,297,192"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="271,87,237,124,233,121,267,83"/>
+<area shape="rect" id="Node000003" href="$d2/dca/npc-controller_8h.html" title=" " alt="" coords="321,130,508,185"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="352,83,392,128,389,132,348,87"/>
+<area shape="rect" id="Node000004" href="$d2/daa/animal-controller_8h.html" title=" " alt="" coords="5,240,192,295"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="326,192,176,242,175,237,324,187"/>
+<area shape="rect" id="Node000006" href="$d3/d59/npc-controller_8cpp.html" title=" " alt="" coords="637,240,824,295"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="505,187,655,237,653,242,504,192"/>
+<area shape="rect" id="Node000007" href="$d8/d03/person-controller_8h.html" title=" " alt="" coords="216,240,403,295"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="381,197,337,242,333,238,377,193"/>
+<area shape="rect" id="Node000009" href="$d4/dfd/character-object_8h.html" title=" " alt="" coords="427,240,613,295"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="452,193,496,238,492,242,448,197"/>
+<area shape="rect" id="Node000005" href="$d9/d15/animal-controller_8cpp.html" title=" " alt="" coords="5,343,192,397"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="101,308,101,343,96,343,96,308"/>
+<area shape="rect" id="Node000008" href="$de/d33/person-controller_8cpp.html" title=" " alt="" coords="216,343,403,397"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="312,308,312,343,307,343,307,308"/>
+<area shape="poly" id="edge9_Node000009_Node000005" title=" " alt="" coords="414,298,205,345,193,348,192,343,203,340,413,292"/>
+<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="454,303,365,345,363,340,452,298"/>
+<area shape="rect" id="Node000010" href="$d1/d6f/character-object_8cpp.html" title=" " alt="" coords="427,343,626,397"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="525,308,528,342,522,343,520,309"/>
+<area shape="rect" id="Node000011" href="$d1/db5/world-model-debug_8cpp.html" title=" " alt="" coords="650,343,870,397"/>
+<area shape="poly" id="edge12_Node000009_Node000011" title=" " alt="" coords="596,297,698,340,696,345,594,302"/>
+<area shape="rect" id="Node000012" href="$dd/d09/world-object_8cpp.html" title=" " alt="" coords="895,343,1081,397"/>
+<area shape="poly" id="edge13_Node000009_Node000012" title=" " alt="" coords="627,292,757,316,883,340,895,343,894,348,882,345,756,322,626,298"/>
+</map>

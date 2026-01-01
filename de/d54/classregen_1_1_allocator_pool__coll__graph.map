@@ -1,0 +1,12 @@
+<map id="regen::AllocatorPool&lt; ActualAllocatorType, ActualAllocatorRef, VirtualAllocatorType, VirtualAllocatorRef &gt;" name="regen::AllocatorPool&lt; ActualAllocatorType, ActualAllocatorRef, VirtualAllocatorType, VirtualAllocatorRef &gt;">
+<area shape="rect" id="Node000001" title="A pool of memory allocators." alt="" coords="428,173,684,243"/>
+<area shape="rect" id="Node000002" href="$d2/d17/structregen_1_1_allocator_pool_1_1_node.html" title="Doubly linked node containing an allocator." alt="" coords="5,59,304,128"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="290,129,435,171,433,176,289,134"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="118,43,132,35,155,32,173,34,187,39,195,48,197,58,191,59,190,50,184,44,172,39,155,37,134,40,121,48"/>
+<area shape="rect" id="Node000003" href="$dc/df3/classregen_1_1_allocator_pool.html" title="A pool of memory allocators." alt="" coords="428,59,684,128"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="318,92,404,92,428,92,428,97,404,97,318,97"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,81,404,80,304,81,304,75,404,75,414,75"/>
+<area shape="rect" id="Node000004" href="$d8/dc1/classregen_1_1_spin_lock.html" title="A simple spin lock implementation. This is a low&#45;level lock that can be used for short critical secti..." alt="" coords="92,194,217,219"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="231,216,314,225,404,225,428,223,428,229,404,231,314,230,231,222"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="231,209,316,203,361,195,403,180,415,171,426,159,481,126,484,131,430,163,418,175,405,185,362,200,317,209,232,214"/>
+</map>

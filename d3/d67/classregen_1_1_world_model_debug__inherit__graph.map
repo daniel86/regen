@@ -1,0 +1,9 @@
+<map id="regen::WorldModelDebug" name="regen::WorldModelDebug">
+<area shape="rect" id="Node000001" title=" " alt="" coords="139,79,326,104"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="5,5,140,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,34,208,76,205,81,110,39"/>
+<area shape="rect" id="Node000003" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="164,5,301,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="235,44,235,79,230,79,230,44"/>
+<area shape="rect" id="Node000004" href="$d0/df6/classregen_1_1_debug_interface.html" title=" " alt="" coords="325,5,492,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="369,38,262,81,260,76,367,33"/>
+</map>

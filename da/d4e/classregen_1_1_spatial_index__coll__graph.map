@@ -1,0 +1,7 @@
+<map id="regen::SpatialIndex" name="regen::SpatialIndex">
+<area shape="rect" id="Node000001" title="Spatial index." alt="" coords="71,93,219,119"/>
+<area shape="rect" id="Node000002" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="5,5,132,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,39,136,91,132,95,86,43"/>
+<area shape="rect" id="Node000003" href="$db/dfd/structregen_1_1_job_frame.html" title="A structure representing a frame of jobs." alt="" coords="157,5,285,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,43,157,95,153,91,199,39"/>
+</map>

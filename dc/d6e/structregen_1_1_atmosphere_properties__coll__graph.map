@@ -1,0 +1,7 @@
+<map id="regen::AtmosphereProperties" name="regen::AtmosphereProperties">
+<area shape="rect" id="Node000001" title=" " alt="" coords="69,108,281,133"/>
+<area shape="rect" id="Node000002" href="$dd/da3/structregen_1_1_vec3.html" title=" " alt="" coords="5,5,163,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,39,166,106,162,110,102,43"/>
+<area shape="rect" id="Node000003" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="187,5,344,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,44,222,86,193,110,190,106,218,82,249,41"/>
+</map>

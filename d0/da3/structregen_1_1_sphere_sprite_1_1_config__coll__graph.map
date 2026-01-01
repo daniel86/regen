@@ -1,0 +1,8 @@
+<map id="regen::SphereSprite::Config" name="regen::SphereSprite::Config">
+<area shape="rect" id="Node000001" title=" " alt="" coords="42,171,193,211"/>
+<area shape="rect" id="Node000002" href="$dd/da3/structregen_1_1_vec3.html" title="A 3D vector." alt="" coords="5,44,141,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,82,114,170,108,171,79,83"/>
+<area shape="rect" id="Node000003" href="$d5/dcb/structregen_1_1_buffer_update_flags.html" title="Buffer update hints." alt="" coords="166,44,354,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,81,167,149,141,172,137,168,164,145,236,77"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="315,39,359,41,374,46,381,57,373,68,354,74,301,72,301,67,353,68,370,64,375,57,371,51,358,46,315,45"/>
+</map>

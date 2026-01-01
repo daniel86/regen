@@ -1,0 +1,7 @@
+<map id="regen::FramedJob" name="regen::FramedJob">
+<area shape="rect" id="Node000001" title="A job associated with a job frame." alt="" coords="46,93,182,119"/>
+<area shape="rect" id="Node000002" href="$de/dae/structregen_1_1_job.html" title="A job structure representing a unit of work." alt="" coords="5,5,92,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,40,107,91,103,94,64,43"/>
+<area shape="rect" id="Node000003" href="$db/dfd/structregen_1_1_job_frame.html" title="A structure representing a frame of jobs." alt="" coords="117,5,245,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,43,125,94,121,91,161,40"/>
+</map>

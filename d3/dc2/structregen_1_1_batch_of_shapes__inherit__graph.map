@@ -1,0 +1,11 @@
+<map id="regen::BatchOfShapes" name="regen::BatchOfShapes">
+<area shape="rect" id="Node000001" title="Base structure for a batch of shapes for batched intersection tests. This is useful for laying out sh..." alt="" coords="293,5,459,31"/>
+<area shape="rect" id="Node000002" href="$d7/d52/structregen_1_1_batch_of_a_a_b_bs.html" title="Batch structure for axis&#45;aligned bounding box (AABB) shapes. This structure holds the necessary data ..." alt="" coords="5,79,168,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="317,37,134,81,133,76,316,31"/>
+<area shape="rect" id="Node000003" href="$d0/d57/structregen_1_1_batch_of_frustums.html" title="Batch structure for frustum shapes. This structure holds the necessary data for performing intersecti..." alt="" coords="192,79,371,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="351,41,298,81,295,76,348,37"/>
+<area shape="rect" id="Node000004" href="$d5/d92/structregen_1_1_batch_of_o_b_bs.html" title="Batch structure for oriented bounding box (OBB) shapes. This structure holds the necessary data for p..." alt="" coords="395,79,549,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="404,37,458,76,455,81,401,41"/>
+<area shape="rect" id="Node000005" href="$df/d0e/structregen_1_1_batch_of_spheres.html" title="Batch structure for sphere shapes. This structure holds the necessary data for performing intersectio..." alt="" coords="573,79,744,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="435,31,614,76,612,81,434,37"/>
+</map>
