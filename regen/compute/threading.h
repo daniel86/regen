@@ -9,8 +9,8 @@
 #include "regen/memory/aligned-allocator.h"
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
-    #include <immintrin.h>
-    #define CPU_PAUSE() _mm_pause()
+    #include <regen/compute/simd.h>
+    #define CPU_PAUSE() simde_mm_pause()
 #elif defined(__aarch64__) || defined(__arm__)
     #define CPU_PAUSE() asm volatile("yield" ::: "memory")
 #else
@@ -373,7 +373,7 @@ namespace regen {
 #if 0
 			int spins = 0;
 			while (numJobsRemaining_.load(std::memory_order_acquire) > 0u) {
-				if (++spins < 1000) _mm_pause();
+				if (++spins < 1000) simde_mm_pause();
 				else std::this_thread::yield();
 			}
 #else
