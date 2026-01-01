@@ -1,0 +1,19 @@
+name: Setup Linux build environment
+description: Install dependencies
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get update -y -qq
+        sudo apt-get install libgl-dev \
+            libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
+            libboost-regex-dev libboost-timer-dev libsimde-dev \
+            libassimp-dev libopenal-dev libdevil-dev libfreetype-dev libbullet-dev \
+            libglew-dev libglu1-mesa-dev libgl1-mesa-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+            libpng-dev libalut-dev \
+            qtbase5-dev libgtest-dev \
+            doxygen graphviz \
+            nlohmann-json3-dev
