@@ -93,7 +93,11 @@ void VideoRecorder::initialize() {
 		codecCtx_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 	}
 	if (avcodec_open2(codecCtx_, codec, nullptr) < 0) {
-		throw std::runtime_error("Could not open codec");
+		// print error message
+		char err_buf[AV_ERROR_MAX_STRING_SIZE]{};
+		auto err_type = AVERROR(errno);
+		av_make_error_string(err_buf, AV_ERROR_MAX_STRING_SIZE, err_type);
+		throw std::runtime_error(REGEN_STRING("Could not open codec: " << err_buf << " (" << err_type << ")"));
 	}
 
 	stream_ = avformat_new_stream(formatCtx_, codec);
