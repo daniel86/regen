@@ -1102,9 +1102,12 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	animations_.emplace_back(timeWidgetAnimation_);
 	loadAnim_ = ref_ptr<Animation>();
 	lightStates_ = sceneParser.getResources()->getLights();
+
+	// Make sure all staging operations are done before resuming animations.
+	StagingSystem::instance().rotateBuffers();
+
 	AnimationManager::get().setSpatialIndices(spatialIndexList_);
 	AnimationManager::get().resetTime();
-
 	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");
 }

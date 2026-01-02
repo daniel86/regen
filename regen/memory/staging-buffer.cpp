@@ -2,10 +2,13 @@
 #include "regen/gl/gl-param.h"
 #include "staging-system.h"
 
-#define REGEN_USE_STAGING_ALLOCATOR
-//#define REGEN_STAGING_USE_DIRECT_FLUSHING
-
 using namespace regen;
+
+namespace regen {
+	// static constants
+	static constexpr bool REGEN_USE_STAGING_ALLOCATOR = true;
+	static constexpr bool REGEN_STAGING_USE_DIRECT_FLUSHING = false;
+}
 
 float StagingBuffer::MAX_ACCEPTABLE_STALL_RATE = 0.1f; // 10% of frames can stall
 // note: camera is currently with 448 bytes slightly below 512 bytes
@@ -107,14 +110,14 @@ bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments)
 		if (stagingRef_.get()) {
 			BufferObject::orphanBufferRange(stagingRef_.get());
 		}
-#ifdef REGEN_USE_STAGING_ALLOCATOR
-		stagingRef_ = BufferObject::adoptBufferRange(
-				segmentSize_ * numSegments,
-				getStagingAllocator(storageMode_));
-#else
-		stagingRef_ = stagingBO_->adoptBufferRange(
-				segmentSize_ * numSegments);
-#endif
+		if constexpr(REGEN_USE_STAGING_ALLOCATOR) {
+			stagingRef_ = BufferObject::adoptBufferRange(
+					segmentSize_ * numSegments,
+					getStagingAllocator(storageMode_));
+		} else {
+			stagingRef_ = stagingBO_->adoptBufferRange(
+					segmentSize_ * numSegments);
+		}
 		if (!stagingRef_->mappedData() && (storageFlags_ & MAP_PERSISTENT)) {
 			REGEN_ERROR("Failed to map buffer " <<
 												" target: " << flags_.target <<
@@ -183,24 +186,24 @@ void StagingBuffer::resetStallRate() {
 }
 
 void StagingBuffer::pushToFlushQueue(const BufferRange2ui *dirtySegments, uint32_t numDirtySegments) {
-#ifndef REGEN_STAGING_USE_DIRECT_FLUSHING
-	if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
-		RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
-		const uint32_t totalDirtySegments = writeSegment.numDirtySegments + numDirtySegments;
-		// ensure the vector has enough space
-		if (totalDirtySegments > writeSegment.dirtySegments.size()) {
-			writeSegment.dirtySegments.resize(totalDirtySegments);
+	if constexpr(REGEN_STAGING_USE_DIRECT_FLUSHING) {
+		if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
+			const uint32_t totalDirtySegments = writeSegment.numDirtySegments + numDirtySegments;
+			// ensure the vector has enough space
+			if (totalDirtySegments > writeSegment.dirtySegments.size()) {
+				writeSegment.dirtySegments.resize(totalDirtySegments);
+			}
+			// copy the dirty segments into the vector
+			auto *dataStart = writeSegment.dirtySegments.data() + writeSegment.numDirtySegments;
+			std::memcpy(
+					(byte *) dataStart,
+					(byte *) dirtySegments,
+					numDirtySegments * sizeof(BufferRange2ui));
+			// finally increment the number of dirty segments
+			writeSegment.numDirtySegments = totalDirtySegments;
 		}
-		// copy the dirty segments into the vector
-		auto *dataStart = writeSegment.dirtySegments.data() + writeSegment.numDirtySegments;
-		std::memcpy(
-				(byte *) dataStart,
-				(byte *) dirtySegments,
-				numDirtySegments * sizeof(BufferRange2ui));
-		// finally increment the number of dirty segments
-		writeSegment.numDirtySegments = totalDirtySegments;
 	}
-#endif
 }
 
 byte *StagingBuffer::getMappedSegment(
@@ -315,31 +318,30 @@ void StagingBuffer::endMappedWrite(
 		// non-persistent mapping
 		glUnmapNamedBuffer(targetRef->bufferID());
 	}
-#ifdef REGEN_STAGING_USE_DIRECT_FLUSHING
-	else if (accessFlags_ & MAP_FLUSH_EXPLICIT) {
-		// direct flushing
-		RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
-		glFlushMappedNamedBufferRange(targetRef->bufferID(),
-			writeSegment.offset + localOffset,
-			drawBufferRef->allocatedSize());
+	else if constexpr(REGEN_STAGING_USE_DIRECT_FLUSHING) {
+		if (accessFlags_ & MAP_FLUSH_EXPLICIT) {
+			// direct flushing
+			glFlushMappedNamedBufferRange(targetRef->bufferID(),
+				writeSegment.offset + localOffset,
+				drawBufferRef->allocatedSize());
+		}
 	}
-#endif
 
 	if (flags_.useExplicitStaging()) {
-#ifndef REGEN_STAGING_USE_DIRECT_FLUSHING
-		// Make sure the last write to current readBuffer is flushed before we copy the data.
-		if (accessFlags_ & MAP_FLUSH_EXPLICIT) {
-			for (uint32_t flushIdx = 0; flushIdx < readSegment.numDirtySegments; ++flushIdx) {
-				// get the segment to flush
-				const BufferRange2ui &flushSegment = readSegment.dirtySegments[flushIdx];
-				glFlushMappedNamedBufferRange(
-						targetRef->bufferID(),
-						readSegment.offset + localOffset + flushSegment.offset,
-						flushSegment.size);
+		if constexpr(REGEN_STAGING_USE_DIRECT_FLUSHING) {
+			// Make sure the last write to current readBuffer is flushed before we copy the data.
+			if (accessFlags_ & MAP_FLUSH_EXPLICIT) {
+				for (uint32_t flushIdx = 0; flushIdx < readSegment.numDirtySegments; ++flushIdx) {
+					// get the segment to flush
+					const BufferRange2ui &flushSegment = readSegment.dirtySegments[flushIdx];
+					glFlushMappedNamedBufferRange(
+							targetRef->bufferID(),
+							readSegment.offset + localOffset + flushSegment.offset,
+							flushSegment.size);
+				}
+				readSegment.numDirtySegments = 0; // reset the dirty segments
 			}
-			readSegment.numDirtySegments = 0; // reset the dirty segments
 		}
-#endif
 		// NOTE: We delay copy to draw buffer until we reach a read segment that has been written to.
 		//   This causes some frames of delay until the upload starts. The draw buffer best has some
 		//   meaningful initial value that can be drawn first few frames!

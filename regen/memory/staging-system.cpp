@@ -475,112 +475,7 @@ void StagingSystem::updateData(float dt_ms) {
 	}
 
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
-		auto &arena = arenas_[arenaIdx];
-		// skip inactive arenas: those that are not initialized, and those that are cooling down.
-		if (!arena || arena->cooldown(dt_ms)) continue;
-
-		// Dynamically resize the arena if needed.
-		// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
-		//       or the arena is not large enough to hold all BOs.
-		if (updateArenaSize(arena)) {
-			arena->resize();
-			arena->sort();
-		}
-		if constexpr(STAGING_DEBUG_TIME) {
-			elapsedTime().push(REGEN_STRING(arena->type << " resized"));
-		}
-		if (!arena->flags.isReadable() && !arena->isDirty) {
-			// early exit writing arenas before fencing in case of no updates.
-			continue;
-		}
-		if constexpr(STAGING_DEBUG_STATISTICS) {
-			stats_.numDirtyArenas++;
-		}
-
-		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
-		const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
-		// we do manual synchronization in case of persistent mapping arenas.
-		const bool useFence = isMapModePersistent(arena->flags.mapMode);
-		// For now, reading arenas must not be marked dirty, it is assumed the draw
-		// buffer is written to every frame.
-		// Reason: the use as output buffer is currently not tracked, but could be done to mark
-		// GPU write buffers as dirty -- but must be careful with syncing then!
-		const bool forceUpdate = arena->flags.isReadable();
-
-		// Wait for the fence in case of persistent mapped arenas.
-		// This might block the CPU in case of the last write into this segment
-		// has not been consumed by the GPU yet.
-		// TODO: The interaction with the fence still consumes a lot of CPU time.
-		//		- The main bottleneck now seems *setFencePoint*. Reason might be that
-		//          we do glDeleteSync/glFenceSync calls every time setFencePoint is called.
-		//		- As far as I know, we cannot re-use fences across frames.
-		//		- Maybe the only way to improve would be to reduce the number of fences.
-		//      - Idea: Let arenas share fences. However, this is difficult because arenas
-		//        currently may have ring buffers of different sizes.
-		//		- Maybe the mechanism can be adjusted such that we do not need a fence every
-		//          frame for every arena.
-		if (useFence) {
-			arena->stagingBuffer->fence(copyIdx).wait();
-		}
-
-		// Copy data from CPU to staging to draw buffer,
-		// or in case of reading, the other way around.
-		for (auto &managed: arena->bufferObjects) {
-			// NOTE: temporary mapping is only used for rare updates,
-			//       so it is not really worth it to consider temporary mapping on arena level.
-			// NOTE: This will only copy data if the BO is dirty, i.e. has new data to write.
-			//if (managed.bo->hasDirtySegments()) {
-			//	REGEN_INFO("Dirty BO: " << managed.bo->name());
-			//}
-			if constexpr(STAGING_DEBUG_STATISTICS) {
-				if (managed.bo->hasDirtySegments()) {
-					stats_.numDirtyBOs++;
-					stats_.numDirtySegments += managed.bo->numDirtySegments();
-				}
-				stats_.numTotalBOs++;
-			}
-			managed.bo->copyStagingData(forceUpdate);
-		}
-
-		// Do the actual copy from staging to draw buffer.
-		// We do this here as we attempted to coalesce the copy ranges into
-		// larger contiguous ranges for fewer copies.
-		for (uint32_t scheduleIdx = 0; scheduleIdx < numScheduledCopies_; scheduleIdx++) {
-			auto &copy = scheduledCopies_[scheduleIdx];
-			glCopyNamedBufferSubData(
-					copy.srcBufferID, copy.dstBufferID,
-					copy.srcOffset, copy.dstOffset, copy.size);
-			//REGEN_INFO("Scheduled copy " << copy);
-		}
-		numScheduledCopies_ = 0; // reset scheduled copies
-		if constexpr(STAGING_DEBUG_TIME) {
-			elapsedTime().push(REGEN_STRING(arena->type << " copied"));
-		}
-
-		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
-		// written data of this frame has been consumed by the GPU.
-		if (useFence) {
-			arena->stagingBuffer->fence(drawIdx).setFencePoint();
-		}
-		if constexpr(STAGING_DEBUG_TIME) {
-			elapsedTime().push(REGEN_STRING(arena->type << " synced"));
-		}
-
-		// Advance to next segment in case of multi-buffering and ring buffers.
-		arena->stagingBuffer->swapBuffers();
-		arena->isDirty = false; // reset dirty flag
-		if constexpr(STAGING_DEBUG_TIME) {
-			elapsedTime().push(REGEN_STRING(arena->type << " swapped"));
-		}
-
-		if constexpr(STAGING_DEBUG_STALLS) {
-			if (useFence) {
-				REGEN_INFO("Arena " << arena->type << " stall rate: "
-					<< arena->stagingBuffer->fence(copyIdx).getStallRate());
-			}
-			REGEN_INFO("Arena " << arena->type << " fragmentation: "
-				<< arena->freeList->getFragmentationScore());
-		}
+		updateArenaData(dt_ms, static_cast<ArenaType>(arenaIdx));
 	}
 
 	if constexpr (!ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS) {
@@ -602,6 +497,115 @@ void StagingSystem::updateData(float dt_ms) {
 	}
 }
 
+void StagingSystem::updateArenaData(float dt_ms, ArenaType arenaType) {
+	auto &arena = arenas_[arenaType];
+	// skip inactive arenas: those that are not initialized, and those that are cooling down.
+	if (!arena || arena->cooldown(dt_ms)) return;
+
+	// Dynamically resize the arena if needed.
+	// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
+	//       or the arena is not large enough to hold all BOs.
+	if (updateArenaSize(arena)) {
+		arena->resize();
+		arena->sort();
+	}
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push(REGEN_STRING(arena->type << " resized"));
+	}
+	if (!arena->flags.isReadable() && !arena->isDirty) {
+		// early exit writing arenas before fencing in case of no updates.
+		return;
+	}
+	if constexpr(STAGING_DEBUG_STATISTICS) {
+		stats_.numDirtyArenas++;
+	}
+
+	const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
+	const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
+	// we do manual synchronization in case of persistent mapping arenas.
+	const bool useFence = isMapModePersistent(arena->flags.mapMode);
+	// For now, reading arenas must not be marked dirty, it is assumed the draw
+	// buffer is written to every frame.
+	// Reason: the use as output buffer is currently not tracked, but could be done to mark
+	// GPU write buffers as dirty -- but must be careful with syncing then!
+	const bool forceUpdate = arena->flags.isReadable();
+
+	// Wait for the fence in case of persistent mapped arenas.
+	// This might block the CPU in case of the last write into this segment
+	// has not been consumed by the GPU yet.
+	// TODO: The interaction with the fence still consumes a lot of CPU time.
+	//		- The main bottleneck now seems *setFencePoint*. Reason might be that
+	//          we do glDeleteSync/glFenceSync calls every time setFencePoint is called.
+	//		- As far as I know, we cannot re-use fences across frames.
+	//		- Maybe the only way to improve would be to reduce the number of fences.
+	//      - Idea: Let arenas share fences. However, this is difficult because arenas
+	//        currently may have ring buffers of different sizes.
+	//		- Maybe the mechanism can be adjusted such that we do not need a fence every
+	//          frame for every arena.
+	if (useFence) {
+		arena->stagingBuffer->fence(copyIdx).wait();
+	}
+
+	// Copy data from CPU to staging to draw buffer,
+	// or in case of reading, the other way around.
+	for (auto &managed: arena->bufferObjects) {
+		// NOTE: temporary mapping is only used for rare updates,
+		//       so it is not really worth it to consider temporary mapping on arena level.
+		// NOTE: This will only copy data if the BO is dirty, i.e. has new data to write.
+		//if (managed.bo->hasDirtySegments()) {
+		//	REGEN_INFO("Dirty BO: " << managed.bo->name());
+		//}
+		if constexpr(STAGING_DEBUG_STATISTICS) {
+			if (managed.bo->hasDirtySegments()) {
+				stats_.numDirtyBOs++;
+				stats_.numDirtySegments += managed.bo->numDirtySegments();
+			}
+			stats_.numTotalBOs++;
+		}
+		managed.bo->copyStagingData(forceUpdate);
+	}
+
+	// Do the actual copy from staging to draw buffer.
+	// We do this here as we attempted to coalesce the copy ranges into
+	// larger contiguous ranges for fewer copies.
+	for (uint32_t scheduleIdx = 0; scheduleIdx < numScheduledCopies_; scheduleIdx++) {
+		auto &copy = scheduledCopies_[scheduleIdx];
+		glCopyNamedBufferSubData(
+			copy.srcBufferID, copy.dstBufferID,
+			copy.srcOffset, copy.dstOffset, copy.size);
+		//REGEN_INFO("Scheduled copy " << copy);
+	}
+	numScheduledCopies_ = 0; // reset scheduled copies
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push(REGEN_STRING(arena->type << " copied"));
+	}
+
+	// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
+	// written data of this frame has been consumed by the GPU.
+	if (useFence) {
+		arena->stagingBuffer->fence(drawIdx).setFencePoint();
+	}
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push(REGEN_STRING(arena->type << " synced"));
+	}
+
+	// Advance to next segment in case of multi-buffering and ring buffers.
+	arena->stagingBuffer->swapBuffers();
+	arena->isDirty = false; // reset dirty flag
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push(REGEN_STRING(arena->type << " swapped"));
+	}
+
+	if constexpr(STAGING_DEBUG_STALLS) {
+		if (useFence) {
+			REGEN_INFO("Arena " << arena->type << " stall rate: "
+				<< arena->stagingBuffer->fence(copyIdx).getStallRate());
+		}
+		REGEN_INFO("Arena " << arena->type << " fragmentation: "
+			<< arena->freeList->getFragmentationScore());
+	}
+}
+
 void StagingSystem::swapClientData() {
 	if constexpr(STAGING_DEBUG_STATISTICS) {
 		stats_.numSwapCopies = 0;
@@ -609,7 +613,6 @@ void StagingSystem::swapClientData() {
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		if (!arena) continue; // skip uninitialized arenas
-
 		for (auto &managed: arena->bufferObjects) {
 			if constexpr(STAGING_DEBUG_STATISTICS) {
 				stats_.numSwapCopies += managed.bo->clientBuffer()->swapData();
@@ -620,6 +623,25 @@ void StagingSystem::swapClientData() {
 	}
 	if constexpr(STAGING_DEBUG_STATISTICS) {
 		REGEN_INFO("Client swap required " << stats_.numSwapCopies << " copies.");
+	}
+}
+
+void StagingSystem::rotateBuffers() {
+	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
+		auto &arena = arenas_[arenaIdx];
+		if (!arena) continue; // skip uninitialized arenas
+
+		// First swap the client buffers such that we can read the latest data from CPU side.
+		for (auto &managed: arena->bufferObjects) {
+			managed.bo->clientBuffer()->swapData();
+		}
+
+		// Second, rotate the staging buffers.
+		// We rotate through all ring segments to ensure that
+		// the staging buffer is in sync with the client buffers.
+		for (uint32_t ringIdx=0; ringIdx < arena->numRingSegments; ringIdx++) {
+			updateArenaData(0.0f, arena->type);
+		}
 	}
 }
 

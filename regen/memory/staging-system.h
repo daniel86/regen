@@ -5,13 +5,11 @@
 #include "regen/gl/queries/elapsed-time.h"
 #include "free-list.h"
 
-// Note: We need to swap client buffers after each copy from
-//   client buffer into staging. We can either do it directly in the staging
-//   system right after the copy into staging, or we can let the animation thread
-//   perform the swapping, but it has to wait for the copy into staging to complete.
-//#define REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
-
 namespace regen {
+	// Note: We need to swap client buffers after each copy from
+	//   client buffer into staging. We can either do it directly in the staging
+	//   system right after the copy into staging, or we can let the animation thread
+	//   perform the swapping, but it has to wait for the copy into staging to complete.
 	static constexpr bool ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS = false;
 
 	/**
@@ -145,6 +143,12 @@ namespace regen {
 		void swapClientData();
 
 		/**
+		 * This method can be called to rotate through all ring buffer segments in the staging buffers.
+		 * This can be useful to make sure all buffer segments have initially the same data.
+		 */
+		void rotateBuffers();
+
+		/**
 		 * \brief Clear the staging system.
 		 *
 		 * This method clears all arenas and releases the resources used by the staging system.
@@ -195,6 +199,8 @@ namespace regen {
 		void moveToArena(ManagedBO &managed, ArenaType targetArenaType);
 
 		bool updateArenaSize(Arena *arena);
+
+		void updateArenaData(float dt_ms, ArenaType arenaType);
 
 		struct StagingStatistics {
 			uint32_t numDirtyArenas = 0;
