@@ -390,6 +390,7 @@ static ref_ptr<Camera> createUserCamera(const Vec2i &viewport) {
 	cam->setPosition(0, Vec3f(0.0f, 0.0f, -3.0f));
 	cam->setDirection(0, Vec3f(0.0f, 0.0f, 1.0f));
 	cam->setPerspective(aspect, 45.0f, 0.1f, 100.0f);
+	cam->updateBuffers();
 	cam->updateCamera();
 	cam->updateShaderData(0.0f);
 	return cam;
