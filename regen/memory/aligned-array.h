@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdint>
+#include <algorithm>
+#include <regen/compute/simd.h>
 
 namespace regen {
 	/**
@@ -90,7 +92,7 @@ namespace regen {
 		uint32_t capacity_;
 		uint32_t allocatedSize_ = 0;
 
-		static constexpr size_t Alignment = 32;
+		static constexpr size_t Alignment = simd::RegisterWidth * 4;
 
 		void allocate(size_t count) {
 			const size_t totalSize = count * sizeof(T);
