@@ -204,7 +204,11 @@ void Scene::keyDown(const KeyEvent &ev) {
 }
 
 void Scene::resizeGL(const Vec2i &size) {
-	screen_->setViewport(size);
+	// make sure size is at least 2x2, non-negative and divisible by 2
+	const Vec2i safeSize(
+			std::max(2, size.x + size.x % 2),
+			std::max(2, size.y + size.y % 2));
+	screen_->setViewport(safeSize);
 	queueEmit(RESIZE_EVENT);
 	updateMousePosition();
 }
