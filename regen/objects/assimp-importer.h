@@ -1,10 +1,3 @@
-/*
- * assimp-loader.h
- *
- *  Created on: 24.10.2011
- *      Author: daniel
- */
-
 #ifndef ASSIMP_LOADER_H_
 #define ASSIMP_LOADER_H_
 
@@ -12,10 +5,6 @@
 
 #include <regen/objects/mesh.h>
 #include <regen/shading/light-state.h>
-#include <regen/animation/animation.h>
-#include <regen/animation/bones.h>
-#include <regen/camera/camera.h>
-#include <regen/scene/loading-context.h>
 
 #include <regen/animation/bone-tree.h>
 #include <assimp/postprocess.h>

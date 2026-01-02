@@ -60,7 +60,7 @@ BufferPool* StagingBuffer::getStagingAllocator(BufferStorageMode storageMode) {
 		stagingAllocator->set_index((int)storageMode);
 		stagingAllocator->set_alignment(StagingSystem::STAGING_BUFFER_ALIGNMENT);
 		stagingAllocator->set_minSize(8u * 1024u * 1024u); // 2048 pages = 8 MiB
-		bufferPools[(int)storageMode] = stagingAllocator;
+		bufferPools[static_cast<int>(storageMode)] = stagingAllocator;
 	}
 	return stagingAllocator;
 }

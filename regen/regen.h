@@ -29,5 +29,6 @@ namespace regen {
 	static inline const T &getClamped(const std::span<T> &vec, uint32_t idx) {
 		return vec.size() <= idx ? vec[0] : vec[idx];
 	}
-};
+}
+
 #endif //REGEN_REGEN_H

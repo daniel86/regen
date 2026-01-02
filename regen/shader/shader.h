@@ -96,17 +96,12 @@ namespace regen {
 		/**
 		 * @return true if the validation was successful.
 		 */
-		bool validate();
+		bool validate() const;
 
 		/**
 		 * The program object.
 		 */
 		unsigned int id() const;
-
-		/**
-		 * Returns true if the given name is a valid vertex attribute name.
-		 */
-		bool isAttribute(const std::string &name) const;
 
 		/**
 		 * Returns the locations for a given vertex attribute name or -1 if the name is not known.

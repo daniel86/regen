@@ -1,5 +1,7 @@
 #include "gl-param.h"
 
+#include "regen/compute/vector.h"
+
 namespace regen {
 	template<> bool glParam<bool>(GLenum param) {
 		auto &store = GLParameterStore<bool>::instance();

@@ -10,7 +10,7 @@ namespace regen {
 	 */
 	class quadric {
 	public:
-		float a[10] = {0}; // 10 unique components of the symmetric 4x4 matrix
+		float a[10] = {}; // 10 unique components of the symmetric 4x4 matrix
 
 		quadric() = default;
 

@@ -27,6 +27,8 @@ static void avLogCallback(void *, int level, const char *msg, va_list args) {
 			break;
 		case AV_LOG_WARNING: REGEN_WARN(buffer);
 			break;
+		default:
+			break;
 	}
 }
 

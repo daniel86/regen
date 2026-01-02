@@ -299,7 +299,7 @@ void FilterSequence::enable(RenderState *rs) {
 	resize();
 
 	if (clearFirstFilter_) {
-		Filter *firstFilter = (*filterSequence_.begin()).filter.get();
+		Filter *firstFilter = filterSequence_.begin()->filter.get();
 		firstFilter->output()->fbo_->clearAllColorAttachments(clearColor_);
 	}
 	auto oldViewport = rs->viewport().current();

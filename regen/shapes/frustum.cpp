@@ -172,7 +172,7 @@ void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) cons
 }
 
 Vec3f Frustum::closestPointOnSurface(const Vec3f &point) const {
-	Vec3f closestPoint;
+	Vec3f closestPoint = point;
 	float minDistanceSqr = std::numeric_limits<float>::max();
 
 	for (const auto &plane: planes) {

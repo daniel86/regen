@@ -1,11 +1,9 @@
 #ifndef REGEN_ALIGNED_ARRAY_H_
 #define REGEN_ALIGNED_ARRAY_H_
 
-#include <memory>
 #include <cstdlib>
 #include <cstring>
-#include <cstddef>
-#include <stdexcept>
+#include <cstdint>
 
 namespace regen {
 	/**

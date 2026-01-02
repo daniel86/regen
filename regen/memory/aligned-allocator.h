@@ -1,10 +1,8 @@
 #ifndef REGEN_ALIGNED_ALLOCATOR_H_
 #define REGEN_ALIGNED_ALLOCATOR_H_
 
-#include <memory>
 #include <cstdlib>
 #include <cstddef>
-#include <stdexcept>
 
 namespace regen {
 	/**

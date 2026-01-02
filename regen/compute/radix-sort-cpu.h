@@ -34,7 +34,7 @@ namespace regen {
 		std::vector<IndexType> tmp_indices_;
 		std::vector<uint32_t> histogram_;
 		alignas(32) KeyType tmpBins_[KEYS_PER_SIMD_PASS] = {0};
-		alignas(32) int32_t tmpKeys32[8] = {0};
+		alignas(32) int32_t tmpKeys32[8] = {};
 
 		/**
 		 * @brief Constructor

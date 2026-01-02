@@ -133,8 +133,6 @@ createTriangleMesh(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 			indexType = PHY_UCHAR;
 			break;
 		case GL_UNSIGNED_INT:
-			indexType = PHY_INTEGER;
-			break;
 		default:
 			indexType = PHY_INTEGER;
 			break;

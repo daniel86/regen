@@ -16,7 +16,7 @@ namespace regen {
 		 */
 		TriangleVertex(const Vec3f &_p, const uint32_t &_i) : p(_p), i(_i) {}
 
-		TriangleVertex() : i(0) {}
+		TriangleVertex() : p(Vec3f::zero()), i(0) {}
 
 		/** The vertex position. */
 		Vec3f p;

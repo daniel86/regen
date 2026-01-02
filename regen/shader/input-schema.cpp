@@ -50,7 +50,7 @@ const InputSchema *InputSchema::unknown() {
 }
 
 const InputSchema *InputSchema::color() {
-	static const InputSchema *color_ = []() {
+	static const InputSchema *color_ = [] {
 		auto *schema = new InputSchema(InputSchema::COLOR);
 		schema->setLimits(0, 0, 1);
 		schema->setLimits(1, 0, 1);

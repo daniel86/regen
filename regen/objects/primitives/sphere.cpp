@@ -51,7 +51,7 @@ Sphere::Config::Config()
 }
 
 static Vec3f computeSphereTangent(const Vec3f &v) {
-	Vec3f vAbs = Vec3f(abs(v.x), abs(v.y), abs(v.z));
+	auto vAbs = Vec3f(abs(v.x), abs(v.y), abs(v.z));
 	Vec3f v_;
 	if (1.0f - v.z < std::numeric_limits<float>::epsilon()) {
 		// there is a singularity at the back pole

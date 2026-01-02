@@ -8,8 +8,6 @@
 #ifndef AUDIO_SOURCE_H_
 #define AUDIO_SOURCE_H_
 
-#include <regen/config.h>
-
 extern "C" {
 #include <libavcodec/version.h>
 #include <libavcodec/avcodec.h>
@@ -121,6 +119,10 @@ namespace regen {
 
 		~AudioSource() override;
 
+		AudioSource(const AudioSource &) = delete;
+
+		AudioSource &operator=(const AudioSource &) = delete;
+
 		/**
 		 * The audio source ID.
 		 */
@@ -218,11 +220,6 @@ namespace regen {
 #endif
 
 		void doClearQueue();
-
-	private:
-		AudioSource(const AudioSource &);
-
-		AudioSource &operator=(const AudioSource &);
 	};
 } // namespace
 

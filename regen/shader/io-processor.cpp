@@ -175,6 +175,7 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 											 "    " << outName << " = " << inName << "[i];"));
 				break;
 			case GL_FRAGMENT_SHADER:
+			default:
 				break;
 		}
 
@@ -283,7 +284,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 
 			stringstream val;
 			val << io.dataType << "(";
-			(*in.get()).write(val);
+			in.get()->write(val);
 			val << ")";
 			io.value = val.str();
 		} else if (in->isBufferBlock()) {
@@ -549,7 +550,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 
 					stringstream val;
 					val << io.dataType << "(";
-					(*in.get()).write(val);
+					in.get()->write(val);
 					val << ")";
 					io.value = val.str();
 				} else {

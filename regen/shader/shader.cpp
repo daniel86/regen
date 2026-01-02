@@ -339,7 +339,7 @@ bool Shader::link() {
 	}
 }
 
-bool Shader::validate() {
+bool Shader::validate() const {
 	glValidateProgram(id());
 	int status;
 	glGetProgramiv(id(), GL_VALIDATE_STATUS, &status);

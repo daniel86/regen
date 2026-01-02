@@ -2,9 +2,7 @@
 #define REGEN_BATCH_OF_SHAPES_H_
 
 #include <vector>
-#include <cstdint>
 #include <regen/memory/aligned-array.h>
-#include <regen/shapes/bounding-shape.h>
 
 namespace regen {
 	class BoundingShape;

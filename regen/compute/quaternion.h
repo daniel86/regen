@@ -303,7 +303,6 @@ namespace regen {
 			// adjust signs (if necessary)
 			Quaternion end = pEnd;
 			if (cosom < 0.0f) {
-				cosom = -cosom;
 				end.x = -end.x;   // Reverse all signs
 				end.y = -end.y;
 				end.z = -end.z;
