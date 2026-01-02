@@ -151,10 +151,10 @@ void main() {
     // do the ray casting from start to stop
     vec3 ray = rayStop - rayStart;
 
+    float stepSize = max(in_rayStep, 0.001);
     float rayLength = length(ray);
-    int numSteps = int(rayLength / in_rayStep);
+    int numSteps = int(rayLength / stepSize);
     vec3 stepVector = ray / float(numSteps);
-    //vec3 stepVector = normalize(ray) * max(in_rayStep, 0.001);
 
     vec3 pos = rayStart;
     vec4 dst = vec4(0);
@@ -164,13 +164,14 @@ void main() {
 #if RAY_CASTING_MODE==MAX_INTENSITY
     float maxIntensity = 0.0;
 #endif
+
     for(int i=0; i<numSteps; i++) {
 #ifdef RAY_CAST_JITTER
         vec3 jitter = vec3(
             fract(sin(dot(pos.xy, vec2(12.9898, 78.233))) * 43758.5453),
             fract(sin(dot(pos.yz, vec2(12.9898, 78.233))) * 43758.5453),
             fract(sin(dot(pos.zx, vec2(12.9898, 78.233))) * 43758.5453)
-        ) * in_rayStep * 0.5;
+        ) * stepSize * 0.5;
         float value = texture(in_volumeTexture, pos + jitter).x;
 #else
         float value = texture(in_volumeTexture, pos).x;
@@ -189,6 +190,16 @@ void main() {
 #elif RAY_CASTING_MODE==FIRST_MAXIMUM
         if(value > in_densityThreshold) {
             dst = volumeTransfer(value);
+            // make a look ahead to find a better maximum
+            for(int j=0; j<2; j++) {
+                vec3 lookAheadPos = pos + stepVector * float(j);
+                float lookAheadValue = texture(in_volumeTexture, lookAheadPos).x;
+                if(lookAheadValue > value) {
+                    dst = volumeTransfer(lookAheadValue);
+                    value = lookAheadValue;
+                    i = j; // advance main loop
+                }
+            }
             break;
         }
 #else // emission/absorbtion
@@ -291,7 +302,7 @@ void main() {
     // do the ray casting from start to stop
     vec3 ray = rayStop - rayStart;
     float rayLength = length(ray);
-    int numSteps = int(rayLength / in_rayStep);
+    int numSteps = int(rayLength / max(in_rayStep, 0.001));
     vec3 stepVector = ray / float(numSteps);
     vec3 pos = rayStart;
     float density = 0.0;
@@ -302,6 +313,18 @@ void main() {
         if(value > in_densityThreshold) {
             density = value;
             hit = true;
+            // make a look ahead to find a better maximum
+            for(int j=0; j<5; j++) {
+                vec3 lookAheadPos = pos + stepVector * float(j);
+                float lookAheadValue = texture(in_volumeTexture, lookAheadPos).x;
+                if(lookAheadValue > value) {
+                    density = lookAheadValue;
+                    value = lookAheadValue;
+                    i = j; // advance main loop
+                } else {
+                    break;
+                }
+            }
             break;
         }
         pos += stepVector;

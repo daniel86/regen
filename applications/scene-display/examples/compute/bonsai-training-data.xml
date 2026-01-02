@@ -104,7 +104,7 @@
             <define key="RAY_CASTING_MODE" value="FIRST_MAXIMUM"/>
             <define key="SWITCH_VOLUME_Y" value="FALSE"/>
             <cull mode="front"/>
-            <input type="float" name="rayStep" value="0.01"/>
+            <input type="float" name="rayStep" value="0.002" min="0.001" max="0.5" step="0.001" />
             <input type="float" name="densityThreshold" value="0.175"/>
             <input type="float" name="densityScale" value="1.0"/>
             <input type="vec3" name="halfVolumeSize" value="0.8, 0.8, 0.8"/>
@@ -147,7 +147,7 @@
             <input name="InputData" ssbo="ComputeInput"/>
             <input name="OutputData" ssbo="ComputeOutput"/>
 
-            <input type="float" name="rayStep" value="0.01"/>
+            <input type="float" name="rayStep" value="0.002" min="0.001" max="0.5" step="0.001"/>
             <input type="float" name="densityThreshold" value="0.175"/>
             <input type="float" name="densityScale" value="1.0"/>
             <input type="vec3" name="halfVolumeSize" value="0.8, 0.8, 0.8"/>
