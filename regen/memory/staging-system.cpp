@@ -143,6 +143,11 @@ void StagingSystem::clear() {
 			arena = nullptr;
 		}
 	}
+	// Free memory allocated for staging buffers
+	StagingBuffer::resetMemoryPools();
+	// Clear any fences
+	ringFences_.clear();
+	ringFences_.resize(numRingSegments_, GPUFence());
 	copyInProgress_.store(false, std::memory_order_relaxed);
 }
 
