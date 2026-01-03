@@ -392,7 +392,7 @@ namespace regen {
 	 */
 	class ClearState : public ServerSideState {
 	public:
-		ClearState(const ref_ptr<FBO> &fbo)
+		explicit ClearState(const ref_ptr<FBO> &fbo)
 				: ServerSideState(), fbo_(fbo) {}
 
 		void addClearBit(GLbitfield clearBit) {

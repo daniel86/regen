@@ -149,6 +149,12 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 	// load window width/height from Qt settings
 	int width = settings_.value("width", 1280).toInt();
 	int height = settings_.value("height", 960).toInt();
+	// Make sure we do not have too small window
+	if (width < 400) { width = 400; }
+	if (height < 300) { height = 300; }
+	// Make sure dimensions are divisible by 2
+	if (width % 2 != 0) { width += 1; }
+	if (height % 2 != 0) { height += 1; }
 	REGEN_INFO("Initial window size: " << width << "x" << height);
 
 	ui_.setupUi(this);
@@ -1102,9 +1108,12 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	animations_.emplace_back(timeWidgetAnimation_);
 	loadAnim_ = ref_ptr<Animation>();
 	lightStates_ = sceneParser.getResources()->getLights();
+
+	// Make sure all staging operations are done before resuming animations.
+	StagingSystem::instance().rotateBuffers();
+
 	AnimationManager::get().setSpatialIndices(spatialIndexList_);
 	AnimationManager::get().resetTime();
-
 	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");
 }

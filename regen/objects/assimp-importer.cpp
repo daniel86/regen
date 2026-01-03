@@ -160,8 +160,8 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 				light->setPosition(0, *((Vec3f *) &lightPos.x));
 				light->setDirection(0, *((Vec3f *) &assimpLight->mDirection.x));
 				light->setConeAngles(
-						acos(assimpLight->mAngleOuterCone) * 360.0f / (2.0f * M_PI),
-						acos(assimpLight->mAngleInnerCone) * 360.0f / (2.0f * M_PI));
+						acosf(assimpLight->mAngleOuterCone) * 360.0f / (2.0f * M_PIf),
+						acosf(assimpLight->mAngleInnerCone) * 360.0f / (2.0f * M_PIf));
 				setLightRadius(assimpLight, light);
 				break;
 			}

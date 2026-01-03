@@ -62,6 +62,11 @@ bool GPUFence::wait(bool allowFrameDropping) {
 	}
 	// poll the fence status
 	GLenum status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+	if (status == GL_WAIT_FAILED) {
+		GL_ERROR_LOG();
+		return false;
+	}
+
 	if (allowFrameDropping) {
 		if (status == GL_TIMEOUT_EXPIRED) {
 			setStalledFrame(true);
@@ -74,8 +79,7 @@ bool GPUFence::wait(bool allowFrameDropping) {
 		// Note: we use a wait timeout here to avoid wasting too much time in the loop.
 		setStalledFrame(status == GL_TIMEOUT_EXPIRED);
 		while (status == GL_TIMEOUT_EXPIRED) {
-			status = glClientWaitSync(fence_,
-									  GL_SYNC_FLUSH_COMMANDS_BIT, WAIT_TIMEOUT);
+			status = glClientWaitSync(fence_, 0, WAIT_TIMEOUT);
 		}
 	}
 

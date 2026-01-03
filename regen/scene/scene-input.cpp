@@ -122,7 +122,6 @@ list<ref_ptr<SceneInputNode> > SceneInputNode::getChildren(const string &categor
 
 ref_ptr<SceneInputNode> SceneInputNode::getFirstChild(const string &category, const string &name) {
 	const list<ref_ptr<SceneInputNode> > &children = getChildren();
-	list<ref_ptr<SceneInputNode> > out;
 	for (const auto& n : children) {
 		if (n->getName() == name && n->getCategory() == category)
 			return n;
@@ -132,7 +131,6 @@ ref_ptr<SceneInputNode> SceneInputNode::getFirstChild(const string &category, co
 
 ref_ptr<SceneInputNode> SceneInputNode::getFirstChild(const string &category) {
 	const list<ref_ptr<SceneInputNode> > &children = getChildren();
-	list<ref_ptr<SceneInputNode> > out;
 	for (const auto& n : children) {
 		if (n->getCategory() == category) return n;
 	}

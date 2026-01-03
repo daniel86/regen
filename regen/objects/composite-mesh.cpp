@@ -21,6 +21,7 @@
 #include "silhouette-mesh.h"
 #include "primitives/blanket.h"
 #include "primitives/cone.h"
+#include "regen/animation/bones.h"
 #include "terrain/blanket-trail.h"
 #include "terrain/ground-path.h"
 
@@ -811,7 +812,7 @@ void CompositeMesh::loadIndexRange(
 	const ref_ptr<CompositeMesh> &compositeMesh,
 	std::queue<std::pair<ref_ptr<Mesh>, uint32_t> > &meshQueue,
 	const std::string &prefix) {
-	auto indexRange = CompositeMesh::loadIndexRange(input, prefix);
+	std::vector<uint32_t> indexRange = CompositeMesh::loadIndexRange(input, prefix);
 	if (indexRange.empty()) {
 		uint32_t idx = 0u;
 		for (auto &it: compositeMesh->meshes()) {
@@ -819,7 +820,7 @@ void CompositeMesh::loadIndexRange(
 		}
 	} else {
 		for (auto &index: indexRange) {
-			if (index >= 0 && index < static_cast<uint32_t>(compositeMesh->meshes().size())) {
+			if (index < static_cast<uint32_t>(compositeMesh->meshes().size())) {
 				meshQueue.push({compositeMesh->meshes()[index], index});
 			} else {
 				REGEN_WARN("Ignoring " << input.getDescription() << ", invalid mesh index '" << index << "'.");

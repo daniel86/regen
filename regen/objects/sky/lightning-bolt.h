@@ -24,9 +24,9 @@ namespace regen {
 				const StrikePoint &target,
 				const ref_ptr<ShaderInput1f> &alpha);
 
-		LightningStrike(const LightningStrike &) = default;
+		LightningStrike(const LightningStrike &) = delete;
 
-		LightningStrike &operator=(const LightningStrike &) = default;
+		LightningStrike &operator=(const LightningStrike &) = delete;
 
 		/**
 		 * Sets the frequency of lightning strikes.

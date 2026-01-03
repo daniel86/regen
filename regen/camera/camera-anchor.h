@@ -72,7 +72,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<ModelTransformation> transform_;
-		Vec3f offset_;
+		Vec3f offset_ = Vec3f::zero();
 		Mode mode_;
 	};
 }

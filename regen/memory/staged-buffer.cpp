@@ -7,10 +7,11 @@
 
 using namespace regen;
 
-//#define REGEN_DISABLE_GLOBAL_STAGING
-//#define REGEN_DISABLE_EXPLICIT_FLUSHING
-//#define REGEN_FORCE_IMPLICIT_STAGING
-#define REGEN_FORCE_CLIENT_DOUBLE_BUFFER
+namespace regen {
+	static constexpr bool REGEN_FORCE_IMPLICIT_STAGING = false;
+	static constexpr bool REGEN_DISABLE_GLOBAL_STAGING = false;
+	static constexpr bool REGEN_FORCE_CLIENT_DOUBLE_BUFFER = true;
+}
 
 uint32_t StagedBuffer::MIN_SEGMENTS_PARTIAL_TEMPORARY = 6;
 float StagedBuffer::MAX_UPDATE_RATIO_PARTIAL_TEMPORARY = 0.33f;
@@ -47,9 +48,9 @@ StagedBuffer::StagedBuffer(
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 	}
 	clientBuffer_->setFrameLocked(hints.frequency < BUFFER_UPDATE_PER_DRAW);
-#ifdef REGEN_FORCE_IMPLICIT_STAGING
-	setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
-#endif
+	if constexpr(REGEN_FORCE_IMPLICIT_STAGING) {
+		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
+	}
 	adoptBufferRange_ = [this](uint32_t requiredSize) {
 		return adoptBufferRange(requiredSize);
 	};
@@ -143,9 +144,9 @@ void StagedBuffer::updateStorageFlags() {
 	// input has client data, so we need to set the access mode such that the CPU can write to it.
 	enableWriteAccess();
 	setStagingBuffering(SINGLE_BUFFER);
-#ifdef REGEN_FORCE_CLIENT_DOUBLE_BUFFER
-	clientBuffer_->setClientBufferMode(ClientBuffer::DoubleBuffer);
-#endif
+	if constexpr(REGEN_FORCE_CLIENT_DOUBLE_BUFFER) {
+		clientBuffer_->setClientBufferMode(ClientBuffer::DoubleBuffer);
+	}
 
 	// NOTE: in local staging we avoid persistent mapping the buffer to CPU memory to avoid performance issues
 	//       with fencing, as currently local staging uses per-BO and per-segment fences which is overkill
@@ -542,12 +543,10 @@ void StagedBuffer::resetStagingBuffer(bool removeFromStagingSystem) {
 }
 
 void StagedBuffer::createStagingBuffer() {
-#ifdef REGEN_DISABLE_GLOBAL_STAGING
-	// disable global staging, falling back to local staging buffer.
 	ref_ptr<StagingBuffer> buf;
-#else
-	auto buf = StagingSystem::instance().addBufferBlock(this);
-#endif
+	if constexpr(!REGEN_DISABLE_GLOBAL_STAGING) {
+		buf = StagingSystem::instance().addBufferBlock(this);
+	}
 	shared_->stagingOffset_ = 0;
 	if (buf.get() != nullptr) {
 		// the block was added to the staging system.

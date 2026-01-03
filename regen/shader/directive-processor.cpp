@@ -123,11 +123,11 @@ string DirectiveProcessor::MacroTree::define(const string &arg) {
 	} else if (isNumber(arg)) {
 		return arg;
 	} else {
-		map<string, string>::iterator it = defines_.find(arg);
-		if (it == defines_.end()) {
+		auto jt = defines_.find(arg);
+		if (jt == defines_.end()) {
 			return arg;
 		} else {
-			return it->second;
+			return jt->second;
 		}
 	}
 }

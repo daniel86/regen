@@ -2,7 +2,6 @@
 #define REGEN_BOUNDING_BOX_BUFFER_H_
 
 #include "ssbo.h"
-#include "staging-buffer.h"
 #include "regen/shapes/bounds.h"
 
 namespace regen {

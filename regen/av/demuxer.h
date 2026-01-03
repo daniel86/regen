@@ -55,11 +55,6 @@ namespace regen {
 		bool hasInput() const;
 
 		/**
-		 * Total number of seconds elapsed in the stream.
-		 */
-		float elapsedSeconds() const;
-
-		/**
 		 * Total number of seconds of currently loaded stream.
 		 */
 		float totalSeconds() const;
@@ -131,10 +126,8 @@ namespace regen {
 		bool pauseFlag_;
 		bool repeatStream_;
 
-		int videoStreamIndex_;
-		int audioStreamIndex_;
-
-		//float elapsedSeconds_;
+		int videoStreamIndex_ = -1;
+		int audioStreamIndex_ = -1;
 
 		struct SeekPosition {
 			bool isRequired;

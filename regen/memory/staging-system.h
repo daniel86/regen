@@ -5,13 +5,11 @@
 #include "regen/gl/queries/elapsed-time.h"
 #include "free-list.h"
 
-// Note: We need to swap client buffers after each copy from
-//   client buffer into staging. We can either do it directly in the staging
-//   system right after the copy into staging, or we can let the animation thread
-//   perform the swapping, but it has to wait for the copy into staging to complete.
-//#define REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
-
 namespace regen {
+	// Note: We need to swap client buffers after each copy from
+	//   client buffer into staging. We can either do it directly in the staging
+	//   system right after the copy into staging, or we can let the animation thread
+	//   perform the swapping, but it has to wait for the copy into staging to complete.
 	static constexpr bool ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS = false;
 
 	/**
@@ -145,6 +143,12 @@ namespace regen {
 		void swapClientData();
 
 		/**
+		 * This method can be called to rotate through all ring buffer segments in the staging buffers.
+		 * This can be useful to make sure all buffer segments have initially the same data.
+		 */
+		void rotateBuffers();
+
+		/**
 		 * \brief Clear the staging system.
 		 *
 		 * This method clears all arenas and releases the resources used by the staging system.
@@ -178,6 +182,15 @@ namespace regen {
 		std::vector<BufferCopyRange> scheduledCopies_;
 		uint32_t numScheduledCopies_ = 0;
 
+		// Used only if ring size is uniform among arenas:
+		uint32_t numRingSegments_ = 2;
+		uint32_t maxRingSegments_ = 4;
+		std::vector<GPUFence> ringFences_; // size: numRingSegments_
+		// read index is one behind as we set fence point for read slot,
+		// then the write index has max gap to it to avoid stalls.
+		uint32_t readBufferIndex_ = 0u;  // < numRingSegments_
+		uint32_t writeBufferIndex_ = 1u; // < numRingSegments_
+
 		Arena *addBufferBlock_readOnly(
 				const BlockPtr &block,
 				const BufferFlags &flags,
@@ -196,6 +209,10 @@ namespace regen {
 
 		bool updateArenaSize(Arena *arena);
 
+		void updateArenaData(float dt_ms, ArenaType arenaType);
+
+		Arena *createArena(ArenaType arenaType, ClientAccessMode accessMode) const;
+
 		struct StagingStatistics {
 			uint32_t numDirtyArenas = 0;
 			uint32_t numDirtyBOs = 0;
@@ -204,7 +221,7 @@ namespace regen {
 			uint32_t numSwapCopies = 0;
 		} stats_;
 
-		static ElapsedTimeDebugger elapsedTime() {
+		static ElapsedTimeDebugger& elapsedTime() {
 			static ElapsedTimeDebugger x("Staging System", 300);
 			return x;
 		}

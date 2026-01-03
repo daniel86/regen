@@ -186,7 +186,7 @@ void AudioListener::set3f(const ALenum &p, const Vec3f &v) {
 }
 
 Vec3f AudioListener::get3f(const ALenum &p) {
-	Vec3f v;
+	Vec3f v = Vec3f::zero();
 	alGetListenerf(p, &v.x);
 	return v;
 }
@@ -196,7 +196,7 @@ void AudioListener::set6f(const ALenum &p, const Vec6f &v) {
 }
 
 Vec6f AudioListener::get6f(const ALenum &p) {
-	Vec6f v;
+	auto v = Vec6f{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	alGetListenerf(p, &v.x0);
 	return v;
 }
@@ -281,7 +281,7 @@ void AudioSource::set3f(const ALenum &p, const Vec3f &v) const {
 }
 
 Vec3f AudioSource::get3f(const ALenum &p) const {
-	Vec3f v;
+	Vec3f v = Vec3f::zero();
 	alGetSourcef(id_, p, &v.x);
 	return v;
 }

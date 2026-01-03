@@ -49,7 +49,8 @@ ReflectionCamera::ReflectionCamera(
 	transform_ = modelMat.value().in;
 	if (transform_.get() != nullptr) {
 		transformStamp_ = transform_->stampOfReadData() - 1;
-		const Mat4f &M = transform_->mapClientData<Mat4f>(BUFFER_GPU_READ).r[0];
+		auto mapped = transform_->mapClientData<Mat4f>(BUFFER_GPU_READ);
+		const Mat4f &M = mapped.r[0];
 		posWorld_ = M.mul_t31(posWorld_);
 		norWorld_ = M.mul_t30(norWorld_);
 		norWorld_.normalize();

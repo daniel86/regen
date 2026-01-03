@@ -188,7 +188,7 @@ namespace regen {
 
 		/**
 		 * Set status for the current frame, i.e. if the buffer block was updated or not.
-		 * @param isStalled true if the frame was stalled, false otherwise.
+		 * @param isUpdated true if the buffer block was updated in the current frame, false otherwise.
 		 */
 		inline void setUpdatedFrame(bool isUpdated) { shared_->setUpdatedFrame(isUpdated); }
 
@@ -240,7 +240,7 @@ namespace regen {
 				inputSize = other.inputSize;
 			}
 
-			ShaderInput *input;
+			ShaderInput *input = nullptr;
 			uint32_t offset = 0;
 			std::vector<uint32_t> lastStamp = {0, 0};
 			uint32_t inputSize = 0;

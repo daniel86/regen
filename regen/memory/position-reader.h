@@ -60,7 +60,7 @@ namespace regen {
 	private:
 		ClientDataRaw_ro rawData_mat;
 		ClientDataRaw_ro rawData_offset;
-		mutable Vec3f tmpPos_;
+		mutable Vec3f tmpPos_ = Vec3f::zero();
 	public:
 		/**
 		 * The mapped data for reading.

@@ -1,19 +1,8 @@
-/*
- * gl-util.h
- *
- *  Created on: 20.03.2011
- *      Author: daniel
- */
-
 #ifndef __GL_UTIL__
 #define __GL_UTIL__
 
-#include <sstream>
-
 #include <GL/glew.h>
 #include <regen/utility/strings.h>
-#include <regen/utility/logging.h>
-#include <regen/config.h>
 
 namespace regen {
 	/**

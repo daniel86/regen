@@ -32,7 +32,7 @@ std::istream &regen::operator>>(std::istream &in, BodyPart &v) {
 	else if (val == "LEG") v = BodyPart::LEG;
 	else {
 		REGEN_WARN("Unknown BodyPart value: " << val);
-		val = "NO_BODY_PART";
+		v = BodyPart::HEAD;
 	}
 	return in;
 }

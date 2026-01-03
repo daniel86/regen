@@ -2,6 +2,8 @@
 
 #include "render-state.h"
 
+#include "regen/utility/logging.h"
+
 using namespace regen;
 
 #ifndef GL_DEBUG_OUTPUT
@@ -446,7 +448,7 @@ GLenum RenderState::toggleToID(Toggle t) {
 			return GL_NONE;
 	}
 	return GL_NONE;
-};
+}
 
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const RenderState::Toggle &mode) {

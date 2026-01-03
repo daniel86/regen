@@ -20,7 +20,7 @@ struct Edge {
 namespace std {
     template <>
     struct hash<Edge> {
-        std::size_t operator()(const Edge &e) const {
+        std::size_t operator()(const Edge &e) const noexcept {
             return std::hash<uint32_t>()(e.v1) ^ std::hash<uint32_t>()(e.v2);
         }
     };

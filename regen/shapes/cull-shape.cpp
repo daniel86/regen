@@ -36,7 +36,7 @@ void CullShape::initCullShape(
 		}
 	}
 	boundingShape_ = boundingShape;
-	numInstances_ = boundingShape->numInstances();
+	set_numInstances(boundingShape->numInstances());
 }
 
 ref_ptr<SSBO> CullShape::getIndirectDrawBuffer(const ref_ptr<Mesh> &mesh) const {

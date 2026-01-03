@@ -20,6 +20,8 @@
 #include <applications/qt/ColorWidget.h>
 #include <applications/scene-display/animation-events.h>
 
+#include "regen/animation/bones.h"
+
 using namespace std;
 
 // Resizes Framebuffer texture when the window size changed
@@ -388,6 +390,7 @@ static ref_ptr<Camera> createUserCamera(const Vec2i &viewport) {
 	cam->setPosition(0, Vec3f(0.0f, 0.0f, -3.0f));
 	cam->setDirection(0, Vec3f(0.0f, 0.0f, 1.0f));
 	cam->setPerspective(aspect, 45.0f, 0.1f, 100.0f);
+	cam->updateBuffers();
 	cam->updateCamera();
 	cam->updateShaderData(0.0f);
 	return cam;
@@ -492,12 +495,15 @@ void MeshViewerWidget::gl_loadScene() {
 	sceneRoot_->state()->joinStates(blit);
 	GL_ERROR_LOG();
 
+	app_->initializeScene();
+
 	// resize fbo with window
 	app_->connect(Scene::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState));
 	// Update frustum when window size changes
 	app_->connect(Scene::RESIZE_EVENT,
 				  ref_ptr<ProjectionUpdater>::alloc(userCamera_, app_->screen()));
 
+	AnimationManager::get().resetTime();
 	AnimationManager::get().resume();
 	REGEN_INFO("Scene Loaded.");
 	createCameraController();

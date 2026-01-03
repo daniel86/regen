@@ -784,7 +784,7 @@
             </view>
         </node>
 
-        <!-- apply anti-aliasing effect -->
+        <!-- apply antialiasing effect -->
         <node import="FXAA">
             <fbo id="g-buffer" draw-buffers="0"/>
             <texture name="inputTexture" fbo="g-buffer" attachment="1"/>

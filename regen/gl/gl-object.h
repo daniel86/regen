@@ -1,7 +1,6 @@
 #ifndef REGEN_GL_OBJECT_H_
 #define REGEN_GL_OBJECT_H_
 
-#include <regen/config.h>
 #include <regen/gl/render-state.h>
 #include <regen/utility/ref-ptr.h>
 
@@ -56,12 +55,7 @@ namespace regen {
 
 		GLObject(const GLObject &other);
 
-		virtual ~GLObject();
-
-		/**
-		 * Releases and allocates resources again.
-		 */
-		void resetGL();
+		~GLObject() override;
 
 		/**
 		 * Switch to the next allocated buffer.

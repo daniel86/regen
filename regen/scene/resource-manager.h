@@ -82,8 +82,6 @@ namespace regen {
 			 */
 			ref_ptr<AssetImporter> getAsset(SceneLoader *parser, const std::string &id);
 
-			ref_ptr<State> getState(SceneLoader *parser, const std::string &id);
-
 			/**
 			 * @param id the resource id.
 			 * @param cam A Camera instance.

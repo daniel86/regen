@@ -71,6 +71,11 @@ namespace regen {
 		StagingBuffer(const StagingBuffer &) = delete;
 
 		/**
+		 * Delete allocated memory pools for staging buffers.
+		 */
+		static void resetMemoryPools();
+
+		/**
 		 * @return the buffer flags used for staging.
 		 */
 		const BufferFlags &stagingFlags() const { return flags_; }
@@ -79,7 +84,7 @@ namespace regen {
 		 * Set whether the buffer should swap on each access.
 		 * @param v true if the buffer should swap on each access, false otherwise.
 		 */
-		void setSwappingOnAccess(bool v) { useSwappingOnAccess_ = v; };
+		void setSwappingOnAccess(bool v) { useSwappingOnAccess_ = v; }
 
 		/**
 		 * Set whether the buffer should clear its segments on resize.
@@ -316,6 +321,8 @@ namespace regen {
 		byte *stagingReadData_ = nullptr;
 		uint32_t readBufferIndex_ = 0u;
 		uint32_t writeBufferIndex_ = 0u;
+
+		static BufferPool **stagingPools();
 
 		static BufferPool *getStagingAllocator(BufferStorageMode storageMode);
 

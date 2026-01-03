@@ -18,14 +18,20 @@ static void avLogCallback(void *, int level, const char *msg, va_list args) {
 	int count = vsprintf(buffer, msg, args);
 	buffer[count - 1] = '\0';
 	switch (level) {
-		case AV_LOG_ERROR: REGEN_ERROR(buffer);
+		case AV_LOG_ERROR:
+			REGEN_ERROR(buffer);
 			break;
-		case AV_LOG_INFO: REGEN_INFO(buffer);
+		case AV_LOG_INFO:
+			REGEN_INFO(buffer);
 			break;
 		case AV_LOG_DEBUG:
 			//REGEN_DEBUG(buffer);
 			break;
-		case AV_LOG_WARNING: REGEN_WARN(buffer);
+		case AV_LOG_WARNING:
+			REGEN_WARN(buffer);
+			break;
+		default:
+			REGEN_DEBUG(buffer);
 			break;
 	}
 }

@@ -176,6 +176,9 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 				break;
 			case GL_FRAGMENT_SHADER:
 				break;
+			default:
+				REGEN_WARN("Unhandled shader stage '" << state.currStage << "'.");
+				break;
 		}
 
 	}
@@ -283,7 +286,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 
 			stringstream val;
 			val << io.dataType << "(";
-			(*in.get()).write(val);
+			in.get()->write(val);
 			val << ")";
 			io.value = val.str();
 		} else if (in->isBufferBlock()) {
@@ -549,7 +552,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 
 					stringstream val;
 					val << io.dataType << "(";
-					(*in.get()).write(val);
+					in.get()->write(val);
 					val << ")";
 					io.value = val.str();
 				} else {

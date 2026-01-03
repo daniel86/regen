@@ -4,8 +4,6 @@
 #include <GL/glew.h>
 #include <map>
 
-#include <regen/compute/vector.h>
-
 namespace regen {
 	// introduce a template function to get the value of a GL parameter
     template<typename T> T glParam(GLenum param);

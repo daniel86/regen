@@ -36,11 +36,6 @@ namespace regen {
 			std::string_view shapeName);
 
 		/**
-		 * @return the number of instances of this shape.
-		 */
-		uint32_t numInstances() const { return numInstances_; }
-
-		/**
 		 * @return the name of the shape.
 		 */
 		const std::string& shapeName() const { return shapeName_; }
@@ -122,7 +117,6 @@ namespace regen {
 	protected:
 		std::string shapeName_;
 		std::vector<ref_ptr<Mesh>> parts_;
-		uint32_t numInstances_ = 1u;
 		ref_ptr<SpatialIndex> spatialIndex_;
 		ref_ptr<BoundingShape> boundingShape_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;

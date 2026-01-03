@@ -4,15 +4,16 @@
 using namespace regen;
 
 #define BOID_USE_HALF_VELOCITY
-#define BOID_USE_SORTED_DATA
-//#define BOID_DEBUG_GRID_OFFSETS
-//#define BOID_DEBUG_GRID_SORTING
-//#define BOID_DEBUG_BBOX_TIME
-//#define BOID_DEBUG_GRID_TIME
-//#define BOID_DEBUG_SIMULATION_TIME
-#if defined(BOID_DEBUG_SIMULATION_TIME) || defined(BOID_DEBUG_GRID_TIME)
-#define BOID_DEBUG_TIME
-#endif
+
+namespace regen {
+	static constexpr bool BOID_USE_SORTED_DATA = true;
+	static constexpr bool BOID_DEBUG_GRID_OFFSETS = false;
+	static constexpr bool BOID_DEBUG_GRID_SORTING = false;
+	static constexpr bool BOID_DEBUG_BBOX_TIME = false;
+	static constexpr bool BOID_DEBUG_GRID_TIME = false;
+	static constexpr bool BOID_DEBUG_SIMULATION_TIME = false;
+	static constexpr bool BOID_DEBUG_TIME = BOID_DEBUG_GRID_TIME || BOID_DEBUG_SIMULATION_TIME;
+}
 
 BoidsGPU::BoidsGPU(const ref_ptr<ModelTransformation> &tf)
 		: BoidSimulation(tf),
@@ -77,9 +78,9 @@ void BoidsGPU::createResource() {
 	// compute initial bbox
 	computeBBox(initialPositions.data());
 	updateGridSize();
-#ifdef BOID_DEBUG_TIME
-	timeElapsedQuery_ = ref_ptr<TimeElapsedQuery>::alloc();
-#endif
+	if constexpr(BOID_DEBUG_TIME) {
+		timeElapsedQuery_ = ref_ptr<TimeElapsedQuery>::alloc();
+	}
 	u_numCells_ = ref_ptr<ShaderInput1ui>::alloc("numGridCells");
 	u_numCells_->setUniformData(numCells_);
 
@@ -149,8 +150,7 @@ void BoidsGPU::createResource() {
 	}
 	// create a state that updates the boids grid
 	updateGridState_ = ref_ptr<StateSequence>::alloc();
-	#ifdef BOID_USE_SORTED_DATA
-	{
+	if constexpr(BOID_USE_SORTED_DATA) {
 		// NOTE: this might be a HUGE buffer. It stores boid
 		// positions and velocities.
 		boidDataBuffer_ = ref_ptr<SSBO>::alloc("BoidDataBuffer",
@@ -158,7 +158,6 @@ void BoidsGPU::createResource() {
 		boidDataBuffer_->addStagedInput(ref_ptr<ShaderInputStruct<BoidData>>::alloc("BoidData", "boidData", numBoids_));
 		boidDataBuffer_->update();
 	}
-	#endif
 	{
 		auto radixSort = ref_ptr<RadixSort_GPU>::alloc(numBoids_);
 		// note: with compaction enabled, there will be an additional "numVisibleKeys" field in the Key buffer,
@@ -198,14 +197,14 @@ void BoidsGPU::createResource() {
 		updateState->setInput(((RadixSort_GPU*)radixSort_.get())->keyBuffer());
 		updateState->setInput(((RadixSort_GPU*)radixSort_.get())->valueBuffer());
 		updateState->setInput(gridOffsetBuffer_);
-		#ifdef BOID_USE_SORTED_DATA
-		updateState->setInput(velBuffer_);
-		if (tf_.get()) {
-			updateState->setInput(tfBuffer_);
+		if constexpr(BOID_USE_SORTED_DATA) {
+			updateState->setInput(velBuffer_);
+			if (tf_.get()) {
+				updateState->setInput(tfBuffer_);
+			}
+			updateState->setInput(boidDataBuffer_);
+			updateState->shaderDefine("USE_SORTED_DATA", "TRUE");
 		}
-		updateState->setInput(boidDataBuffer_);
-		updateState->shaderDefine("USE_SORTED_DATA", "TRUE");
-		#endif
 		#ifdef BOID_USE_HALF_VELOCITY
 		updateState->shaderDefine("USE_HALF_VELOCITY", "TRUE");
 		#endif
@@ -246,9 +245,9 @@ void BoidsGPU::createResource() {
 	if (tf_.get()) {
 		simulationState_->setInput(tfBuffer_);
 	}
-#ifdef BOID_USE_SORTED_DATA
-	simulationState_->setInput(boidDataBuffer_);
-#endif
+	if constexpr(BOID_USE_SORTED_DATA) {
+		simulationState_->setInput(boidDataBuffer_);
+	}
 	if (heightMap_.get()) {
 		simulationState_->setInput(
 			createUniform<ShaderInput3f,Vec3f>("mapCenter", mapCenter_));
@@ -298,9 +297,9 @@ void BoidsGPU::gpuUpdate(RenderState *rs, double dt) {
 	// limit FPS to 6, grid must not be entirely accurate.
 	// usually the grid size changes only every second or so.
 	if (bbox_time_ > 166.0) {
-#ifdef BOID_DEBUG_BBOX_TIME
-		timeElapsedQuery_->begin();
-#endif
+		if constexpr(BOID_DEBUG_BBOX_TIME) {
+			timeElapsedQuery_->begin();
+		}
 		bboxBuffer_->clear();
 		bboxPass_->enable(rs);
 		bboxPass_->disable(rs);
@@ -314,35 +313,35 @@ void BoidsGPU::gpuUpdate(RenderState *rs, double dt) {
 				vrStamp_ = vrStamp;
 			}
 		}
-#ifdef BOID_DEBUG_BBOX_TIME
-		REGEN_INFO("BBox computation took: " << timeElapsedQuery_->end() << " ms");
-#endif
+		if constexpr(BOID_DEBUG_BBOX_TIME) {
+			REGEN_INFO("BBox computation took: " << timeElapsedQuery_->end() << " ms");
+		}
 		bbox_time_ = 0.0;
 	}
 
 	if (numCells_ > 0) {
-#ifdef BOID_DEBUG_GRID_TIME
-		timeElapsedQuery_->begin();
-#endif
+		if constexpr(BOID_DEBUG_GRID_TIME) {
+			timeElapsedQuery_->begin();
+		}
 		updateGridState_->enable(rs);
 		updateGridState_->disable(rs);
-#ifdef BOID_DEBUG_GRID_TIME
-		REGEN_INFO("Grid update took: " << timeElapsedQuery_->end() << " ms");
-#endif
-#ifdef BOID_DEBUG_GRID_OFFSETS
-		printOffsets(rs);
-#endif
-#ifdef BOID_DEBUG_GRID_SORTING
-		debugGridSorting(rs);
-#endif
-#ifdef BOID_DEBUG_SIMULATION_TIME
-		timeElapsedQuery_->begin();
-#endif
+		if constexpr(BOID_DEBUG_GRID_TIME) {
+			REGEN_INFO("Grid update took: " << timeElapsedQuery_->end() << " ms");
+		}
+		if constexpr(BOID_DEBUG_GRID_OFFSETS) {
+			printOffsets(rs);
+		}
+		if constexpr(BOID_DEBUG_GRID_SORTING) {
+			debugGridSorting(rs);
+		}
+		if constexpr(BOID_DEBUG_SIMULATION_TIME) {
+			timeElapsedQuery_->begin();
+		}
 		// update the boids positions and velocities
 		simulate(rs, time_);
-#ifdef BOID_DEBUG_SIMULATION_TIME
-		REGEN_INFO("Boid simulation took: " << timeElapsedQuery_->end() << " ms");
-#endif
+		if constexpr(BOID_DEBUG_SIMULATION_TIME) {
+			REGEN_INFO("Boid simulation took: " << timeElapsedQuery_->end() << " ms");
+		}
 	}
 	time_ = 0.0;
 }
