@@ -28,6 +28,9 @@ float StagingSystem::MAX_COOLDOWN_NEVER_WRITE = 2000.0f;
 namespace regen {
 	static constexpr bool STAGING_DEBUG_STALLS = false;
 	static constexpr bool STAGING_EXPLICIT_FLUSH = false;
+	// Use uniform ring buffer sizes for all arenas.
+	// This allows to reduce number of fences for synchronization.
+	static constexpr bool STAGING_UNIFORM_RING_SIZE = true;
 	static constexpr bool STAGING_DEBUG_TIME = false;
 	static constexpr bool STAGING_DEBUG_STATISTICS = false;
 
@@ -60,7 +63,7 @@ namespace regen {
 		// plus some extra space to handle dynamic allocation of segments without resizing.
 		uint32_t alignedSize = 0;
 		// the current number of segments in the ring buffer
-		uint32_t numRingSegments = 2;
+		uint32_t numRingSegments = 1;
 		// indicates if the arena has new CPU data to flush
 		bool isDirty = false;
 		// for rare updates, we use a cooldown to avoid updating too often.
@@ -78,8 +81,6 @@ namespace regen {
 		// manages available ranges in the ring buffer.
 		// the ranges are relative to the buffer segments, i.e. the same offset applies to all.
 		ref_ptr<FreeList> freeList;
-
-		static Arena *create(ArenaType arenaType, ClientAccessMode accessMode);
 
 		static void setStagingOffset(ManagedBO &managed, uint32_t offset, uint32_t size);
 
@@ -103,6 +104,7 @@ namespace regen {
 
 StagingSystem::StagingSystem()
 		: arenas_() {
+	ringFences_.resize(numRingSegments_);
 	if (STAGING_RANGE_ALIGNMENT == 0) {
 		// make sure to meet all alignment requirements
 		STAGING_RANGE_ALIGNMENT = std::max(16u,
@@ -208,7 +210,7 @@ StagingSystem::Arena *StagingSystem::addBufferBlock_writeOnly(
 	return nullptr;
 }
 
-StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAccessMode accessMode) {
+StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, ClientAccessMode accessMode) const {
 	auto *arena = new Arena();
 	arena->type = arenaType;
 	arena->flags.accessMode = accessMode;
@@ -219,13 +221,6 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 	// the maximum number of segments in the ring buffer
 	uint32_t maxRingSegments = 16;
 
-	// TODO: Special attention is needed for synchronization of different per-frame buffers when they
-	//       have different number of buffer segments! Though it does not seem to be a problem so far...
-	//        - the easiest way would be to use same number of segments for all per-frame buffers.
-	//        - in some cases it could be useful to skip frames of buffers with less segments,
-	//          but then we would get into synchronization issues.
-	//        - but often it might not matter, i.e. in case there are no data dependencies.
-	//          probably this should be modeled and taken into account here!
 	switch (arenaType) {
 		case WRITE_PER_FRAME_SMALL_DATA:
 			// PER-FRAME updated SMALL to MEDIUM Staging + LARGE
@@ -242,8 +237,13 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 				arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
 			}
 			arena->flags.bufferingMode = RING_BUFFER;
-			arena->numRingSegments = 3;
-			maxRingSegments = 16;
+			if constexpr(STAGING_UNIFORM_RING_SIZE) {
+				arena->numRingSegments = numRingSegments_;
+				maxRingSegments = maxRingSegments_;
+			} else {
+				arena->numRingSegments = 3;
+				maxRingSegments = 16;
+			}
 			break;
 		case WRITE_PER_FRAME_LARGE_DATA:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
@@ -254,8 +254,13 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 				arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
 			}
 			arena->flags.bufferingMode = RING_BUFFER;
-			arena->numRingSegments = 2;
-			maxRingSegments = 4;
+			if constexpr(STAGING_UNIFORM_RING_SIZE) {
+				arena->numRingSegments = numRingSegments_;
+				maxRingSegments = maxRingSegments_;
+			} else {
+				arena->numRingSegments = 2;
+				maxRingSegments = 4;
+			}
 			break;
 		case WRITE_PER_FRAME_HUGE_DATA:
 			// PER-FRAME (or PER-DRAW) updated VERY-LARGE Staging
@@ -303,8 +308,13 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
 			arena->flags.bufferingMode = RING_BUFFER;
-			arena->numRingSegments = 2;
-			maxRingSegments = 16;
+			if constexpr(STAGING_UNIFORM_RING_SIZE) {
+				arena->numRingSegments = numRingSegments_;
+				maxRingSegments = maxRingSegments_;
+			} else {
+				arena->numRingSegments = 2;
+				maxRingSegments = 16;
+			}
 			break;
 		case READ_RARELY:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_RARE;
@@ -332,7 +342,7 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 
 StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType arenaType, bool isMoved) {
 	if (!arenas_[arenaType]) {
-		arenas_[arenaType] = Arena::create(arenaType, block->stagingFlags().accessMode);
+		arenas_[arenaType] = createArena(arenaType, block->stagingFlags().accessMode);
 	}
 	auto &targetArena = arenas_[arenaType];
 	// Note: the buffer will reserve the required size in the next loop of updateRequiredSize
@@ -466,6 +476,7 @@ void StagingSystem::updateData(float dt_ms) {
 	//copyInProgress_.store(true, std::memory_order_release);
 	if constexpr(STAGING_DEBUG_TIME) {
 		elapsedTime().beginFrame();
+		elapsedTime().push("updateData");
 	}
 	if constexpr(STAGING_DEBUG_STATISTICS) {
 		stats_.numDirtyArenas = 0;
@@ -474,8 +485,74 @@ void StagingSystem::updateData(float dt_ms) {
 		stats_.numTotalBOs = 0;
 	}
 
+	bool needsRotate = false;
+
+	if constexpr(STAGING_UNIFORM_RING_SIZE) {
+		auto &writeFence = ringFences_[writeBufferIndex_];
+		// Wait for the fence in case of persistent mapped arenas.
+		// This might block the CPU in case of the last write into this segment
+		// has not been consumed by the GPU yet.
+		// Note that the interaction with the fence is quite expensive,
+		// so it should only be done when really needed.
+		writeFence.wait();
+
+		// Check if there is too much stall in the ring buffers.
+		// If so, we try to increase the number of segments in the ring buffers.
+		const float stallRate = writeFence.getStallRate();
+		if (stallRate > StagingBuffer::MAX_ACCEPTABLE_STALL_RATE) {
+			// if the stall rate is too high, we need to increase the number of segments in the ring buffer.
+			// this will be done in resize() function.
+			const uint32_t newNumSegments = std::min(numRingSegments_ + 1u, maxRingSegments_);
+			if (newNumSegments != numRingSegments_) {
+				REGEN_INFO("High stall rate (" << stallRate << ") detected"
+											   << ", increasing to " << newNumSegments);
+				ringFences_.resize(newNumSegments);
+				numRingSegments_ = newNumSegments;
+				needsRotate = true;
+			}
+			for (auto &fence : ringFences_) {
+				fence.resetStallHistory();
+			}
+		}
+	}
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push("fence waited");
+	}
+
+	// Update each arena.
+	// NOTE: There could be glitches when ring sizes are not uniform as arenas could be
+	// out of sync then. But it did not seem to be a problem so far.
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		updateArenaData(dt_ms, static_cast<ArenaType>(arenaIdx));
+	}
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push("arenas updated");
+	}
+
+	if constexpr(STAGING_UNIFORM_RING_SIZE) {
+		// Mark the point where we finished writing into the current write buffer segment.
+		// This fence will be waited upon in the next frame before writing into this segment again.
+		ringFences_[readBufferIndex_].setFencePoint();
+
+		// Rotate ring buffers in case the number of segments changed.
+		// This is done to ensure that all segments have up-to-date data after the change.
+		if (needsRotate) {
+			rotateBuffers();
+		}
+
+		// Advance to next fence index.
+		readBufferIndex_ += 1;
+		if (readBufferIndex_ >= numRingSegments_) {
+			readBufferIndex_ = 0;
+		}
+		writeBufferIndex_ += 1;
+		if (writeBufferIndex_ >= numRingSegments_) {
+			writeBufferIndex_ = 0;
+		}
+	}
+
+	if constexpr(STAGING_DEBUG_TIME) {
+		elapsedTime().push("fence set");
 	}
 
 	if constexpr (!ANIMATION_THREAD_SWAPS_CLIENT_BUFFERS) {
@@ -509,9 +586,6 @@ void StagingSystem::updateArenaData(float dt_ms, ArenaType arenaType) {
 		arena->resize();
 		arena->sort();
 	}
-	if constexpr(STAGING_DEBUG_TIME) {
-		elapsedTime().push(REGEN_STRING(arena->type << " resized"));
-	}
 	if (!arena->flags.isReadable() && !arena->isDirty) {
 		// early exit writing arenas before fencing in case of no updates.
 		return;
@@ -530,20 +604,15 @@ void StagingSystem::updateArenaData(float dt_ms, ArenaType arenaType) {
 	// GPU write buffers as dirty -- but must be careful with syncing then!
 	const bool forceUpdate = arena->flags.isReadable();
 
-	// Wait for the fence in case of persistent mapped arenas.
-	// This might block the CPU in case of the last write into this segment
-	// has not been consumed by the GPU yet.
-	// TODO: The interaction with the fence still consumes a lot of CPU time.
-	//		- The main bottleneck now seems *setFencePoint*. Reason might be that
-	//          we do glDeleteSync/glFenceSync calls every time setFencePoint is called.
-	//		- As far as I know, we cannot re-use fences across frames.
-	//		- Maybe the only way to improve would be to reduce the number of fences.
-	//      - Idea: Let arenas share fences. However, this is difficult because arenas
-	//        currently may have ring buffers of different sizes.
-	//		- Maybe the mechanism can be adjusted such that we do not need a fence every
-	//          frame for every arena.
-	if (useFence) {
-		arena->stagingBuffer->fence(copyIdx).wait();
+	if constexpr(!STAGING_UNIFORM_RING_SIZE) {
+		// Wait for the fence in case of persistent mapped arenas.
+		// This might block the CPU in case of the last write into this segment
+		// has not been consumed by the GPU yet.
+		// Note that the interaction with the fence is quite expensive,
+		// so it should only be done when really needed.
+		if (useFence) {
+			arena->stagingBuffer->fence(copyIdx).wait();
+		}
 	}
 
 	// Copy data from CPU to staging to draw buffer,
@@ -576,27 +645,20 @@ void StagingSystem::updateArenaData(float dt_ms, ArenaType arenaType) {
 		//REGEN_INFO("Scheduled copy " << copy);
 	}
 	numScheduledCopies_ = 0; // reset scheduled copies
-	if constexpr(STAGING_DEBUG_TIME) {
-		elapsedTime().push(REGEN_STRING(arena->type << " copied"));
-	}
 
-	// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
-	// written data of this frame has been consumed by the GPU.
-	if (useFence) {
-		arena->stagingBuffer->fence(drawIdx).setFencePoint();
-	}
-	if constexpr(STAGING_DEBUG_TIME) {
-		elapsedTime().push(REGEN_STRING(arena->type << " synced"));
+	if constexpr(!STAGING_UNIFORM_RING_SIZE) {
+		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
+		// written data of this frame has been consumed by the GPU.
+		if (useFence) {
+			arena->stagingBuffer->fence(drawIdx).setFencePoint();
+		}
 	}
 
 	// Advance to next segment in case of multi-buffering and ring buffers.
 	arena->stagingBuffer->swapBuffers();
 	arena->isDirty = false; // reset dirty flag
-	if constexpr(STAGING_DEBUG_TIME) {
-		elapsedTime().push(REGEN_STRING(arena->type << " swapped"));
-	}
 
-	if constexpr(STAGING_DEBUG_STALLS) {
+	if constexpr(STAGING_DEBUG_STALLS && !STAGING_UNIFORM_RING_SIZE) {
 		if (useFence) {
 			REGEN_INFO("Arena " << arena->type << " stall rate: "
 				<< arena->stagingBuffer->fence(copyIdx).getStallRate());
@@ -795,20 +857,27 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 		return true; // size changed
 	}
 
-	// size did not change, next check if there is too much stall in the ring buffer.
-	const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
-	const float stallRate = arena->stagingBuffer->fence(copyIdx).getStallRate();
-	if (stallRate > StagingBuffer::MAX_ACCEPTABLE_STALL_RATE) {
-		// if the stall rate is too high, we need to increase the number of segments in the ring buffer.
-		// this will be done in resize() function.
-		uint32_t newNumSegments = std::min(arena->numRingSegments + 1u, arena->stagingBuffer->maxRingSegments());
-		if (newNumSegments != arena->numRingSegments) {
-			REGEN_INFO("High stall rate (" << stallRate << ") detected in \"" << arena->type
-										   << "\" arena with " << arena->numRingSegments << " segments"
-										   << ", increasing to " << newNumSegments);
-			arena->numRingSegments = newNumSegments;
-			arena->stagingBuffer->resetStallRate();
+	if constexpr(STAGING_UNIFORM_RING_SIZE) {
+		if (arena->numRingSegments>1 && arena->numRingSegments!=numRingSegments_) {
+			arena->numRingSegments = numRingSegments_;
 			return true; // size changed
+		}
+	} else {
+		// size did not change, next check if there is too much stall in the ring buffer.
+		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
+		const float stallRate = arena->stagingBuffer->fence(copyIdx).getStallRate();
+		if (stallRate > StagingBuffer::MAX_ACCEPTABLE_STALL_RATE) {
+			// if the stall rate is too high, we need to increase the number of segments in the ring buffer.
+			// this will be done in resize() function.
+			uint32_t newNumSegments = std::min(arena->numRingSegments + 1u, arena->stagingBuffer->maxRingSegments());
+			if (newNumSegments != arena->numRingSegments) {
+				REGEN_INFO("High stall rate (" << stallRate << ") detected in \"" << arena->type
+											   << "\" arena with " << arena->numRingSegments << " segments"
+											   << ", increasing to " << newNumSegments);
+				arena->numRingSegments = newNumSegments;
+				arena->stagingBuffer->resetStallRate();
+				return true; // size changed
+			}
 		}
 	}
 

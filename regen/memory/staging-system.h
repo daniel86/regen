@@ -182,6 +182,13 @@ namespace regen {
 		std::vector<BufferCopyRange> scheduledCopies_;
 		uint32_t numScheduledCopies_ = 0;
 
+		// Used only if ring size is uniform among arenas:
+		uint32_t numRingSegments_ = 2;
+		uint32_t maxRingSegments_ = 4;
+		std::vector<GPUFence> ringFences_; // size: numRingSegments_
+		uint32_t readBufferIndex_ = 0u;  // < numRingSegments_
+		uint32_t writeBufferIndex_ = 1u; // < numRingSegments_
+
 		Arena *addBufferBlock_readOnly(
 				const BlockPtr &block,
 				const BufferFlags &flags,
@@ -202,6 +209,8 @@ namespace regen {
 
 		void updateArenaData(float dt_ms, ArenaType arenaType);
 
+		Arena *createArena(ArenaType arenaType, ClientAccessMode accessMode) const;
+
 		struct StagingStatistics {
 			uint32_t numDirtyArenas = 0;
 			uint32_t numDirtyBOs = 0;
@@ -210,7 +219,7 @@ namespace regen {
 			uint32_t numSwapCopies = 0;
 		} stats_;
 
-		static ElapsedTimeDebugger elapsedTime() {
+		static ElapsedTimeDebugger& elapsedTime() {
 			static ElapsedTimeDebugger x("Staging System", 300);
 			return x;
 		}
