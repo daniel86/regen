@@ -96,9 +96,8 @@ void VideoRecorder::initialize() {
 	if (status < 0) {
 		// print error message
 		char err_buf[AV_ERROR_MAX_STRING_SIZE] = {};
-		auto err_type = AVERROR(status);
-		av_make_error_string(err_buf, AV_ERROR_MAX_STRING_SIZE, err_type);
-		throw std::runtime_error(REGEN_STRING("Could not open codec: " << err_buf << " (" << err_type << ")"));
+		av_make_error_string(err_buf, AV_ERROR_MAX_STRING_SIZE, status);
+		throw std::runtime_error(REGEN_STRING("Could not open codec: " << err_buf << " (" << status << ")"));
 	}
 
 	stream_ = avformat_new_stream(formatCtx_, codec);
