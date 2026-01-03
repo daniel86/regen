@@ -69,6 +69,13 @@ namespace regen {
 				  index_(0) {}
 
 		~AllocatorPool() {
+			deletePoolMemory();
+		}
+
+		/**
+		 * Free all allocated memory.
+		 */
+		void deletePoolMemory() {
 			poolLock_.lock();
 			for (Node *n = allocators_; n != nullptr;) {
 				Node *buf = n;
