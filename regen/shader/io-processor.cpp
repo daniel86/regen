@@ -175,7 +175,9 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 											 "    " << outName << " = " << inName << "[i];"));
 				break;
 			case GL_FRAGMENT_SHADER:
+				break;
 			default:
+				REGEN_WARN("Unhandled shader stage '" << state.currStage << "'.");
 				break;
 		}
 
