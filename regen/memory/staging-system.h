@@ -186,6 +186,8 @@ namespace regen {
 		uint32_t numRingSegments_ = 2;
 		uint32_t maxRingSegments_ = 4;
 		std::vector<GPUFence> ringFences_; // size: numRingSegments_
+		// read index is one behind as we set fence point for read slot,
+		// then the write index has max gap to it to avoid stalls.
 		uint32_t readBufferIndex_ = 0u;  // < numRingSegments_
 		uint32_t writeBufferIndex_ = 1u; // < numRingSegments_
 

@@ -30,6 +30,8 @@ namespace regen {
 	static constexpr bool STAGING_EXPLICIT_FLUSH = false;
 	// Use uniform ring buffer sizes for all arenas.
 	// This allows to reduce number of fences for synchronization.
+	// For some reason, does not seem to make a huge difference in practice though
+	// but in theory it should help a bit with reducing fence interactions.
 	static constexpr bool STAGING_UNIFORM_RING_SIZE = true;
 	static constexpr bool STAGING_DEBUG_TIME = false;
 	static constexpr bool STAGING_DEBUG_STATISTICS = false;
