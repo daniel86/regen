@@ -194,7 +194,7 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configures the audio listener. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00071">71</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00069">69</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aed74ff830b1876c4cfba7f55fcc482f7" name="aed74ff830b1876c4cfba7f55fcc482f7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aed74ff830b1876c4cfba7f55fcc482f7">&#9670;&#160;</a></span>get1f()</h2>
@@ -257,12 +257,13 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/ddc/audio_8cpp_source.html#l00188">188</a> of file <a class="el" href="../../d1/ddc/audio_8cpp_source.html">audio.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">  188</span>                                          {</div>
-<div class="line"><span class="lineno">  189</span>    <a class="code hl_class" href="../../dd/da3/structregen_1_1_vec3.html">Vec3f</a> v;</div>
+<div class="line"><span class="lineno">  189</span>    <a class="code hl_class" href="../../dd/da3/structregen_1_1_vec3.html">Vec3f</a> v = <a class="code hl_function" href="../../dd/da3/structregen_1_1_vec3.html#a8d4e744ec9221c8f94ff771dfd287e60">Vec3f::zero</a>();</div>
 <div class="line"><span class="lineno">  190</span>    alGetListenerf(p, &amp;v.<a class="code hl_variable" href="../../dd/da3/structregen_1_1_vec3.html#a0a7f156c1aa3e5caa959109e96d761ed">x</a>);</div>
 <div class="line"><span class="lineno">  191</span>    <span class="keywordflow">return</span> v;</div>
 <div class="line"><span class="lineno">  192</span>}</div>
 <div class="ttc" id="astructregen_1_1_vec3_html"><div class="ttname"><a href="../../dd/da3/structregen_1_1_vec3.html">regen::Vec3&lt; float &gt;</a></div></div>
 <div class="ttc" id="astructregen_1_1_vec3_html_a0a7f156c1aa3e5caa959109e96d761ed"><div class="ttname"><a href="../../dd/da3/structregen_1_1_vec3.html#a0a7f156c1aa3e5caa959109e96d761ed">regen::Vec3::x</a></div><div class="ttdeci">T x</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l00253">vector.h:253</a></div></div>
+<div class="ttc" id="astructregen_1_1_vec3_html_a8d4e744ec9221c8f94ff771dfd287e60"><div class="ttname"><a href="../../dd/da3/structregen_1_1_vec3.html#a8d4e744ec9221c8f94ff771dfd287e60">regen::Vec3&lt; float &gt;::zero</a></div><div class="ttdeci">static constexpr const Vec3 &amp; zero()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l00588">vector.h:588</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -293,12 +294,11 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/ddc/audio_8cpp_source.html#l00198">198</a> of file <a class="el" href="../../d1/ddc/audio_8cpp_source.html">audio.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">  198</span>                                          {</div>
-<div class="line"><span class="lineno">  199</span>    <a class="code hl_struct" href="../../dd/de7/structregen_1_1_vec6.html">Vec6f</a> v;</div>
-<div class="line"><span class="lineno">  200</span>    alGetListenerf(p, &amp;v.<a class="code hl_variable" href="../../dd/de7/structregen_1_1_vec6.html#afc1b2c98602a1f888701cb0e787b1c59">x0</a>);</div>
+<div class="line"><span class="lineno">  199</span>    <span class="keyword">auto</span> v = <a class="code hl_struct" href="../../dd/de7/structregen_1_1_vec6.html">Vec6f</a>{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };</div>
+<div class="line"><span class="lineno">  200</span>    alGetListenerf(p, &amp;v.x0);</div>
 <div class="line"><span class="lineno">  201</span>    <span class="keywordflow">return</span> v;</div>
 <div class="line"><span class="lineno">  202</span>}</div>
 <div class="ttc" id="astructregen_1_1_vec6_html"><div class="ttname"><a href="../../dd/de7/structregen_1_1_vec6.html">regen::Vec6</a></div><div class="ttdoc">A 6D vector.</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l01029">vector.h:1029</a></div></div>
-<div class="ttc" id="astructregen_1_1_vec6_html_afc1b2c98602a1f888701cb0e787b1c59"><div class="ttname"><a href="../../dd/de7/structregen_1_1_vec6.html#afc1b2c98602a1f888701cb0e787b1c59">regen::Vec6::x0</a></div><div class="ttdeci">T x0</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l01032">vector.h:1032</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -425,6 +425,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="fragment"><div class="line"><span class="lineno">  194</span>                                                         {</div>
 <div class="line"><span class="lineno">  195</span>    alListenerfv(p, &amp;v.<a class="code hl_variable" href="../../dd/de7/structregen_1_1_vec6.html#afc1b2c98602a1f888701cb0e787b1c59">x0</a>);</div>
 <div class="line"><span class="lineno">  196</span>}</div>
+<div class="ttc" id="astructregen_1_1_vec6_html_afc1b2c98602a1f888701cb0e787b1c59"><div class="ttname"><a href="../../dd/de7/structregen_1_1_vec6.html#afc1b2c98602a1f888701cb0e787b1c59">regen::Vec6::x0</a></div><div class="ttdeci">T x0</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l01032">vector.h:1032</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>

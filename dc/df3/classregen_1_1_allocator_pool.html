@@ -137,6 +137,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae8c278bf7a3e5255e09f3226a838bdd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb9cdc5733e2319e2b32b38e98139be8" id="r_afb9cdc5733e2319e2b32b38e98139be8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df3/classregen_1_1_allocator_pool.html#afb9cdc5733e2319e2b32b38e98139be8">~AllocatorPool</a> ()</td></tr>
 <tr class="separator:afb9cdc5733e2319e2b32b38e98139be8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53237febf0a00c35ef33992682082145" id="r_a53237febf0a00c35ef33992682082145"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df3/classregen_1_1_allocator_pool.html#a53237febf0a00c35ef33992682082145">deletePoolMemory</a> ()</td></tr>
+<tr class="separator:a53237febf0a00c35ef33992682082145"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf346ae6c69a8a6cf4ed98a2226e696b" id="r_abf346ae6c69a8a6cf4ed98a2226e696b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df3/classregen_1_1_allocator_pool.html#abf346ae6c69a8a6cf4ed98a2226e696b">set_minSize</a> (unsigned int size)</td></tr>
 <tr class="separator:abf346ae6c69a8a6cf4ed98a2226e696b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99a8935edf40f8cad730b70db9b53217" id="r_a99a8935edf40f8cad730b70db9b53217"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df3/classregen_1_1_allocator_pool.html#a99a8935edf40f8cad730b70db9b53217">set_maxSize</a> (unsigned int size)</td></tr>
@@ -227,10 +229,10 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 <div class="line"><span class="lineno">   67</span>                  <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a>(4u * 1024u * 1024u),</div>
 <div class="line"><span class="lineno">   68</span>                  <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a>(1),</div>
 <div class="line"><span class="lineno">   69</span>                  <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>(0) {}</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a255046cdba864e654885d9d5de85359a"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">regen::AllocatorPool::index_</a></div><div class="ttdeci">unsigned int index_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00265">memory-allocator.h:265</a></div></div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a3225bfc817e2c9fff0195d0b8ffff4e1"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">regen::AllocatorPool::minSize_</a></div><div class="ttdeci">unsigned int minSize_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00262">memory-allocator.h:262</a></div></div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a86b8ee31f73a50bb50a2e2bf4c6f1d0f"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">regen::AllocatorPool::alignment_</a></div><div class="ttdeci">unsigned int alignment_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00264">memory-allocator.h:264</a></div></div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a8e0209d18297dfb248d9cf558d8fb968"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">regen::AllocatorPool::allocators_</a></div><div class="ttdeci">Node * allocators_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00261">memory-allocator.h:261</a></div></div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a255046cdba864e654885d9d5de85359a"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">regen::AllocatorPool::index_</a></div><div class="ttdeci">unsigned int index_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00272">memory-allocator.h:272</a></div></div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a3225bfc817e2c9fff0195d0b8ffff4e1"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">regen::AllocatorPool::minSize_</a></div><div class="ttdeci">unsigned int minSize_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00269">memory-allocator.h:269</a></div></div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a86b8ee31f73a50bb50a2e2bf4c6f1d0f"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">regen::AllocatorPool::alignment_</a></div><div class="ttdeci">unsigned int alignment_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00271">memory-allocator.h:271</a></div></div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a8e0209d18297dfb248d9cf558d8fb968"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">regen::AllocatorPool::allocators_</a></div><div class="ttdeci">Node * allocators_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00268">memory-allocator.h:268</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -261,27 +263,9 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 
 <p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00071">71</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">   71</span>                         {</div>
-<div class="line"><span class="lineno">   72</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
-<div class="line"><span class="lineno">   73</span>            <span class="keywordflow">for</span> (Node *n = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>; n != <span class="keyword">nullptr</span>;) {</div>
-<div class="line"><span class="lineno">   74</span>                Node *buf = n;</div>
-<div class="line"><span class="lineno">   75</span>                n = n-&gt;next;</div>
-<div class="line"><span class="lineno">   76</span>                buf-&gt;next = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   77</span>                buf-&gt;prev = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   78</span>                buf-&gt;pool = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   79</span>                <span class="comment">// free actual memory</span></div>
-<div class="line"><span class="lineno">   80</span>                <span class="keywordflow">if</span> (buf-&gt;mapped) {</div>
-<div class="line"><span class="lineno">   81</span>                    ActualAllocatorType::unmapAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, buf-&gt;allocatorRef);</div>
-<div class="line"><span class="lineno">   82</span>                    buf-&gt;mapped = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   83</span>                }</div>
-<div class="line"><span class="lineno">   84</span>                ActualAllocatorType::deleteAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, buf-&gt;allocatorRef);</div>
-<div class="line"><span class="lineno">   85</span>                <span class="keyword">delete</span> buf;</div>
-<div class="line"><span class="lineno">   86</span>            }</div>
-<div class="line"><span class="lineno">   87</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   88</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
-<div class="line"><span class="lineno">   89</span>        }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a9360bc9d2aaf9b2c38a275551d58bf55"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">regen::AllocatorPool::poolLock_</a></div><div class="ttdeci">SpinLock poolLock_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00266">memory-allocator.h:266</a></div></div>
-<div class="ttc" id="aclassregen_1_1_spin_lock_html_aaaac7b79d239a90d13d2820d1e6de552"><div class="ttname"><a href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">regen::SpinLock::lock</a></div><div class="ttdeci">void lock()</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d22/threading_8h_source.html#l00092">threading.h:92</a></div></div>
-<div class="ttc" id="aclassregen_1_1_spin_lock_html_ab0f4787f75d4a24d2d6f834aeabc77b4"><div class="ttname"><a href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">regen::SpinLock::unlock</a></div><div class="ttdeci">void unlock()</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d22/threading_8h_source.html#l00098">threading.h:98</a></div></div>
+<div class="line"><span class="lineno">   72</span>            <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a53237febf0a00c35ef33992682082145">deletePoolMemory</a>();</div>
+<div class="line"><span class="lineno">   73</span>        }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a53237febf0a00c35ef33992682082145"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a53237febf0a00c35ef33992682082145">regen::AllocatorPool::deletePoolMemory</a></div><div class="ttdeci">void deletePoolMemory()</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00078">memory-allocator.h:78</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -313,14 +297,14 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </div><div class="memdoc">
 <p>Align a value to be an integer multiplication of the alignment. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00119">119</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  119</span>                                           {</div>
-<div class="line"><span class="lineno">  120</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a> &gt; 1) {</div>
-<div class="line"><span class="lineno">  121</span>                <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> mask = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a> - 1;</div>
-<div class="line"><span class="lineno">  122</span>                <span class="keywordflow">return</span> (v + mask) &amp; ~mask;</div>
-<div class="line"><span class="lineno">  123</span>            }</div>
-<div class="line"><span class="lineno">  124</span>            <span class="keywordflow">return</span> v;</div>
-<div class="line"><span class="lineno">  125</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00126">126</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  126</span>                                           {</div>
+<div class="line"><span class="lineno">  127</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a> &gt; 1) {</div>
+<div class="line"><span class="lineno">  128</span>                <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> mask = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a> - 1;</div>
+<div class="line"><span class="lineno">  129</span>                <span class="keywordflow">return</span> (v + mask) &amp; ~mask;</div>
+<div class="line"><span class="lineno">  130</span>            }</div>
+<div class="line"><span class="lineno">  131</span>            <span class="keywordflow">return</span> v;</div>
+<div class="line"><span class="lineno">  132</span>        }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -350,8 +334,8 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </div><div class="memdoc">
 <p>Allocated memory will be aligned to be an integer multiplication of the alignment. </p><dl class="section return"><dt>Returns</dt><dd>the memory alignment. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00113">113</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  113</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00120">120</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  120</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -399,23 +383,26 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>reference of allocated block </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00213">213</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  213</span>                                                     {</div>
-<div class="line"><span class="lineno">  214</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> size = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(_size);</div>
-<div class="line"><span class="lineno">  215</span>            AllocatorPool::Reference ref;</div>
-<div class="line"><span class="lineno">  216</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
-<div class="line"><span class="lineno">  217</span>            <span class="keywordflow">if</span> (n-&gt;allocator.maxSpace() &gt;= size &amp;&amp; n-&gt;allocator.alloc(size, &amp;ref.allocatorRef)) {</div>
-<div class="line"><span class="lineno">  218</span>                ref.allocatorNode = n;</div>
-<div class="line"><span class="lineno">  219</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(n);</div>
-<div class="line"><span class="lineno">  220</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  221</span>                ref.allocatorNode = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  222</span>            }</div>
-<div class="line"><span class="lineno">  223</span>            ref.size = size;</div>
-<div class="line"><span class="lineno">  224</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
-<div class="line"><span class="lineno">  225</span>            <span class="keywordflow">return</span> ref;</div>
-<div class="line"><span class="lineno">  226</span>        }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_ab22b2b90d903787a57d1b1677104b261"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">regen::AllocatorPool::sortInForward</a></div><div class="ttdeci">void sortInForward(Node *resizedNode)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00268">memory-allocator.h:268</a></div></div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_ad75edf82b33ce759e53fcb375d6b80e2"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">regen::AllocatorPool::align</a></div><div class="ttdeci">unsigned int align(unsigned int v)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00119">memory-allocator.h:119</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00220">220</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  220</span>                                                     {</div>
+<div class="line"><span class="lineno">  221</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> size = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(_size);</div>
+<div class="line"><span class="lineno">  222</span>            AllocatorPool::Reference ref;</div>
+<div class="line"><span class="lineno">  223</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
+<div class="line"><span class="lineno">  224</span>            <span class="keywordflow">if</span> (n-&gt;allocator.maxSpace() &gt;= size &amp;&amp; n-&gt;allocator.alloc(size, &amp;ref.allocatorRef)) {</div>
+<div class="line"><span class="lineno">  225</span>                ref.allocatorNode = n;</div>
+<div class="line"><span class="lineno">  226</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(n);</div>
+<div class="line"><span class="lineno">  227</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  228</span>                ref.allocatorNode = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  229</span>            }</div>
+<div class="line"><span class="lineno">  230</span>            ref.size = size;</div>
+<div class="line"><span class="lineno">  231</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
+<div class="line"><span class="lineno">  232</span>            <span class="keywordflow">return</span> ref;</div>
+<div class="line"><span class="lineno">  233</span>        }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a9360bc9d2aaf9b2c38a275551d58bf55"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">regen::AllocatorPool::poolLock_</a></div><div class="ttdeci">SpinLock poolLock_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00273">memory-allocator.h:273</a></div></div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_ab22b2b90d903787a57d1b1677104b261"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">regen::AllocatorPool::sortInForward</a></div><div class="ttdeci">void sortInForward(Node *resizedNode)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00275">memory-allocator.h:275</a></div></div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_ad75edf82b33ce759e53fcb375d6b80e2"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">regen::AllocatorPool::align</a></div><div class="ttdeci">unsigned int align(unsigned int v)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00126">memory-allocator.h:126</a></div></div>
+<div class="ttc" id="aclassregen_1_1_spin_lock_html_aaaac7b79d239a90d13d2820d1e6de552"><div class="ttname"><a href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">regen::SpinLock::lock</a></div><div class="ttdeci">void lock()</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d22/threading_8h_source.html#l00092">threading.h:92</a></div></div>
+<div class="ttc" id="aclassregen_1_1_spin_lock_html_ab0f4787f75d4a24d2d6f834aeabc77b4"><div class="ttname"><a href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">regen::SpinLock::unlock</a></div><div class="ttdeci">void unlock()</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d22/threading_8h_source.html#l00098">threading.h:98</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -452,24 +439,24 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>reference of allocated block </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00190">190</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  190</span>                                            {</div>
-<div class="line"><span class="lineno">  191</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> size = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(_size);</div>
-<div class="line"><span class="lineno">  192</span>            AllocatorPool::Reference ref;</div>
-<div class="line"><span class="lineno">  193</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
-<div class="line"><span class="lineno">  194</span>            <span class="comment">// find allocator with smallest maxSpace and maxSpace&gt;size</span></div>
-<div class="line"><span class="lineno">  195</span>            Node *min = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a04d24b30faf62db6bc5647af705c6227">chooseAllocator</a>(_size);</div>
-<div class="line"><span class="lineno">  196</span>            <span class="keywordflow">if</span> (min != <span class="keyword">nullptr</span> &amp;&amp; min-&gt;allocator.alloc(size, &amp;ref.allocatorRef)) {</div>
-<div class="line"><span class="lineno">  197</span>                ref.allocatorNode = min;</div>
-<div class="line"><span class="lineno">  198</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(min);</div>
-<div class="line"><span class="lineno">  199</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  200</span>                ref.allocatorNode = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  201</span>            }</div>
-<div class="line"><span class="lineno">  202</span>            ref.size = size;</div>
-<div class="line"><span class="lineno">  203</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
-<div class="line"><span class="lineno">  204</span>            <span class="keywordflow">return</span> ref;</div>
-<div class="line"><span class="lineno">  205</span>        }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a04d24b30faf62db6bc5647af705c6227"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a04d24b30faf62db6bc5647af705c6227">regen::AllocatorPool::chooseAllocator</a></div><div class="ttdeci">Node * chooseAllocator(unsigned int size)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00158">memory-allocator.h:158</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00197">197</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  197</span>                                            {</div>
+<div class="line"><span class="lineno">  198</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> size = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(_size);</div>
+<div class="line"><span class="lineno">  199</span>            AllocatorPool::Reference ref;</div>
+<div class="line"><span class="lineno">  200</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
+<div class="line"><span class="lineno">  201</span>            <span class="comment">// find allocator with smallest maxSpace and maxSpace&gt;size</span></div>
+<div class="line"><span class="lineno">  202</span>            Node *min = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a04d24b30faf62db6bc5647af705c6227">chooseAllocator</a>(_size);</div>
+<div class="line"><span class="lineno">  203</span>            <span class="keywordflow">if</span> (min != <span class="keyword">nullptr</span> &amp;&amp; min-&gt;allocator.alloc(size, &amp;ref.allocatorRef)) {</div>
+<div class="line"><span class="lineno">  204</span>                ref.allocatorNode = min;</div>
+<div class="line"><span class="lineno">  205</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(min);</div>
+<div class="line"><span class="lineno">  206</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  207</span>                ref.allocatorNode = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  208</span>            }</div>
+<div class="line"><span class="lineno">  209</span>            ref.size = size;</div>
+<div class="line"><span class="lineno">  210</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
+<div class="line"><span class="lineno">  211</span>            <span class="keywordflow">return</span> ref;</div>
+<div class="line"><span class="lineno">  212</span>        }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a04d24b30faf62db6bc5647af705c6227"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a04d24b30faf62db6bc5647af705c6227">regen::AllocatorPool::chooseAllocator</a></div><div class="ttdeci">Node * chooseAllocator(unsigned int size)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00165">memory-allocator.h:165</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -506,14 +493,14 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>chosen allocator. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00158">158</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  158</span>                                                 {</div>
-<div class="line"><span class="lineno">  159</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> actualSize = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(size);</div>
-<div class="line"><span class="lineno">  160</span>            <span class="comment">// find allocator with smallest maxSpace and maxSpace&gt;size</span></div>
-<div class="line"><span class="lineno">  161</span>            Node *min = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  162</span>            <span class="keywordflow">for</span> (Node *n = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>; n != <span class="keyword">nullptr</span> &amp;&amp; n-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a3da9b36ddcb82ece4f5aad90a87ced00">allocator</a>.maxSpace() &gt; actualSize; n = n-&gt;next) { min = n; }</div>
-<div class="line"><span class="lineno">  163</span>            <span class="keywordflow">return</span> min;</div>
-<div class="line"><span class="lineno">  164</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00165">165</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  165</span>                                                 {</div>
+<div class="line"><span class="lineno">  166</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> actualSize = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(size);</div>
+<div class="line"><span class="lineno">  167</span>            <span class="comment">// find allocator with smallest maxSpace and maxSpace&gt;size</span></div>
+<div class="line"><span class="lineno">  168</span>            Node *min = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  169</span>            <span class="keywordflow">for</span> (Node *n = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>; n != <span class="keyword">nullptr</span> &amp;&amp; n-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a3da9b36ddcb82ece4f5aad90a87ced00">allocator</a>.maxSpace() &gt; actualSize; n = n-&gt;next) { min = n; }</div>
+<div class="line"><span class="lineno">  170</span>            <span class="keywordflow">return</span> min;</div>
+<div class="line"><span class="lineno">  171</span>        }</div>
 <div class="ttc" id="astructregen_1_1_allocator_pool_1_1_node_html_a3da9b36ddcb82ece4f5aad90a87ced00"><div class="ttname"><a href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a3da9b36ddcb82ece4f5aad90a87ced00">regen::AllocatorPool::Node::allocator</a></div><div class="ttdeci">VirtualAllocatorType allocator</div><div class="ttdoc">the allocator</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00049">memory-allocator.h:49</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -550,20 +537,20 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00171">171</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  171</span>                            {</div>
-<div class="line"><span class="lineno">  172</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
-<div class="line"><span class="lineno">  173</span>            n-&gt;allocator.clear();</div>
-<div class="line"><span class="lineno">  174</span>            <span class="keywordflow">if</span> (n-&gt;next) n-&gt;next-&gt;prev = n-&gt;prev;</div>
-<div class="line"><span class="lineno">  175</span>            <span class="keywordflow">if</span> (n-&gt;prev) n-&gt;prev-&gt;next = n-&gt;next;</div>
-<div class="line"><span class="lineno">  176</span>            <span class="comment">// sort in front to back</span></div>
-<div class="line"><span class="lineno">  177</span>            n-&gt;prev = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  178</span>            n-&gt;next = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>;</div>
-<div class="line"><span class="lineno">  179</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a> = n;</div>
-<div class="line"><span class="lineno">  180</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = n;</div>
-<div class="line"><span class="lineno">  181</span>            <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(n);</div>
-<div class="line"><span class="lineno">  182</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
-<div class="line"><span class="lineno">  183</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00178">178</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  178</span>                            {</div>
+<div class="line"><span class="lineno">  179</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
+<div class="line"><span class="lineno">  180</span>            n-&gt;allocator.clear();</div>
+<div class="line"><span class="lineno">  181</span>            <span class="keywordflow">if</span> (n-&gt;next) n-&gt;next-&gt;prev = n-&gt;prev;</div>
+<div class="line"><span class="lineno">  182</span>            <span class="keywordflow">if</span> (n-&gt;prev) n-&gt;prev-&gt;next = n-&gt;next;</div>
+<div class="line"><span class="lineno">  183</span>            <span class="comment">// sort in front to back</span></div>
+<div class="line"><span class="lineno">  184</span>            n-&gt;prev = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  185</span>            n-&gt;next = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>;</div>
+<div class="line"><span class="lineno">  186</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a> = n;</div>
+<div class="line"><span class="lineno">  187</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = n;</div>
+<div class="line"><span class="lineno">  188</span>            <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(n);</div>
+<div class="line"><span class="lineno">  189</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
+<div class="line"><span class="lineno">  190</span>        }</div>
 <div class="ttc" id="astructregen_1_1_allocator_pool_1_1_node_html_a213e629f8153c0414ca1aed20e159921"><div class="ttname"><a href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">regen::AllocatorPool::Node::prev</a></div><div class="ttdeci">Node * prev</div><div class="ttdoc">allocator with bigger maxSpace</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00051">memory-allocator.h:51</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -600,30 +587,79 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00131">131</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  131</span>                                                 {</div>
-<div class="line"><span class="lineno">  132</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a> &gt; 0 &amp;&amp; size &gt; <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a>) {</div>
-<div class="line"><span class="lineno">  133</span>                <a class="code hl_define" href="../../d5/d77/logging_8h.html#a30354cfa09ee641060424fe510c4e80b">REGEN_ERROR</a>(<span class="stringliteral">&quot;Allocator size &quot;</span> &lt;&lt; size/1024.0 &lt;&lt;</div>
-<div class="line"><span class="lineno">  134</span>                    <span class="stringliteral">&quot; KB exceeds maximum size &quot;</span> &lt;&lt; <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a> /1024.0 &lt;&lt; <span class="stringliteral">&quot; KB.&quot;</span>);</div>
-<div class="line"><span class="lineno">  135</span>                <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  136</span>            }</div>
-<div class="line"><span class="lineno">  137</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> actualSize = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(size &gt; <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a> ? size : <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a>);</div>
-<div class="line"><span class="lineno">  138</span>            Node *x = <span class="keyword">new</span> Node(<span class="keyword">this</span>, actualSize);</div>
-<div class="line"><span class="lineno">  139</span>            x-&gt;prev = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  140</span>            <span class="comment">// allocate actual memory</span></div>
-<div class="line"><span class="lineno">  141</span>            x-&gt;allocatorRef = ActualAllocatorType::createAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, actualSize);</div>
-<div class="line"><span class="lineno">  142</span>            x-&gt;mapped = ActualAllocatorType::mapAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, actualSize, x-&gt;allocatorRef);</div>
-<div class="line"><span class="lineno">  143</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>(); {</div>
-<div class="line"><span class="lineno">  144</span>                x-&gt;next = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>;</div>
-<div class="line"><span class="lineno">  145</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a> = x;</div>
-<div class="line"><span class="lineno">  146</span>                <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = x;</div>
-<div class="line"><span class="lineno">  147</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(x);</div>
-<div class="line"><span class="lineno">  148</span>            }</div>
-<div class="line"><span class="lineno">  149</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
-<div class="line"><span class="lineno">  150</span>            <span class="keywordflow">return</span> x;</div>
-<div class="line"><span class="lineno">  151</span>        }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_af3b375370c1a2bbb8b4c999b122c0f7c"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">regen::AllocatorPool::maxSize_</a></div><div class="ttdeci">unsigned int maxSize_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00263">memory-allocator.h:263</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00138">138</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  138</span>                                                 {</div>
+<div class="line"><span class="lineno">  139</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a> &gt; 0 &amp;&amp; size &gt; <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a>) {</div>
+<div class="line"><span class="lineno">  140</span>                <a class="code hl_define" href="../../d5/d77/logging_8h.html#a30354cfa09ee641060424fe510c4e80b">REGEN_ERROR</a>(<span class="stringliteral">&quot;Allocator size &quot;</span> &lt;&lt; size/1024.0 &lt;&lt;</div>
+<div class="line"><span class="lineno">  141</span>                    <span class="stringliteral">&quot; KB exceeds maximum size &quot;</span> &lt;&lt; <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a> /1024.0 &lt;&lt; <span class="stringliteral">&quot; KB.&quot;</span>);</div>
+<div class="line"><span class="lineno">  142</span>                <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  143</span>            }</div>
+<div class="line"><span class="lineno">  144</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> actualSize = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2">align</a>(size &gt; <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a> ? size : <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a>);</div>
+<div class="line"><span class="lineno">  145</span>            Node *x = <span class="keyword">new</span> Node(<span class="keyword">this</span>, actualSize);</div>
+<div class="line"><span class="lineno">  146</span>            x-&gt;prev = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  147</span>            <span class="comment">// allocate actual memory</span></div>
+<div class="line"><span class="lineno">  148</span>            x-&gt;allocatorRef = ActualAllocatorType::createAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, actualSize);</div>
+<div class="line"><span class="lineno">  149</span>            x-&gt;mapped = ActualAllocatorType::mapAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, actualSize, x-&gt;allocatorRef);</div>
+<div class="line"><span class="lineno">  150</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>(); {</div>
+<div class="line"><span class="lineno">  151</span>                x-&gt;next = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>;</div>
+<div class="line"><span class="lineno">  152</span>                <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a> = x;</div>
+<div class="line"><span class="lineno">  153</span>                <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = x;</div>
+<div class="line"><span class="lineno">  154</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261">sortInForward</a>(x);</div>
+<div class="line"><span class="lineno">  155</span>            }</div>
+<div class="line"><span class="lineno">  156</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
+<div class="line"><span class="lineno">  157</span>            <span class="keywordflow">return</span> x;</div>
+<div class="line"><span class="lineno">  158</span>        }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_af3b375370c1a2bbb8b4c999b122c0f7c"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">regen::AllocatorPool::maxSize_</a></div><div class="ttdeci">unsigned int maxSize_</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00270">memory-allocator.h:270</a></div></div>
 <div class="ttc" id="alogging_8h_html_a30354cfa09ee641060424fe510c4e80b"><div class="ttname"><a href="../../d5/d77/logging_8h.html#a30354cfa09ee641060424fe510c4e80b">REGEN_ERROR</a></div><div class="ttdeci">#define REGEN_ERROR(...)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d77/logging_8h_source.html#l00048">logging.h:48</a></div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a53237febf0a00c35ef33992682082145" name="a53237febf0a00c35ef33992682082145"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53237febf0a00c35ef33992682082145">&#9670;&#160;</a></span>deletePoolMemory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typename VirtualAllocatorType , typename VirtualAllocatorRef &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="../../dc/df3/classregen_1_1_allocator_pool.html">regen::AllocatorPool</a>&lt; ActualAllocatorType, ActualAllocatorRef, VirtualAllocatorType, VirtualAllocatorRef &gt;::deletePoolMemory </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Free all allocated memory. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00078">78</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   78</span>                                {</div>
+<div class="line"><span class="lineno">   79</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
+<div class="line"><span class="lineno">   80</span>            <span class="keywordflow">for</span> (Node *n = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>; n != <span class="keyword">nullptr</span>;) {</div>
+<div class="line"><span class="lineno">   81</span>                Node *buf = n;</div>
+<div class="line"><span class="lineno">   82</span>                n = n-&gt;next;</div>
+<div class="line"><span class="lineno">   83</span>                buf-&gt;next = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   84</span>                buf-&gt;prev = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   85</span>                buf-&gt;pool = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   86</span>                <span class="comment">// free actual memory</span></div>
+<div class="line"><span class="lineno">   87</span>                <span class="keywordflow">if</span> (buf-&gt;mapped) {</div>
+<div class="line"><span class="lineno">   88</span>                    ActualAllocatorType::unmapAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, buf-&gt;allocatorRef);</div>
+<div class="line"><span class="lineno">   89</span>                    buf-&gt;mapped = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   90</span>                }</div>
+<div class="line"><span class="lineno">   91</span>                ActualAllocatorType::deleteAllocator(<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>, buf-&gt;allocatorRef);</div>
+<div class="line"><span class="lineno">   92</span>                <span class="keyword">delete</span> buf;</div>
+<div class="line"><span class="lineno">   93</span>            }</div>
+<div class="line"><span class="lineno">   94</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   95</span>            <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
+<div class="line"><span class="lineno">   96</span>        }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -659,25 +695,25 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00232">232</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  232</span>                                  {</div>
-<div class="line"><span class="lineno">  233</span>            <span class="keywordflow">if</span> (ref.allocatorNode) {</div>
-<div class="line"><span class="lineno">  234</span>                <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
-<div class="line"><span class="lineno">  235</span>                <span class="comment">// orphan the actual memory range</span></div>
-<div class="line"><span class="lineno">  236</span>                ActualAllocatorType::orphanAllocatorRange(</div>
-<div class="line"><span class="lineno">  237</span>                    <span class="comment">// buffer id</span></div>
-<div class="line"><span class="lineno">  238</span>                    ref.allocatorNode-&gt;allocatorRef,</div>
-<div class="line"><span class="lineno">  239</span>                    <span class="comment">// virtual reference: the allocated range offset in the buffer</span></div>
-<div class="line"><span class="lineno">  240</span>                    ref.allocatorRef,</div>
-<div class="line"><span class="lineno">  241</span>                    ref.size);</div>
-<div class="line"><span class="lineno">  242</span> </div>
-<div class="line"><span class="lineno">  243</span>                ref.allocatorNode-&gt;allocator.free(ref.allocatorRef);</div>
-<div class="line"><span class="lineno">  244</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ac348b85d861c07b5424236c6fa11108e">sortInBackward</a>(ref.allocatorNode);</div>
-<div class="line"><span class="lineno">  245</span>                ref.allocatorNode = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  246</span>                <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
-<div class="line"><span class="lineno">  247</span>            }</div>
-<div class="line"><span class="lineno">  248</span>        }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_ac348b85d861c07b5424236c6fa11108e"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#ac348b85d861c07b5424236c6fa11108e">regen::AllocatorPool::sortInBackward</a></div><div class="ttdeci">void sortInBackward(Node *resizedNode)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00277">memory-allocator.h:277</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00239">239</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  239</span>                                  {</div>
+<div class="line"><span class="lineno">  240</span>            <span class="keywordflow">if</span> (ref.allocatorNode) {</div>
+<div class="line"><span class="lineno">  241</span>                <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#aaaac7b79d239a90d13d2820d1e6de552">lock</a>();</div>
+<div class="line"><span class="lineno">  242</span>                <span class="comment">// orphan the actual memory range</span></div>
+<div class="line"><span class="lineno">  243</span>                ActualAllocatorType::orphanAllocatorRange(</div>
+<div class="line"><span class="lineno">  244</span>                    <span class="comment">// buffer id</span></div>
+<div class="line"><span class="lineno">  245</span>                    ref.allocatorNode-&gt;allocatorRef,</div>
+<div class="line"><span class="lineno">  246</span>                    <span class="comment">// virtual reference: the allocated range offset in the buffer</span></div>
+<div class="line"><span class="lineno">  247</span>                    ref.allocatorRef,</div>
+<div class="line"><span class="lineno">  248</span>                    ref.size);</div>
+<div class="line"><span class="lineno">  249</span> </div>
+<div class="line"><span class="lineno">  250</span>                ref.allocatorNode-&gt;allocator.free(ref.allocatorRef);</div>
+<div class="line"><span class="lineno">  251</span>                <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#ac348b85d861c07b5424236c6fa11108e">sortInBackward</a>(ref.allocatorNode);</div>
+<div class="line"><span class="lineno">  252</span>                ref.allocatorNode = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  253</span>                <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a9360bc9d2aaf9b2c38a275551d58bf55">poolLock_</a>.<a class="code hl_function" href="../../d8/dc1/classregen_1_1_spin_lock.html#ab0f4787f75d4a24d2d6f834aeabc77b4">unlock</a>();</div>
+<div class="line"><span class="lineno">  254</span>            }</div>
+<div class="line"><span class="lineno">  255</span>        }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_ac348b85d861c07b5424236c6fa11108e"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#ac348b85d861c07b5424236c6fa11108e">regen::AllocatorPool::sortInBackward</a></div><div class="ttdeci">void sortInBackward(Node *resizedNode)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00284">memory-allocator.h:284</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -707,8 +743,8 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </div><div class="memdoc">
 <dl class="section return"><dt>Returns</dt><dd>the allocator index. semantic is on to you. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00253">253</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  253</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00260">260</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  260</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -744,9 +780,9 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00106">106</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  106</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a> = std::max(1u, <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a7df1b54a815623982b4a78d0712066cc">alignment</a>); }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a7df1b54a815623982b4a78d0712066cc"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a7df1b54a815623982b4a78d0712066cc">regen::AllocatorPool::alignment</a></div><div class="ttdeci">unsigned int alignment()</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00113">memory-allocator.h:113</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00113">113</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  113</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f">alignment_</a> = std::max(1u, <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a7df1b54a815623982b4a78d0712066cc">alignment</a>); }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a7df1b54a815623982b4a78d0712066cc"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a7df1b54a815623982b4a78d0712066cc">regen::AllocatorPool::alignment</a></div><div class="ttdeci">unsigned int alignment()</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00120">memory-allocator.h:120</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -782,9 +818,9 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00258">258</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  258</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a> = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8bea9f8797dd2981214f5b79b595910c">index</a>; }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a8bea9f8797dd2981214f5b79b595910c"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a8bea9f8797dd2981214f5b79b595910c">regen::AllocatorPool::index</a></div><div class="ttdeci">unsigned int index() const</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00253">memory-allocator.h:253</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00265">265</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  265</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a">index_</a> = <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8bea9f8797dd2981214f5b79b595910c">index</a>; }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a8bea9f8797dd2981214f5b79b595910c"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a8bea9f8797dd2981214f5b79b595910c">regen::AllocatorPool::index</a></div><div class="ttdeci">unsigned int index() const</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00260">memory-allocator.h:260</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -820,8 +856,8 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00099">99</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   99</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a> = size; }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00106">106</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  106</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c">maxSize_</a> = size; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -857,8 +893,8 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00094">94</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   94</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a> = size; }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00101">101</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  101</span>{ <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1">minSize_</a> = size; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -888,16 +924,16 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00277">277</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  277</span>                                               {</div>
-<div class="line"><span class="lineno">  278</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> space = resizedNode-&gt;allocator.maxSpace();</div>
-<div class="line"><span class="lineno">  279</span>            <span class="keywordflow">for</span> (Node *n = resizedNode-&gt;prev;</div>
-<div class="line"><span class="lineno">  280</span>                 n != <span class="keyword">nullptr</span> &amp;&amp; n-&gt;allocator.maxSpace() &lt; space;</div>
-<div class="line"><span class="lineno">  281</span>                 n = n-&gt;prev) { <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9">swap</a>(n, n-&gt;next); }</div>
-<div class="line"><span class="lineno">  282</span>            <span class="comment">// update head</span></div>
-<div class="line"><span class="lineno">  283</span>            <span class="keywordflow">while</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>;</div>
-<div class="line"><span class="lineno">  284</span>        }</div>
-<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a44383de11ae07e69dcde23c1eeb38cc9"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9">regen::AllocatorPool::swap</a></div><div class="ttdeci">void swap(Node *n0, Node *n1)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00286">memory-allocator.h:286</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00284">284</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  284</span>                                               {</div>
+<div class="line"><span class="lineno">  285</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> space = resizedNode-&gt;allocator.maxSpace();</div>
+<div class="line"><span class="lineno">  286</span>            <span class="keywordflow">for</span> (Node *n = resizedNode-&gt;prev;</div>
+<div class="line"><span class="lineno">  287</span>                 n != <span class="keyword">nullptr</span> &amp;&amp; n-&gt;allocator.maxSpace() &lt; space;</div>
+<div class="line"><span class="lineno">  288</span>                 n = n-&gt;prev) { <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9">swap</a>(n, n-&gt;next); }</div>
+<div class="line"><span class="lineno">  289</span>            <span class="comment">// update head</span></div>
+<div class="line"><span class="lineno">  290</span>            <span class="keywordflow">while</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>;</div>
+<div class="line"><span class="lineno">  291</span>        }</div>
+<div class="ttc" id="aclassregen_1_1_allocator_pool_html_a44383de11ae07e69dcde23c1eeb38cc9"><div class="ttname"><a href="../../dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9">regen::AllocatorPool::swap</a></div><div class="ttdeci">void swap(Node *n0, Node *n1)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/da6/memory-allocator_8h_source.html#l00293">memory-allocator.h:293</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -927,15 +963,15 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00268">268</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  268</span>                                              {</div>
-<div class="line"><span class="lineno">  269</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> space = resizedNode-&gt;allocator.maxSpace();</div>
-<div class="line"><span class="lineno">  270</span>            <span class="keywordflow">for</span> (Node *n = resizedNode-&gt;next;</div>
-<div class="line"><span class="lineno">  271</span>                 n != <span class="keyword">nullptr</span> &amp;&amp; n-&gt;allocator.maxSpace() &gt; space;</div>
-<div class="line"><span class="lineno">  272</span>                 n = n-&gt;next) { <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9">swap</a>(n-&gt;prev, n); }</div>
-<div class="line"><span class="lineno">  273</span>            <span class="comment">// update head</span></div>
-<div class="line"><span class="lineno">  274</span>            <span class="keywordflow">while</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>;</div>
-<div class="line"><span class="lineno">  275</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00275">275</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  275</span>                                              {</div>
+<div class="line"><span class="lineno">  276</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> space = resizedNode-&gt;allocator.maxSpace();</div>
+<div class="line"><span class="lineno">  277</span>            <span class="keywordflow">for</span> (Node *n = resizedNode-&gt;next;</div>
+<div class="line"><span class="lineno">  278</span>                 n != <span class="keyword">nullptr</span> &amp;&amp; n-&gt;allocator.maxSpace() &gt; space;</div>
+<div class="line"><span class="lineno">  279</span>                 n = n-&gt;next) { <a class="code hl_function" href="../../dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9">swap</a>(n-&gt;prev, n); }</div>
+<div class="line"><span class="lineno">  280</span>            <span class="comment">// update head</span></div>
+<div class="line"><span class="lineno">  281</span>            <span class="keywordflow">while</span> (<a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>) <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a> = <a class="code hl_variable" href="../../dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968">allocators_</a>-&gt;<a class="code hl_variable" href="../../d2/d17/structregen_1_1_allocator_pool_1_1_node.html#a213e629f8153c0414ca1aed20e159921">prev</a>;</div>
+<div class="line"><span class="lineno">  282</span>        }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -975,15 +1011,15 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00286">286</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  286</span>                                      {</div>
-<div class="line"><span class="lineno">  287</span>            <span class="keywordflow">if</span> (n1-&gt;next) n1-&gt;next-&gt;prev = n0;</div>
-<div class="line"><span class="lineno">  288</span>            <span class="keywordflow">if</span> (n0-&gt;prev) n0-&gt;prev-&gt;next = n1;</div>
-<div class="line"><span class="lineno">  289</span>            n1-&gt;prev = n0-&gt;prev;</div>
-<div class="line"><span class="lineno">  290</span>            n0-&gt;next = n1-&gt;next;</div>
-<div class="line"><span class="lineno">  291</span>            n0-&gt;prev = n1;</div>
-<div class="line"><span class="lineno">  292</span>            n1-&gt;next = n0;</div>
-<div class="line"><span class="lineno">  293</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00293">293</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  293</span>                                      {</div>
+<div class="line"><span class="lineno">  294</span>            <span class="keywordflow">if</span> (n1-&gt;next) n1-&gt;next-&gt;prev = n0;</div>
+<div class="line"><span class="lineno">  295</span>            <span class="keywordflow">if</span> (n0-&gt;prev) n0-&gt;prev-&gt;next = n1;</div>
+<div class="line"><span class="lineno">  296</span>            n1-&gt;prev = n0-&gt;prev;</div>
+<div class="line"><span class="lineno">  297</span>            n0-&gt;next = n1-&gt;next;</div>
+<div class="line"><span class="lineno">  298</span>            n0-&gt;prev = n1;</div>
+<div class="line"><span class="lineno">  299</span>            n1-&gt;next = n0;</div>
+<div class="line"><span class="lineno">  300</span>        }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1010,7 +1046,7 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00264">264</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00271">271</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 
 </div>
 </div>
@@ -1036,7 +1072,7 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00261">261</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00268">268</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 
 </div>
 </div>
@@ -1062,7 +1098,7 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00265">265</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00272">272</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 
 </div>
 </div>
@@ -1088,7 +1124,7 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00263">263</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00270">270</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 
 </div>
 </div>
@@ -1114,7 +1150,7 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00262">262</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00269">269</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 
 </div>
 </div>
@@ -1140,7 +1176,7 @@ template&lt;typename ActualAllocatorType , typename ActualAllocatorRef , typenam
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00266">266</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/da6/memory-allocator_8h_source.html#l00273">273</a> of file <a class="el" href="../../d9/da6/memory-allocator_8h_source.html">memory-allocator.h</a>.</p>
 
 </div>
 </div>

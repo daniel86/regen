@@ -15,7 +15,6 @@ var classregen_1_1scene_1_1_resource_manager =
     [ "getLights", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#a2ac48353cf758600debb72b6e331ebcd", null ],
     [ "getMesh", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#a1fa52f1df20410adc0bcf70cab769d15", null ],
     [ "getSky", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#a8b20c2378eca5e416fbf6e023beea5cd", null ],
-    [ "getState", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#afa52f8eba83334f701920a103e2d7d26", null ],
     [ "getTexture", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#a2c468a6712b3cf7b53159c5cc2ebc7e0", null ],
     [ "getTexture2D", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#a493778a946e6a34e34d5cb2c69d57576", null ],
     [ "getTransform", "dc/d91/classregen_1_1scene_1_1_resource_manager.html#a56fa33161602b7806ed24a1b5813d4f7", null ],

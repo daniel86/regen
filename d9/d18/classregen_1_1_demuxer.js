@@ -8,7 +8,6 @@ var classregen_1_1_demuxer =
     [ "audioStream", "d9/d18/classregen_1_1_demuxer.html#af5817168ec7503e35f46cc003fbcfc7d", null ],
     [ "clearQueue", "d9/d18/classregen_1_1_demuxer.html#a185244985c395e9578be56f96467d550", null ],
     [ "decode", "d9/d18/classregen_1_1_demuxer.html#a314218f769f23d1abb79cf328af720e7", null ],
-    [ "elapsedSeconds", "d9/d18/classregen_1_1_demuxer.html#aa2925cf2c69f8dff2282498a4031f0b8", null ],
     [ "hasInput", "d9/d18/classregen_1_1_demuxer.html#aa8342d42fbf32173414fa3f96b89dba1", null ],
     [ "isPlaying", "d9/d18/classregen_1_1_demuxer.html#a6ca255555e9a01e08fb16e8a2354f265", null ],
     [ "pause", "d9/d18/classregen_1_1_demuxer.html#a7e4fb998093989fcee32b2affc9b9ccf", null ],

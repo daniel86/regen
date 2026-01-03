@@ -754,27 +754,27 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Clears application render tree to be empty. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00327">327</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  327</span>                  {</div>
-<div class="line"><span class="lineno">  328</span>    <a class="code hl_function" href="../../d4/dc6/classregen_1_1_event_object.html#ab8eb36ecdf06d90478f9235572b38731">disconnectAll</a>();</div>
-<div class="line"><span class="lineno">  329</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;clear();</div>
-<div class="line"><span class="lineno">  330</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.clear();</div>
-<div class="line"><span class="lineno">  331</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4673a2afd488316b4001e160cca57dff">idToObject_</a>.clear();</div>
-<div class="line"><span class="lineno">  332</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a2ba694573c09a541afd3dafa9cab68ff">isTimeInitialized_</a> = <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">  333</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#ab17788aef3a68a715ce8249f026edc68">clear</a>();</div>
-<div class="line"><span class="lineno">  334</span>    <a class="code hl_function" href="../../df/d53/classregen_1_1_render_state.html#a5f5a8435a1ad1b381d729fad3d43747f">RenderState::reset</a>();</div>
-<div class="line"><span class="lineno">  335</span>    <a class="code hl_function" href="../../da/d1a/classregen_1_1_binding_manager.html#a30cc4782da752806619145344cd21c7c">BindingManager::clear</a>();</div>
-<div class="line"><span class="lineno">  336</span>    <a class="code hl_function" href="../../d1/d6e/classregen_1_1_texture_binder.html#af18f9d562582494d0e16dfd04cdc01f2">TextureBinder::reset</a>();</div>
-<div class="line"><span class="lineno">  337</span>    <a class="code hl_function" href="../../d8/d49/classregen_1_1_client_buffer.html#a85a06aa0e428686fe50fb3d7caaa7a76">ClientBuffer::resetMemoryPool</a>();</div>
-<div class="line"><span class="lineno">  338</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00331">331</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  331</span>                  {</div>
+<div class="line"><span class="lineno">  332</span>    <a class="code hl_function" href="../../d4/dc6/classregen_1_1_event_object.html#ab8eb36ecdf06d90478f9235572b38731">disconnectAll</a>();</div>
+<div class="line"><span class="lineno">  333</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;clear();</div>
+<div class="line"><span class="lineno">  334</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.clear();</div>
+<div class="line"><span class="lineno">  335</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4673a2afd488316b4001e160cca57dff">idToObject_</a>.clear();</div>
+<div class="line"><span class="lineno">  336</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a2ba694573c09a541afd3dafa9cab68ff">isTimeInitialized_</a> = <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">  337</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#ab17788aef3a68a715ce8249f026edc68">clear</a>();</div>
+<div class="line"><span class="lineno">  338</span>    <a class="code hl_function" href="../../df/d53/classregen_1_1_render_state.html#a5f5a8435a1ad1b381d729fad3d43747f">RenderState::reset</a>();</div>
+<div class="line"><span class="lineno">  339</span>    <a class="code hl_function" href="../../da/d1a/classregen_1_1_binding_manager.html#a30cc4782da752806619145344cd21c7c">BindingManager::clear</a>();</div>
+<div class="line"><span class="lineno">  340</span>    <a class="code hl_function" href="../../d1/d6e/classregen_1_1_texture_binder.html#af18f9d562582494d0e16dfd04cdc01f2">TextureBinder::reset</a>();</div>
+<div class="line"><span class="lineno">  341</span>    <a class="code hl_function" href="../../d8/d49/classregen_1_1_client_buffer.html#a85a06aa0e428686fe50fb3d7caaa7a76">ClientBuffer::resetMemoryPool</a>();</div>
+<div class="line"><span class="lineno">  342</span>}</div>
 <div class="ttc" id="aclassregen_1_1_binding_manager_html_a30cc4782da752806619145344cd21c7c"><div class="ttname"><a href="../../da/d1a/classregen_1_1_binding_manager.html#a30cc4782da752806619145344cd21c7c">regen::BindingManager::clear</a></div><div class="ttdeci">static void clear()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/d6a/binding-manager_8cpp_source.html#l00017">binding-manager.cpp:17</a></div></div>
 <div class="ttc" id="aclassregen_1_1_client_buffer_html_a85a06aa0e428686fe50fb3d7caaa7a76"><div class="ttname"><a href="../../d8/d49/classregen_1_1_client_buffer.html#a85a06aa0e428686fe50fb3d7caaa7a76">regen::ClientBuffer::resetMemoryPool</a></div><div class="ttdeci">static ClientBufferPool * resetMemoryPool()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/dda/client-buffer_8cpp_source.html#l00043">client-buffer.cpp:43</a></div></div>
 <div class="ttc" id="aclassregen_1_1_event_object_html_ab8eb36ecdf06d90478f9235572b38731"><div class="ttname"><a href="../../d4/dc6/classregen_1_1_event_object.html#ab8eb36ecdf06d90478f9235572b38731">regen::EventObject::disconnectAll</a></div><div class="ttdeci">void disconnectAll()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d8c/event-object_8cpp_source.html#l00101">event-object.cpp:101</a></div></div>
-<div class="ttc" id="aclassregen_1_1_render_state_html_a5f5a8435a1ad1b381d729fad3d43747f"><div class="ttname"><a href="../../df/d53/classregen_1_1_render_state.html#a5f5a8435a1ad1b381d729fad3d43747f">regen::RenderState::reset</a></div><div class="ttdeci">static RenderState * reset()</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00117">render-state.cpp:117</a></div></div>
+<div class="ttc" id="aclassregen_1_1_render_state_html_a5f5a8435a1ad1b381d729fad3d43747f"><div class="ttname"><a href="../../df/d53/classregen_1_1_render_state.html#a5f5a8435a1ad1b381d729fad3d43747f">regen::RenderState::reset</a></div><div class="ttdeci">static RenderState * reset()</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00119">render-state.cpp:119</a></div></div>
 <div class="ttc" id="aclassregen_1_1_scene_html_a4673a2afd488316b4001e160cca57dff"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a4673a2afd488316b4001e160cca57dff">regen::Scene::idToObject_</a></div><div class="ttdeci">std::map&lt; int, ref_ptr&lt; StateNode &gt; &gt; idToObject_</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/scene_8h_source.html#l00374">scene.h:374</a></div></div>
 <div class="ttc" id="aclassregen_1_1_scene_html_a75468d5dfe41ce76803fa07ecd83ab0b"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">regen::Scene::namedToObject_</a></div><div class="ttdeci">std::map&lt; std::string, NamedObject &gt; namedToObject_</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/scene_8h_source.html#l00373">scene.h:373</a></div></div>
-<div class="ttc" id="aclassregen_1_1_staging_system_html_ab17788aef3a68a715ce8249f026edc68"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#ab17788aef3a68a715ce8249f026edc68">regen::StagingSystem::clear</a></div><div class="ttdeci">void clear()</div><div class="ttdoc">Clear the staging system.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d79/staging-system_8cpp_source.html#l00131">staging-system.cpp:131</a></div></div>
-<div class="ttc" id="aclassregen_1_1_staging_system_html_acabdfaa8f9e5f0127e1f21d4b7d54386"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">regen::StagingSystem::instance</a></div><div class="ttdeci">static StagingSystem &amp; instance()</div><div class="ttdoc">Get the singleton instance of the staging system.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d8b/staging-system_8h_source.html#l00162">staging-system.h:162</a></div></div>
+<div class="ttc" id="aclassregen_1_1_staging_system_html_ab17788aef3a68a715ce8249f026edc68"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#ab17788aef3a68a715ce8249f026edc68">regen::StagingSystem::clear</a></div><div class="ttdeci">void clear()</div><div class="ttdoc">Clear the staging system.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d79/staging-system_8cpp_source.html#l00135">staging-system.cpp:135</a></div></div>
+<div class="ttc" id="aclassregen_1_1_staging_system_html_acabdfaa8f9e5f0127e1f21d4b7d54386"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">regen::StagingSystem::instance</a></div><div class="ttdeci">static StagingSystem &amp; instance()</div><div class="ttdoc">Get the singleton instance of the staging system.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d8b/staging-system_8h_source.html#l00166">staging-system.h:166</a></div></div>
 <div class="ttc" id="aclassregen_1_1_texture_binder_html_af18f9d562582494d0e16dfd04cdc01f2"><div class="ttname"><a href="../../d1/d6e/classregen_1_1_texture_binder.html#af18f9d562582494d0e16dfd04cdc01f2">regen::TextureBinder::reset</a></div><div class="ttdeci">static void reset()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/d4e/texture-binder_8cpp_source.html#l00013">texture-binder.cpp:13</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -795,14 +795,14 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Draw next frame. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00464">464</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  464</span>                   {</div>
-<div class="line"><span class="lineno">  465</span>    <span class="comment">// update staging arenas (up to per-frame frequency)</span></div>
-<div class="line"><span class="lineno">  466</span>    <span class="keywordtype">float</span> dt_ms = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>-&gt;getVertex(0).r;</div>
-<div class="line"><span class="lineno">  467</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1">updateData</a>(dt_ms);</div>
-<div class="line"><span class="lineno">  468</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;render(dt_ms);</div>
-<div class="line"><span class="lineno">  469</span>}</div>
-<div class="ttc" id="aclassregen_1_1_staging_system_html_a8e4f405ad3770e1d9ffbc6520b0950e1"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1">regen::StagingSystem::updateData</a></div><div class="ttdeci">void updateData(float dt_ms=0.0f)</div><div class="ttdoc">Update the data in the staging system.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d79/staging-system_8cpp_source.html#l00465">staging-system.cpp:465</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00468">468</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  468</span>                   {</div>
+<div class="line"><span class="lineno">  469</span>    <span class="comment">// update staging arenas (up to per-frame frequency)</span></div>
+<div class="line"><span class="lineno">  470</span>    <span class="keywordtype">float</span> dt_ms = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>-&gt;getVertex(0).r;</div>
+<div class="line"><span class="lineno">  471</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1">updateData</a>(dt_ms);</div>
+<div class="line"><span class="lineno">  472</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;render(dt_ms);</div>
+<div class="line"><span class="lineno">  473</span>}</div>
+<div class="ttc" id="aclassregen_1_1_staging_system_html_a8e4f405ad3770e1d9ffbc6520b0950e1"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1">regen::StagingSystem::updateData</a></div><div class="ttdeci">void updateData(float dt_ms=0.0f)</div><div class="ttdoc">Update the data in the staging system.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d79/staging-system_8cpp_source.html#l00482">staging-system.cpp:482</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -822,10 +822,10 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Called each frame after rendering and GL animations. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00479">479</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  479</span>                    {</div>
-<div class="line"><span class="lineno">  480</span>    <a class="code hl_function" href="../../d7/d32/classregen_1_1_animation_manager.html#a6255ceefd5e220e0f7b57eeeead0ac21">AnimationManager::get</a>().flushGraphics();</div>
-<div class="line"><span class="lineno">  481</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00483">483</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  483</span>                    {</div>
+<div class="line"><span class="lineno">  484</span>    <a class="code hl_function" href="../../d7/d32/classregen_1_1_animation_manager.html#a6255ceefd5e220e0f7b57eeeead0ac21">AnimationManager::get</a>().flushGraphics();</div>
+<div class="line"><span class="lineno">  485</span>}</div>
 <div class="ttc" id="aclassregen_1_1_animation_manager_html_a6255ceefd5e220e0f7b57eeeead0ac21"><div class="ttname"><a href="../../d7/d32/classregen_1_1_animation_manager.html#a6255ceefd5e220e0f7b57eeeead0ac21">regen::AnimationManager::get</a></div><div class="ttdeci">static AnimationManager &amp; get()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/da3/animation-manager_8cpp_source.html#l00011">animation-manager.cpp:11</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -853,15 +853,15 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the interaction or null </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00344">344</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  344</span>                                                                     {</div>
-<div class="line"><span class="lineno">  345</span>    <span class="keyword">auto</span> it = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">interactions_</a>.find(name);</div>
-<div class="line"><span class="lineno">  346</span>    <span class="keywordflow">if</span> (it == <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">interactions_</a>.end()) {</div>
-<div class="line"><span class="lineno">  347</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Interaction with name &#39;&quot;</span> &lt;&lt; name &lt;&lt; <span class="stringliteral">&quot;&#39; not found.&quot;</span>);</div>
-<div class="line"><span class="lineno">  348</span>        <span class="keywordflow">return</span> {};</div>
-<div class="line"><span class="lineno">  349</span>    }</div>
-<div class="line"><span class="lineno">  350</span>    <span class="keywordflow">return</span> it-&gt;second;</div>
-<div class="line"><span class="lineno">  351</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00348">348</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  348</span>                                                                     {</div>
+<div class="line"><span class="lineno">  349</span>    <span class="keyword">auto</span> it = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">interactions_</a>.find(name);</div>
+<div class="line"><span class="lineno">  350</span>    <span class="keywordflow">if</span> (it == <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">interactions_</a>.end()) {</div>
+<div class="line"><span class="lineno">  351</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Interaction with name &#39;&quot;</span> &lt;&lt; name &lt;&lt; <span class="stringliteral">&quot;&#39; not found.&quot;</span>);</div>
+<div class="line"><span class="lineno">  352</span>        <span class="keywordflow">return</span> {};</div>
+<div class="line"><span class="lineno">  353</span>    }</div>
+<div class="line"><span class="lineno">  354</span>    <span class="keywordflow">return</span> it-&gt;second;</div>
+<div class="line"><span class="lineno">  355</span>}</div>
 <div class="ttc" id="aclassregen_1_1_scene_html_a62540f986ac5893f653a99f929d00e34"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">regen::Scene::interactions_</a></div><div class="ttdeci">std::map&lt; std::string, ref_ptr&lt; SceneInteraction &gt; &gt; interactions_</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/scene_8h_source.html#l00375">scene.h:375</a></div></div>
 <div class="ttc" id="alogging_8h_html_ae0e9cd021b6ad8d86a62a7d02b4a5b36"><div class="ttname"><a href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a></div><div class="ttdeci">#define REGEN_WARN(...)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d77/logging_8h_source.html#l00044">logging.h:44</a></div></div>
 </div><!-- fragment -->
@@ -1044,111 +1044,111 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Initializes GL resources of the scene. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00226">226</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  226</span>                   {</div>
-<div class="line"><span class="lineno">  227</span>    GLenum err = glewInit();</div>
-<div class="line"><span class="lineno">  228</span>    <span class="keywordflow">if</span> (GLEW_OK != err) {</div>
-<div class="line"><span class="lineno">  229</span>        std::cerr &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; glewGetErrorString(err) &lt;&lt; std::endl;</div>
-<div class="line"><span class="lineno">  230</span>        exit(1);</div>
-<div class="line"><span class="lineno">  231</span>    }</div>
-<div class="line"><span class="lineno">  232</span>    <span class="comment">// note: glewInit may call glGetString(GL_EXTENSIONS), then invalid enum error is generated.</span></div>
-<div class="line"><span class="lineno">  233</span>    <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
-<div class="line"><span class="lineno">  234</span> </div>
-<div class="line"><span class="lineno">  235</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;VENDOR: &quot;</span> &lt;&lt; glGetString(GL_VENDOR));</div>
-<div class="line"><span class="lineno">  236</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;RENDERER: &quot;</span> &lt;&lt; glGetString(GL_RENDERER));</div>
-<div class="line"><span class="lineno">  237</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;VERSION: &quot;</span> &lt;&lt; glGetString(GL_VERSION));</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00230">230</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  230</span>                   {</div>
+<div class="line"><span class="lineno">  231</span>    GLenum err = glewInit();</div>
+<div class="line"><span class="lineno">  232</span>    <span class="keywordflow">if</span> (GLEW_OK != err) {</div>
+<div class="line"><span class="lineno">  233</span>        std::cerr &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; glewGetErrorString(err) &lt;&lt; std::endl;</div>
+<div class="line"><span class="lineno">  234</span>        exit(1);</div>
+<div class="line"><span class="lineno">  235</span>    }</div>
+<div class="line"><span class="lineno">  236</span>    <span class="comment">// note: glewInit may call glGetString(GL_EXTENSIONS), then invalid enum error is generated.</span></div>
+<div class="line"><span class="lineno">  237</span>    <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
 <div class="line"><span class="lineno">  238</span> </div>
-<div class="line"><span class="lineno">  239</span>    <span class="comment">// check for required and optional extensions</span></div>
-<div class="line"><span class="lineno">  240</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;it: <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ac4214aa26efa1e65045648916c38bae6">requiredExt_</a>) {</div>
-<div class="line"><span class="lineno">  241</span>        <span class="keywordflow">if</span> (!glewIsSupported(it.c_str())) {</div>
-<div class="line"><span class="lineno">  242</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#a30354cfa09ee641060424fe510c4e80b">REGEN_ERROR</a>(it &lt;&lt; <span class="stringliteral">&quot; unsupported.&quot;</span>);</div>
-<div class="line"><span class="lineno">  243</span>            exit(0);</div>
-<div class="line"><span class="lineno">  244</span>        } <span class="keywordflow">else</span> { <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(it &lt;&lt; <span class="stringliteral">&quot; supported.&quot;</span>); }</div>
-<div class="line"><span class="lineno">  245</span>    }</div>
-<div class="line"><span class="lineno">  246</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;it: <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a00e411a491e7a47dd6d460185c4c98f8">optionalExt_</a>) {</div>
-<div class="line"><span class="lineno">  247</span>        <span class="keywordflow">if</span> (!glewIsSupported(it.c_str())) { <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(it &lt;&lt; <span class="stringliteral">&quot; unsupported.&quot;</span>); }</div>
-<div class="line"><span class="lineno">  248</span>        <span class="keywordflow">else</span> { <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(it &lt;&lt; <span class="stringliteral">&quot; supported.&quot;</span>); }</div>
+<div class="line"><span class="lineno">  239</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;VENDOR: &quot;</span> &lt;&lt; glGetString(GL_VENDOR));</div>
+<div class="line"><span class="lineno">  240</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;RENDERER: &quot;</span> &lt;&lt; glGetString(GL_RENDERER));</div>
+<div class="line"><span class="lineno">  241</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;VERSION: &quot;</span> &lt;&lt; glGetString(GL_VERSION));</div>
+<div class="line"><span class="lineno">  242</span> </div>
+<div class="line"><span class="lineno">  243</span>    <span class="comment">// check for required and optional extensions</span></div>
+<div class="line"><span class="lineno">  244</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;it: <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ac4214aa26efa1e65045648916c38bae6">requiredExt_</a>) {</div>
+<div class="line"><span class="lineno">  245</span>        <span class="keywordflow">if</span> (!glewIsSupported(it.c_str())) {</div>
+<div class="line"><span class="lineno">  246</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#a30354cfa09ee641060424fe510c4e80b">REGEN_ERROR</a>(it &lt;&lt; <span class="stringliteral">&quot; unsupported.&quot;</span>);</div>
+<div class="line"><span class="lineno">  247</span>            exit(0);</div>
+<div class="line"><span class="lineno">  248</span>        } <span class="keywordflow">else</span> { <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(it &lt;&lt; <span class="stringliteral">&quot; supported.&quot;</span>); }</div>
 <div class="line"><span class="lineno">  249</span>    }</div>
-<div class="line"><span class="lineno">  250</span> </div>
-<div class="line"><span class="lineno">  251</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_3D_TEXTURE_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_3D_TEXTURE_SIZE));</div>
-<div class="line"><span class="lineno">  252</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_ARRAY_TEXTURE_LAYERS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_ARRAY_TEXTURE_LAYERS));</div>
-<div class="line"><span class="lineno">  253</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COLOR_ATTACHMENTS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_COLOR_ATTACHMENTS));</div>
-<div class="line"><span class="lineno">  254</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_CUBE_MAP_TEXTURE_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_CUBE_MAP_TEXTURE_SIZE));</div>
-<div class="line"><span class="lineno">  255</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_DRAW_BUFFERS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_DRAW_BUFFERS));</div>
-<div class="line"><span class="lineno">  256</span><span class="preprocessor">#ifdef GL_MAX_FRAMEBUFFER_HEIGHT</span></div>
-<div class="line"><span class="lineno">  257</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_FRAMEBUFFER_HEIGHT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_FRAMEBUFFER_HEIGHT));</div>
-<div class="line"><span class="lineno">  258</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  259</span><span class="preprocessor">#ifdef GL_MAX_FRAMEBUFFER_WIDTH</span></div>
-<div class="line"><span class="lineno">  260</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_FRAMEBUFFER_WIDTH: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_FRAMEBUFFER_WIDTH));</div>
-<div class="line"><span class="lineno">  261</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  262</span><span class="preprocessor">#ifdef GL_MAX_FRAMEBUFFER_LAYERS</span></div>
-<div class="line"><span class="lineno">  263</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_FRAMEBUFFER_LAYERS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_FRAMEBUFFER_LAYERS));</div>
-<div class="line"><span class="lineno">  264</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  265</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_TEXTURE_IMAGE_UNITS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_TEXTURE_IMAGE_UNITS));</div>
-<div class="line"><span class="lineno">  266</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_TEXTURE_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_TEXTURE_SIZE));</div>
-<div class="line"><span class="lineno">  267</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_TEXTURE_BUFFER_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_TEXTURE_BUFFER_SIZE));</div>
-<div class="line"><span class="lineno">  268</span><span class="preprocessor">#ifdef GL_MAX_UNIFORM_LOCATIONS</span></div>
-<div class="line"><span class="lineno">  269</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_UNIFORM_LOCATIONS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_UNIFORM_LOCATIONS));</div>
-<div class="line"><span class="lineno">  270</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  271</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_UNIFORM_BLOCK_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_UNIFORM_BLOCK_SIZE));</div>
-<div class="line"><span class="lineno">  272</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_UNIFORM_BUFFER_BINDINGS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_UNIFORM_BUFFER_BINDINGS));</div>
-<div class="line"><span class="lineno">  273</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;UNIFORM_BUFFER_OFFSET_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));</div>
-<div class="line"><span class="lineno">  274</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_SHADER_STORAGE_BLOCK_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));</div>
-<div class="line"><span class="lineno">  275</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_SHADER_STORAGE_BUFFER_BINDINGS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(<a class="code hl_define" href="../../de/deb/render-state_8cpp.html#a57d7c1e85e80e063fa68239a10651bf4">GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS</a>));</div>
-<div class="line"><span class="lineno">  276</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));</div>
-<div class="line"><span class="lineno">  277</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_VERTEX_ATTRIBS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_VERTEX_ATTRIBS));</div>
-<div class="line"><span class="lineno">  278</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_VIEWPORTS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_VIEWPORTS));</div>
-<div class="line"><span class="lineno">  279</span><span class="preprocessor">#ifdef GL_ARB_texture_buffer_range</span></div>
-<div class="line"><span class="lineno">  280</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;TEXTURE_BUFFER_OFFSET_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));</div>
-<div class="line"><span class="lineno">  281</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  282</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_WORK_GROUP_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a2f5078b1dc76e890017130b6fe96cf26">glParam&lt;Vec3i&gt;</a>(GL_MAX_COMPUTE_WORK_GROUP_SIZE));</div>
-<div class="line"><span class="lineno">  283</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_WORK_GROUP_COUNT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a2f5078b1dc76e890017130b6fe96cf26">glParam&lt;Vec3i&gt;</a>(GL_MAX_COMPUTE_WORK_GROUP_COUNT));</div>
-<div class="line"><span class="lineno">  284</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_WORK_GROUP_INVOCATIONS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS));</div>
-<div class="line"><span class="lineno">  285</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_SHARED_MEMORY_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE));</div>
-<div class="line"><span class="lineno">  286</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MIN_MAP_BUFFER_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MIN_MAP_BUFFER_ALIGNMENT));</div>
-<div class="line"><span class="lineno">  287</span><span class="preprocessor">#undef DEBUG_GLi</span></div>
-<div class="line"><span class="lineno">  288</span> </div>
-<div class="line"><span class="lineno">  289</span><span class="preprocessor">#ifdef REGEN_ENABLE_GL_DEBUG_OUTPUT</span></div>
-<div class="line"><span class="lineno">  290</span>    glEnable(<a class="code hl_define" href="../../de/deb/render-state_8cpp.html#af3327e38d5a4ad77f40dada510db5bdb">GL_DEBUG_OUTPUT</a>);</div>
-<div class="line"><span class="lineno">  291</span>    glEnable(<a class="code hl_define" href="../../de/deb/render-state_8cpp.html#abcbfc26ac438feb5239268877e69b53d">GL_DEBUG_OUTPUT_SYNCHRONOUS</a>);</div>
-<div class="line"><span class="lineno">  292</span>    glDebugMessageCallback(openglDebugCallback, NULL);</div>
-<div class="line"><span class="lineno">  293</span>    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, <span class="keyword">true</span>);</div>
-<div class="line"><span class="lineno">  294</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  295</span> </div>
-<div class="line"><span class="lineno">  296</span>    <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#adb312a952aa9ab0918d54cdf665f9f39">setupShaderLoading</a>();</div>
-<div class="line"><span class="lineno">  297</span> </div>
-<div class="line"><span class="lineno">  298</span>    <a class="code hl_function" href="../../dc/d41/classregen_1_1_buffer_object.html#a4e901522b09975b57479d0967739ed44">BufferObject::createMemoryPools</a>();</div>
-<div class="line"><span class="lineno">  299</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;init();</div>
-<div class="line"><span class="lineno">  300</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ada327764ec5d11f8da1d6d803f737d79">renderState_</a> = <a class="code hl_function" href="../../df/d53/classregen_1_1_render_state.html#a309141a8d492ce60a57a1629cdfaf928">RenderState::get</a>();</div>
-<div class="line"><span class="lineno">  301</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a6e028814fdff483b6611dfee520dc50b">isGLInitialized_</a> = <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">  302</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#a3b2cac6b5e752093146b23ac76f20e19">REGEN_INFO</a>(<span class="stringliteral">&quot;GL initialized.&quot;</span>);</div>
-<div class="line"><span class="lineno">  303</span> </div>
-<div class="line"><span class="lineno">  304</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a> = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;UBO&gt;::alloc</a>(<span class="stringliteral">&quot;GlobalUniforms&quot;</span>, <a class="code hl_variable" href="../../d5/dcb/structregen_1_1_buffer_update_flags.html#a27801a6c8d5317c185ebacc5f9b8930b">BufferUpdateFlags::FULL_PER_FRAME</a>);</div>
-<div class="line"><span class="lineno">  305</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0790af21c14866a747fd35366c14fdc9">mousePosition_</a>);</div>
-<div class="line"><span class="lineno">  306</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad05fe8be2a16c303932ac59f590b7b35">mouseTexco_</a>);</div>
-<div class="line"><span class="lineno">  307</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a883601fb0264cc6817ba5af4b0a435e8">mouseDepth_</a>);</div>
-<div class="line"><span class="lineno">  308</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a9eb5d8e313f708d3b7aa29f134845b71">isMouseEntered_</a>);</div>
-<div class="line"><span class="lineno">  309</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aa2caf5e6bd87e24c790b23eaae88fa88">in</a>);</div>
-<div class="line"><span class="lineno">  310</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#aef06e1033369261519f4df7eba63154b">in</a>);</div>
-<div class="line"><span class="lineno">  311</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>);</div>
-<div class="line"><span class="lineno">  312</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;state()-&gt;setInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>);</div>
-<div class="line"><span class="lineno">  313</span>    <span class="comment">// Note: don&#39;t add to the UBO as it might use ring buffer causing</span></div>
-<div class="line"><span class="lineno">  314</span>    <span class="comment">// the viewport values to change with a delay of a few frames.</span></div>
-<div class="line"><span class="lineno">  315</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;state()-&gt;setInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a28070511cccbd89de3cdf1634d7064dc">screen_</a>-&gt;sh_viewport());</div>
-<div class="line"><span class="lineno">  316</span>}</div>
+<div class="line"><span class="lineno">  250</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;it: <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a00e411a491e7a47dd6d460185c4c98f8">optionalExt_</a>) {</div>
+<div class="line"><span class="lineno">  251</span>        <span class="keywordflow">if</span> (!glewIsSupported(it.c_str())) { <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(it &lt;&lt; <span class="stringliteral">&quot; unsupported.&quot;</span>); }</div>
+<div class="line"><span class="lineno">  252</span>        <span class="keywordflow">else</span> { <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(it &lt;&lt; <span class="stringliteral">&quot; supported.&quot;</span>); }</div>
+<div class="line"><span class="lineno">  253</span>    }</div>
+<div class="line"><span class="lineno">  254</span> </div>
+<div class="line"><span class="lineno">  255</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_3D_TEXTURE_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_3D_TEXTURE_SIZE));</div>
+<div class="line"><span class="lineno">  256</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_ARRAY_TEXTURE_LAYERS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_ARRAY_TEXTURE_LAYERS));</div>
+<div class="line"><span class="lineno">  257</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COLOR_ATTACHMENTS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_COLOR_ATTACHMENTS));</div>
+<div class="line"><span class="lineno">  258</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_CUBE_MAP_TEXTURE_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_CUBE_MAP_TEXTURE_SIZE));</div>
+<div class="line"><span class="lineno">  259</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_DRAW_BUFFERS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_DRAW_BUFFERS));</div>
+<div class="line"><span class="lineno">  260</span><span class="preprocessor">#ifdef GL_MAX_FRAMEBUFFER_HEIGHT</span></div>
+<div class="line"><span class="lineno">  261</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_FRAMEBUFFER_HEIGHT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_FRAMEBUFFER_HEIGHT));</div>
+<div class="line"><span class="lineno">  262</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  263</span><span class="preprocessor">#ifdef GL_MAX_FRAMEBUFFER_WIDTH</span></div>
+<div class="line"><span class="lineno">  264</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_FRAMEBUFFER_WIDTH: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_FRAMEBUFFER_WIDTH));</div>
+<div class="line"><span class="lineno">  265</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  266</span><span class="preprocessor">#ifdef GL_MAX_FRAMEBUFFER_LAYERS</span></div>
+<div class="line"><span class="lineno">  267</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_FRAMEBUFFER_LAYERS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_FRAMEBUFFER_LAYERS));</div>
+<div class="line"><span class="lineno">  268</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  269</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_TEXTURE_IMAGE_UNITS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_TEXTURE_IMAGE_UNITS));</div>
+<div class="line"><span class="lineno">  270</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_TEXTURE_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_TEXTURE_SIZE));</div>
+<div class="line"><span class="lineno">  271</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_TEXTURE_BUFFER_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_TEXTURE_BUFFER_SIZE));</div>
+<div class="line"><span class="lineno">  272</span><span class="preprocessor">#ifdef GL_MAX_UNIFORM_LOCATIONS</span></div>
+<div class="line"><span class="lineno">  273</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_UNIFORM_LOCATIONS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_UNIFORM_LOCATIONS));</div>
+<div class="line"><span class="lineno">  274</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  275</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_UNIFORM_BLOCK_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_UNIFORM_BLOCK_SIZE));</div>
+<div class="line"><span class="lineno">  276</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_UNIFORM_BUFFER_BINDINGS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_UNIFORM_BUFFER_BINDINGS));</div>
+<div class="line"><span class="lineno">  277</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;UNIFORM_BUFFER_OFFSET_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));</div>
+<div class="line"><span class="lineno">  278</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_SHADER_STORAGE_BLOCK_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));</div>
+<div class="line"><span class="lineno">  279</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_SHADER_STORAGE_BUFFER_BINDINGS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(<a class="code hl_define" href="../../de/deb/render-state_8cpp.html#a57d7c1e85e80e063fa68239a10651bf4">GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS</a>));</div>
+<div class="line"><span class="lineno">  280</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));</div>
+<div class="line"><span class="lineno">  281</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_VERTEX_ATTRIBS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_VERTEX_ATTRIBS));</div>
+<div class="line"><span class="lineno">  282</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_VIEWPORTS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_VIEWPORTS));</div>
+<div class="line"><span class="lineno">  283</span><span class="preprocessor">#ifdef GL_ARB_texture_buffer_range</span></div>
+<div class="line"><span class="lineno">  284</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;TEXTURE_BUFFER_OFFSET_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));</div>
+<div class="line"><span class="lineno">  285</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  286</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_WORK_GROUP_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a2f5078b1dc76e890017130b6fe96cf26">glParam&lt;Vec3i&gt;</a>(GL_MAX_COMPUTE_WORK_GROUP_SIZE));</div>
+<div class="line"><span class="lineno">  287</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_WORK_GROUP_COUNT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a2f5078b1dc76e890017130b6fe96cf26">glParam&lt;Vec3i&gt;</a>(GL_MAX_COMPUTE_WORK_GROUP_COUNT));</div>
+<div class="line"><span class="lineno">  288</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_WORK_GROUP_INVOCATIONS: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS));</div>
+<div class="line"><span class="lineno">  289</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MAX_COMPUTE_SHARED_MEMORY_SIZE: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE));</div>
+<div class="line"><span class="lineno">  290</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;MIN_MAP_BUFFER_ALIGNMENT: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">glParam&lt;int&gt;</a>(GL_MIN_MAP_BUFFER_ALIGNMENT));</div>
+<div class="line"><span class="lineno">  291</span><span class="preprocessor">#undef DEBUG_GLi</span></div>
+<div class="line"><span class="lineno">  292</span> </div>
+<div class="line"><span class="lineno">  293</span><span class="preprocessor">#ifdef REGEN_ENABLE_GL_DEBUG_OUTPUT</span></div>
+<div class="line"><span class="lineno">  294</span>    glEnable(<a class="code hl_define" href="../../de/deb/render-state_8cpp.html#af3327e38d5a4ad77f40dada510db5bdb">GL_DEBUG_OUTPUT</a>);</div>
+<div class="line"><span class="lineno">  295</span>    glEnable(<a class="code hl_define" href="../../de/deb/render-state_8cpp.html#abcbfc26ac438feb5239268877e69b53d">GL_DEBUG_OUTPUT_SYNCHRONOUS</a>);</div>
+<div class="line"><span class="lineno">  296</span>    glDebugMessageCallback(openglDebugCallback, NULL);</div>
+<div class="line"><span class="lineno">  297</span>    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, <span class="keyword">true</span>);</div>
+<div class="line"><span class="lineno">  298</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  299</span> </div>
+<div class="line"><span class="lineno">  300</span>    <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#adb312a952aa9ab0918d54cdf665f9f39">setupShaderLoading</a>();</div>
+<div class="line"><span class="lineno">  301</span> </div>
+<div class="line"><span class="lineno">  302</span>    <a class="code hl_function" href="../../dc/d41/classregen_1_1_buffer_object.html#a4e901522b09975b57479d0967739ed44">BufferObject::createMemoryPools</a>();</div>
+<div class="line"><span class="lineno">  303</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;init();</div>
+<div class="line"><span class="lineno">  304</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ada327764ec5d11f8da1d6d803f737d79">renderState_</a> = <a class="code hl_function" href="../../df/d53/classregen_1_1_render_state.html#a309141a8d492ce60a57a1629cdfaf928">RenderState::get</a>();</div>
+<div class="line"><span class="lineno">  305</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a6e028814fdff483b6611dfee520dc50b">isGLInitialized_</a> = <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">  306</span>    <a class="code hl_define" href="../../d5/d77/logging_8h.html#a3b2cac6b5e752093146b23ac76f20e19">REGEN_INFO</a>(<span class="stringliteral">&quot;GL initialized.&quot;</span>);</div>
+<div class="line"><span class="lineno">  307</span> </div>
+<div class="line"><span class="lineno">  308</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a> = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;UBO&gt;::alloc</a>(<span class="stringliteral">&quot;GlobalUniforms&quot;</span>, <a class="code hl_variable" href="../../d5/dcb/structregen_1_1_buffer_update_flags.html#a27801a6c8d5317c185ebacc5f9b8930b">BufferUpdateFlags::FULL_PER_FRAME</a>);</div>
+<div class="line"><span class="lineno">  309</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0790af21c14866a747fd35366c14fdc9">mousePosition_</a>);</div>
+<div class="line"><span class="lineno">  310</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad05fe8be2a16c303932ac59f590b7b35">mouseTexco_</a>);</div>
+<div class="line"><span class="lineno">  311</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a883601fb0264cc6817ba5af4b0a435e8">mouseDepth_</a>);</div>
+<div class="line"><span class="lineno">  312</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a9eb5d8e313f708d3b7aa29f134845b71">isMouseEntered_</a>);</div>
+<div class="line"><span class="lineno">  313</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aa2caf5e6bd87e24c790b23eaae88fa88">in</a>);</div>
+<div class="line"><span class="lineno">  314</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#aef06e1033369261519f4df7eba63154b">in</a>);</div>
+<div class="line"><span class="lineno">  315</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>-&gt;addStagedInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>);</div>
+<div class="line"><span class="lineno">  316</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;state()-&gt;setInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">globalUniforms_</a>);</div>
+<div class="line"><span class="lineno">  317</span>    <span class="comment">// Note: don&#39;t add to the UBO as it might use ring buffer causing</span></div>
+<div class="line"><span class="lineno">  318</span>    <span class="comment">// the viewport values to change with a delay of a few frames.</span></div>
+<div class="line"><span class="lineno">  319</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;state()-&gt;setInput(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a28070511cccbd89de3cdf1634d7064dc">screen_</a>-&gt;sh_viewport());</div>
+<div class="line"><span class="lineno">  320</span>}</div>
 <div class="ttc" id="aclassregen_1_1_buffer_object_html_a4e901522b09975b57479d0967739ed44"><div class="ttname"><a href="../../dc/d41/classregen_1_1_buffer_object.html#a4e901522b09975b57479d0967739ed44">regen::BufferObject::createMemoryPools</a></div><div class="ttdeci">static void createMemoryPools()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/da4/buffer-object_8cpp_source.html#l00048">buffer-object.cpp:48</a></div></div>
-<div class="ttc" id="aclassregen_1_1_render_state_html_a309141a8d492ce60a57a1629cdfaf928"><div class="ttname"><a href="../../df/d53/classregen_1_1_render_state.html#a309141a8d492ce60a57a1629cdfaf928">regen::RenderState::get</a></div><div class="ttdeci">static RenderState * get()</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00113">render-state.cpp:113</a></div></div>
+<div class="ttc" id="aclassregen_1_1_render_state_html_a309141a8d492ce60a57a1629cdfaf928"><div class="ttname"><a href="../../df/d53/classregen_1_1_render_state.html#a309141a8d492ce60a57a1629cdfaf928">regen::RenderState::get</a></div><div class="ttdeci">static RenderState * get()</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00115">render-state.cpp:115</a></div></div>
 <div class="ttc" id="aclassregen_1_1_scene_html_a18e4ad6c79f69102b0c68009810f7b48"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a18e4ad6c79f69102b0c68009810f7b48">regen::Scene::globalUniforms_</a></div><div class="ttdeci">ref_ptr&lt; UBO &gt; globalUniforms_</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/scene_8h_source.html#l00391">scene.h:391</a></div></div>
 <div class="ttc" id="aclassregen_1_1_scene_html_adb312a952aa9ab0918d54cdf665f9f39"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#adb312a952aa9ab0918d54cdf665f9f39">regen::Scene::setupShaderLoading</a></div><div class="ttdeci">void setupShaderLoading()</div><div class="ttdef"><b>Definition</b> <a href="../../da/d33/scene_8cpp_source.html#l00093">scene.cpp:93</a></div></div>
-<div class="ttc" id="agl-util_8h_html_a5f979e45877702b772812ef4ac296682"><div class="ttname"><a href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a></div><div class="ttdeci">#define GL_ERROR_LOG()</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/gl-util_8h_source.html#l00025">gl-util.h:25</a></div></div>
+<div class="ttc" id="agl-util_8h_html_a5f979e45877702b772812ef4ac296682"><div class="ttname"><a href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a></div><div class="ttdeci">#define GL_ERROR_LOG()</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/gl-util_8h_source.html#l00014">gl-util.h:14</a></div></div>
 <div class="ttc" id="alogging_8h_html_a30354cfa09ee641060424fe510c4e80b"><div class="ttname"><a href="../../d5/d77/logging_8h.html#a30354cfa09ee641060424fe510c4e80b">REGEN_ERROR</a></div><div class="ttdeci">#define REGEN_ERROR(...)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d77/logging_8h_source.html#l00048">logging.h:48</a></div></div>
 <div class="ttc" id="alogging_8h_html_a3b2cac6b5e752093146b23ac76f20e19"><div class="ttname"><a href="../../d5/d77/logging_8h.html#a3b2cac6b5e752093146b23ac76f20e19">REGEN_INFO</a></div><div class="ttdeci">#define REGEN_INFO(...)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d77/logging_8h_source.html#l00040">logging.h:40</a></div></div>
 <div class="ttc" id="alogging_8h_html_af37c3663d880a041eac6d9038b2dbe0e"><div class="ttname"><a href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a></div><div class="ttdeci">#define REGEN_DEBUG(...)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d77/logging_8h_source.html#l00056">logging.h:56</a></div></div>
-<div class="ttc" id="anamespaceregen_html_a2f5078b1dc76e890017130b6fe96cf26"><div class="ttname"><a href="../../d1/dc3/namespaceregen.html#a2f5078b1dc76e890017130b6fe96cf26">regen::glParam&lt; Vec3i &gt;</a></div><div class="ttdeci">Vec3i glParam&lt; Vec3i &gt;(GLenum param)</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0d/gl-param_8cpp_source.html#l00084">gl-param.cpp:84</a></div></div>
-<div class="ttc" id="anamespaceregen_html_a5ce9b1776ab5751a2becac85cd2f7bda"><div class="ttname"><a href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">regen::glParam&lt; int &gt;</a></div><div class="ttdeci">int glParam&lt; int &gt;(GLenum param)</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0d/gl-param_8cpp_source.html#l00043">gl-param.cpp:43</a></div></div>
-<div class="ttc" id="arender-state_8cpp_html_a57d7c1e85e80e063fa68239a10651bf4"><div class="ttname"><a href="../../de/deb/render-state_8cpp.html#a57d7c1e85e80e063fa68239a10651bf4">GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS</a></div><div class="ttdeci">#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00038">render-state.cpp:38</a></div></div>
-<div class="ttc" id="arender-state_8cpp_html_abcbfc26ac438feb5239268877e69b53d"><div class="ttname"><a href="../../de/deb/render-state_8cpp.html#abcbfc26ac438feb5239268877e69b53d">GL_DEBUG_OUTPUT_SYNCHRONOUS</a></div><div class="ttdeci">#define GL_DEBUG_OUTPUT_SYNCHRONOUS</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00011">render-state.cpp:11</a></div></div>
-<div class="ttc" id="arender-state_8cpp_html_af3327e38d5a4ad77f40dada510db5bdb"><div class="ttname"><a href="../../de/deb/render-state_8cpp.html#af3327e38d5a4ad77f40dada510db5bdb">GL_DEBUG_OUTPUT</a></div><div class="ttdeci">#define GL_DEBUG_OUTPUT</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00008">render-state.cpp:8</a></div></div>
+<div class="ttc" id="anamespaceregen_html_a2f5078b1dc76e890017130b6fe96cf26"><div class="ttname"><a href="../../d1/dc3/namespaceregen.html#a2f5078b1dc76e890017130b6fe96cf26">regen::glParam&lt; Vec3i &gt;</a></div><div class="ttdeci">Vec3i glParam&lt; Vec3i &gt;(GLenum param)</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0d/gl-param_8cpp_source.html#l00086">gl-param.cpp:86</a></div></div>
+<div class="ttc" id="anamespaceregen_html_a5ce9b1776ab5751a2becac85cd2f7bda"><div class="ttname"><a href="../../d1/dc3/namespaceregen.html#a5ce9b1776ab5751a2becac85cd2f7bda">regen::glParam&lt; int &gt;</a></div><div class="ttdeci">int glParam&lt; int &gt;(GLenum param)</div><div class="ttdef"><b>Definition</b> <a href="../../da/d0d/gl-param_8cpp_source.html#l00045">gl-param.cpp:45</a></div></div>
+<div class="ttc" id="arender-state_8cpp_html_a57d7c1e85e80e063fa68239a10651bf4"><div class="ttname"><a href="../../de/deb/render-state_8cpp.html#a57d7c1e85e80e063fa68239a10651bf4">GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS</a></div><div class="ttdeci">#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00040">render-state.cpp:40</a></div></div>
+<div class="ttc" id="arender-state_8cpp_html_abcbfc26ac438feb5239268877e69b53d"><div class="ttname"><a href="../../de/deb/render-state_8cpp.html#abcbfc26ac438feb5239268877e69b53d">GL_DEBUG_OUTPUT_SYNCHRONOUS</a></div><div class="ttdeci">#define GL_DEBUG_OUTPUT_SYNCHRONOUS</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00013">render-state.cpp:13</a></div></div>
+<div class="ttc" id="arender-state_8cpp_html_af3327e38d5a4ad77f40dada510db5bdb"><div class="ttname"><a href="../../de/deb/render-state_8cpp.html#af3327e38d5a4ad77f40dada510db5bdb">GL_DEBUG_OUTPUT</a></div><div class="ttdeci">#define GL_DEBUG_OUTPUT</div><div class="ttdef"><b>Definition</b> <a href="../../de/deb/render-state_8cpp_source.html#l00010">render-state.cpp:10</a></div></div>
 <div class="ttc" id="astructregen_1_1_buffer_update_flags_html_a27801a6c8d5317c185ebacc5f9b8930b"><div class="ttname"><a href="../../d5/dcb/structregen_1_1_buffer_update_flags.html#a27801a6c8d5317c185ebacc5f9b8930b">regen::BufferUpdateFlags::FULL_PER_FRAME</a></div><div class="ttdeci">static const BufferUpdateFlags FULL_PER_FRAME</div><div class="ttdef"><b>Definition</b> <a href="../../d0/da9/buffer-enums_8h_source.html#l00122">buffer-enums.h:122</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -1169,16 +1169,16 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Initialize the scene after the render tree is loaded. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00456">456</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  456</span>                            {</div>
-<div class="line"><span class="lineno">  457</span>    <span class="comment">// traverse the scene and add buffer objects to staging arenas.</span></div>
-<div class="line"><span class="lineno">  458</span>    <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#a402ed2220c6eb27290ee0c26faea4e33">updateBOs</a>();</div>
-<div class="line"><span class="lineno">  459</span>    <span class="comment">// adopt buffer ranges for staging</span></div>
-<div class="line"><span class="lineno">  460</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#a5fabd2c2e78f1a843248f55ad80bf87d">updateBuffers</a>();</div>
-<div class="line"><span class="lineno">  461</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1">updateData</a>();</div>
-<div class="line"><span class="lineno">  462</span>}</div>
-<div class="ttc" id="aclassregen_1_1_scene_html_a402ed2220c6eb27290ee0c26faea4e33"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a402ed2220c6eb27290ee0c26faea4e33">regen::Scene::updateBOs</a></div><div class="ttdeci">void updateBOs()</div><div class="ttdef"><b>Definition</b> <a href="../../da/d33/scene_8cpp_source.html#l00402">scene.cpp:402</a></div></div>
-<div class="ttc" id="aclassregen_1_1_staging_system_html_a5fabd2c2e78f1a843248f55ad80bf87d"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#a5fabd2c2e78f1a843248f55ad80bf87d">regen::StagingSystem::updateBuffers</a></div><div class="ttdeci">void updateBuffers()</div><div class="ttdoc">Update the staging buffers for all arenas.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d79/staging-system_8cpp_source.html#l00362">staging-system.cpp:362</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00460">460</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  460</span>                            {</div>
+<div class="line"><span class="lineno">  461</span>    <span class="comment">// traverse the scene and add buffer objects to staging arenas.</span></div>
+<div class="line"><span class="lineno">  462</span>    <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#a402ed2220c6eb27290ee0c26faea4e33">updateBOs</a>();</div>
+<div class="line"><span class="lineno">  463</span>    <span class="comment">// adopt buffer ranges for staging</span></div>
+<div class="line"><span class="lineno">  464</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#a5fabd2c2e78f1a843248f55ad80bf87d">updateBuffers</a>();</div>
+<div class="line"><span class="lineno">  465</span>    <a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#acabdfaa8f9e5f0127e1f21d4b7d54386">StagingSystem::instance</a>().<a class="code hl_function" href="../../da/d2b/classregen_1_1_staging_system.html#a8e4f405ad3770e1d9ffbc6520b0950e1">updateData</a>();</div>
+<div class="line"><span class="lineno">  466</span>}</div>
+<div class="ttc" id="aclassregen_1_1_scene_html_a402ed2220c6eb27290ee0c26faea4e33"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a402ed2220c6eb27290ee0c26faea4e33">regen::Scene::updateBOs</a></div><div class="ttdeci">void updateBOs()</div><div class="ttdef"><b>Definition</b> <a href="../../da/d33/scene_8cpp_source.html#l00406">scene.cpp:406</a></div></div>
+<div class="ttc" id="aclassregen_1_1_staging_system_html_a5fabd2c2e78f1a843248f55ad80bf87d"><div class="ttname"><a href="../../da/d2b/classregen_1_1_staging_system.html#a5fabd2c2e78f1a843248f55ad80bf87d">regen::StagingSystem::updateBuffers</a></div><div class="ttdeci">void updateBuffers()</div><div class="ttdoc">Update the staging buffers for all arenas.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d79/staging-system_8cpp_source.html#l00379">staging-system.cpp:379</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1614,19 +1614,19 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00353">353</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  353</span>                                                        {</div>
-<div class="line"><span class="lineno">  354</span>    <span class="keywordtype">int</span> nextId = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.size();</div>
-<div class="line"><span class="lineno">  355</span>    <span class="keyword">auto</span> needId = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.find(node-&gt;name());</div>
-<div class="line"><span class="lineno">  356</span>    <span class="keywordflow">if</span> (needId != <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.end()) {</div>
-<div class="line"><span class="lineno">  357</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Named object with name &#39;&quot;</span> &lt;&lt; node-&gt;name() &lt;&lt; <span class="stringliteral">&quot;&#39; already exists.&quot;</span>);</div>
-<div class="line"><span class="lineno">  358</span>        <span class="keywordflow">return</span> needId-&gt;second.id;</div>
-<div class="line"><span class="lineno">  359</span>    }</div>
-<div class="line"><span class="lineno">  360</span> </div>
-<div class="line"><span class="lineno">  361</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.emplace(node-&gt;name(), <a class="code hl_struct" href="../../da/d64/structregen_1_1_named_object.html">NamedObject</a>{nextId, node});</div>
-<div class="line"><span class="lineno">  362</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4673a2afd488316b4001e160cca57dff">idToObject_</a>.emplace(nextId, node);</div>
-<div class="line"><span class="lineno">  363</span>    <span class="keywordflow">return</span> nextId;</div>
-<div class="line"><span class="lineno">  364</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00357">357</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  357</span>                                                        {</div>
+<div class="line"><span class="lineno">  358</span>    <span class="keywordtype">int</span> nextId = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.size();</div>
+<div class="line"><span class="lineno">  359</span>    <span class="keyword">auto</span> needId = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.find(node-&gt;name());</div>
+<div class="line"><span class="lineno">  360</span>    <span class="keywordflow">if</span> (needId != <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.end()) {</div>
+<div class="line"><span class="lineno">  361</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Named object with name &#39;&quot;</span> &lt;&lt; node-&gt;name() &lt;&lt; <span class="stringliteral">&quot;&#39; already exists.&quot;</span>);</div>
+<div class="line"><span class="lineno">  362</span>        <span class="keywordflow">return</span> needId-&gt;second.id;</div>
+<div class="line"><span class="lineno">  363</span>    }</div>
+<div class="line"><span class="lineno">  364</span> </div>
+<div class="line"><span class="lineno">  365</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a75468d5dfe41ce76803fa07ecd83ab0b">namedToObject_</a>.emplace(node-&gt;name(), <a class="code hl_struct" href="../../da/d64/structregen_1_1_named_object.html">NamedObject</a>{nextId, node});</div>
+<div class="line"><span class="lineno">  366</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4673a2afd488316b4001e160cca57dff">idToObject_</a>.emplace(nextId, node);</div>
+<div class="line"><span class="lineno">  367</span>    <span class="keywordflow">return</span> nextId;</div>
+<div class="line"><span class="lineno">  368</span>}</div>
 <div class="ttc" id="astructregen_1_1_named_object_html"><div class="ttname"><a href="../../da/d64/structregen_1_1_named_object.html">regen::NamedObject</a></div><div class="ttdef"><b>Definition</b> <a href="../../d7/dff/state-node_8h_source.html#l00178">state-node.h:178</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -1664,10 +1664,10 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00340">340</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  340</span>                                                                                                   {</div>
-<div class="line"><span class="lineno">  341</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">interactions_</a>.emplace(name, interaction);</div>
-<div class="line"><span class="lineno">  342</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00344">344</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  344</span>                                                                                                   {</div>
+<div class="line"><span class="lineno">  345</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a62540f986ac5893f653a99f929d00e34">interactions_</a>.emplace(name, interaction);</div>
+<div class="line"><span class="lineno">  346</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1724,11 +1724,16 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00206">206</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">  206</span>                                      {</div>
-<div class="line"><span class="lineno">  207</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a28070511cccbd89de3cdf1634d7064dc">screen_</a>-&gt;setViewport(size);</div>
-<div class="line"><span class="lineno">  208</span>    <a class="code hl_function" href="../../d4/dc6/classregen_1_1_event_object.html#a844e6935cb9287351e3fce1c7a28b195">queueEmit</a>(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a7a230bd73850be5b1a8b7d801f15ab61">RESIZE_EVENT</a>);</div>
-<div class="line"><span class="lineno">  209</span>    <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#ac4c09ba3034c1bcf3915f833296e931a">updateMousePosition</a>();</div>
-<div class="line"><span class="lineno">  210</span>}</div>
+<div class="line"><span class="lineno">  207</span>    <span class="comment">// make sure size is at least 2x2, non-negative and divisible by 2</span></div>
+<div class="line"><span class="lineno">  208</span>    <span class="keyword">const</span> <a class="code hl_struct" href="../../d1/dc3/structregen_1_1_vec2.html">Vec2i</a> safeSize(</div>
+<div class="line"><span class="lineno">  209</span>            std::max(2, size.<a class="code hl_variable" href="../../d1/dc3/structregen_1_1_vec2.html#a1ead6d63d787672db40cbc17fb5bf1e8">x</a> + size.<a class="code hl_variable" href="../../d1/dc3/structregen_1_1_vec2.html#a1ead6d63d787672db40cbc17fb5bf1e8">x</a> % 2),</div>
+<div class="line"><span class="lineno">  210</span>            std::max(2, size.<a class="code hl_variable" href="../../d1/dc3/structregen_1_1_vec2.html#a0846d3aab7a152b70d8b81971559a544">y</a> + size.<a class="code hl_variable" href="../../d1/dc3/structregen_1_1_vec2.html#a0846d3aab7a152b70d8b81971559a544">y</a> % 2));</div>
+<div class="line"><span class="lineno">  211</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a28070511cccbd89de3cdf1634d7064dc">screen_</a>-&gt;setViewport(safeSize);</div>
+<div class="line"><span class="lineno">  212</span>    <a class="code hl_function" href="../../d4/dc6/classregen_1_1_event_object.html#a844e6935cb9287351e3fce1c7a28b195">queueEmit</a>(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a7a230bd73850be5b1a8b7d801f15ab61">RESIZE_EVENT</a>);</div>
+<div class="line"><span class="lineno">  213</span>    <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#ac4c09ba3034c1bcf3915f833296e931a">updateMousePosition</a>();</div>
+<div class="line"><span class="lineno">  214</span>}</div>
 <div class="ttc" id="aclassregen_1_1_scene_html_a7a230bd73850be5b1a8b7d801f15ab61"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a7a230bd73850be5b1a8b7d801f15ab61">regen::Scene::RESIZE_EVENT</a></div><div class="ttdeci">static uint32_t RESIZE_EVENT</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/scene_8h_source.html#l00099">scene.h:99</a></div></div>
+<div class="ttc" id="astructregen_1_1_vec2_html"><div class="ttname"><a href="../../d1/dc3/structregen_1_1_vec2.html">regen::Vec2</a></div><div class="ttdoc">A 2D vector.</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l00025">vector.h:25</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1794,12 +1799,12 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00366">366</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  366</span>                                                                                              {</div>
-<div class="line"><span class="lineno">  367</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a5b2a16e4804fb2f6f8b870130c45b360">hoveredObject_</a> = <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#aab20e19a6183321551fba95b696db5e8">hoveredObject</a>;</div>
-<div class="line"><span class="lineno">  368</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a7815b05851cb166a4094b2695995241f">hoveredObjectPickData_</a> = *pickData;</div>
-<div class="line"><span class="lineno">  369</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a883601fb0264cc6817ba5af4b0a435e8">mouseDepth_</a>-&gt;setVertex(0, pickData-&gt;<a class="code hl_variable" href="../../d9/d6c/structregen_1_1_pick_data.html#af6d5d76a4f9d78f29896329b83aa7221">depth</a>);</div>
-<div class="line"><span class="lineno">  370</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00370">370</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  370</span>                                                                                              {</div>
+<div class="line"><span class="lineno">  371</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a5b2a16e4804fb2f6f8b870130c45b360">hoveredObject_</a> = <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#aab20e19a6183321551fba95b696db5e8">hoveredObject</a>;</div>
+<div class="line"><span class="lineno">  372</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a7815b05851cb166a4094b2695995241f">hoveredObjectPickData_</a> = *pickData;</div>
+<div class="line"><span class="lineno">  373</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a883601fb0264cc6817ba5af4b0a435e8">mouseDepth_</a>-&gt;setVertex(0, pickData-&gt;<a class="code hl_variable" href="../../d9/d6c/structregen_1_1_pick_data.html#af6d5d76a4f9d78f29896329b83aa7221">depth</a>);</div>
+<div class="line"><span class="lineno">  374</span>}</div>
 <div class="ttc" id="aclassregen_1_1_scene_html_aab20e19a6183321551fba95b696db5e8"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#aab20e19a6183321551fba95b696db5e8">regen::Scene::hoveredObject</a></div><div class="ttdeci">auto &amp; hoveredObject() const</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/scene_8h_source.html#l00283">scene.h:283</a></div></div>
 <div class="ttc" id="astructregen_1_1_pick_data_html_af6d5d76a4f9d78f29896329b83aa7221"><div class="ttname"><a href="../../d9/d6c/structregen_1_1_pick_data.html#af6d5d76a4f9d78f29896329b83aa7221">regen::PickData::depth</a></div><div class="ttdeci">float depth</div><div class="ttdef"><b>Definition</b> <a href="../../dd/d92/pick-data_8h_source.html#l00011">pick-data.h:11</a></div></div>
 </div><!-- fragment -->
@@ -1828,15 +1833,15 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00318">318</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  318</span>                    {</div>
-<div class="line"><span class="lineno">  319</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a> = boost::posix_time::ptime(</div>
-<div class="line"><span class="lineno">  320</span>            boost::posix_time::microsec_clock::local_time());</div>
-<div class="line"><span class="lineno">  321</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#aef06e1033369261519f4df7eba63154b">in</a>-&gt;setVertex(0,</div>
-<div class="line"><span class="lineno">  322</span>            <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a>.time_of_day().total_microseconds() / 1e+6);</div>
-<div class="line"><span class="lineno">  323</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#aec707db1244f0910065a27f2cf39639e">lastMotionTime_</a> = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a>;</div>
-<div class="line"><span class="lineno">  324</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a2ba694573c09a541afd3dafa9cab68ff">isTimeInitialized_</a> = <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">  325</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00322">322</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  322</span>                    {</div>
+<div class="line"><span class="lineno">  323</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a> = boost::posix_time::ptime(</div>
+<div class="line"><span class="lineno">  324</span>            boost::posix_time::microsec_clock::local_time());</div>
+<div class="line"><span class="lineno">  325</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#aef06e1033369261519f4df7eba63154b">in</a>-&gt;setVertex(0,</div>
+<div class="line"><span class="lineno">  326</span>            <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a>.time_of_day().total_microseconds() / 1e+6);</div>
+<div class="line"><span class="lineno">  327</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#aec707db1244f0910065a27f2cf39639e">lastMotionTime_</a> = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a>;</div>
+<div class="line"><span class="lineno">  328</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a2ba694573c09a541afd3dafa9cab68ff">isTimeInitialized_</a> = <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">  329</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2026,11 +2031,11 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the world time. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00392">392</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  392</span>                                        {</div>
-<div class="line"><span class="lineno">  393</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#a2d2a8a66339bacd528f4dcd61afc7914">p_time</a> = boost::posix_time::from_time_t(t);</div>
-<div class="line"><span class="lineno">  394</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aa2caf5e6bd87e24c790b23eaae88fa88">in</a>-&gt;setUniformData((<span class="keywordtype">float</span>) t);</div>
-<div class="line"><span class="lineno">  395</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00396">396</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  396</span>                                        {</div>
+<div class="line"><span class="lineno">  397</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#a2d2a8a66339bacd528f4dcd61afc7914">p_time</a> = boost::posix_time::from_time_t(t);</div>
+<div class="line"><span class="lineno">  398</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aa2caf5e6bd87e24c790b23eaae88fa88">in</a>-&gt;setUniformData((<span class="keywordtype">float</span>) t);</div>
+<div class="line"><span class="lineno">  399</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2051,11 +2056,11 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the world time. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00397">397</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  397</span>                                            {</div>
-<div class="line"><span class="lineno">  398</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aa2caf5e6bd87e24c790b23eaae88fa88">in</a>-&gt;setUniformData(timeInSeconds);</div>
-<div class="line"><span class="lineno">  399</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#a2d2a8a66339bacd528f4dcd61afc7914">p_time</a> = boost::posix_time::from_time_t((time_t) timeInSeconds);</div>
-<div class="line"><span class="lineno">  400</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00401">401</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  401</span>                                            {</div>
+<div class="line"><span class="lineno">  402</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aa2caf5e6bd87e24c790b23eaae88fa88">in</a>-&gt;setUniformData(timeInSeconds);</div>
+<div class="line"><span class="lineno">  403</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#a2d2a8a66339bacd528f4dcd61afc7914">p_time</a> = boost::posix_time::from_time_t((time_t) timeInSeconds);</div>
+<div class="line"><span class="lineno">  404</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2081,10 +2086,10 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00376">376</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  376</span>                                                 {</div>
-<div class="line"><span class="lineno">  377</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aaeb85ee91291056d152c98ec0d6387f6">scale</a> = scale;</div>
-<div class="line"><span class="lineno">  378</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00380">380</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  380</span>                                                 {</div>
+<div class="line"><span class="lineno">  381</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aaeb85ee91291056d152c98ec0d6387f6">scale</a> = scale;</div>
+<div class="line"><span class="lineno">  382</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2133,10 +2138,10 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Unsets the hovered object. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00372">372</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  372</span>                               {</div>
-<div class="line"><span class="lineno">  373</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a5b2a16e4804fb2f6f8b870130c45b360">hoveredObject_</a> = {};</div>
-<div class="line"><span class="lineno">  374</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00376">376</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  376</span>                               {</div>
+<div class="line"><span class="lineno">  377</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a5b2a16e4804fb2f6f8b870130c45b360">hoveredObject_</a> = {};</div>
+<div class="line"><span class="lineno">  378</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2163,60 +2168,60 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00402">402</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  402</span>                      {</div>
-<div class="line"><span class="lineno">  403</span>    std::stack&lt;const StateNode*&gt; nodeQueue;</div>
-<div class="line"><span class="lineno">  404</span>    std::stack&lt;const State*&gt; stateQueue;</div>
-<div class="line"><span class="lineno">  405</span>    std::set&lt;const ShaderInput*&gt; visited;</div>
-<div class="line"><span class="lineno">  406</span>    nodeQueue.push(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>.get());</div>
-<div class="line"><span class="lineno">  407</span> </div>
-<div class="line"><span class="lineno">  408</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;anim : <a class="code hl_class" href="../../d7/d32/classregen_1_1_animation_manager.html">AnimationManager</a>::get().gpuAnimations()) {</div>
-<div class="line"><span class="lineno">  409</span>        <span class="keywordflow">if</span>(anim-&gt;animationState().get() != <span class="keyword">nullptr</span>)</div>
-<div class="line"><span class="lineno">  410</span>            stateQueue.push(anim-&gt;animationState().get());</div>
-<div class="line"><span class="lineno">  411</span>    }</div>
-<div class="line"><span class="lineno">  412</span> </div>
-<div class="line"><span class="lineno">  413</span>    <span class="keywordflow">while</span> (!nodeQueue.empty()) {</div>
-<div class="line"><span class="lineno">  414</span>        <span class="keyword">const</span> <a class="code hl_class" href="../../d5/da0/classregen_1_1_state_node.html">StateNode</a> *node = nodeQueue.top();</div>
-<div class="line"><span class="lineno">  415</span>        nodeQueue.pop();</div>
-<div class="line"><span class="lineno">  416</span>        stateQueue.push(node-&gt;<a class="code hl_function" href="../../d5/da0/classregen_1_1_state_node.html#a2c510ade2bd5493bde3b4d085cedb3f3">state</a>().get());</div>
-<div class="line"><span class="lineno">  417</span> </div>
-<div class="line"><span class="lineno">  418</span>        <span class="comment">// push node children to the queue</span></div>
-<div class="line"><span class="lineno">  419</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;child: node-&gt;childs()) {</div>
-<div class="line"><span class="lineno">  420</span>            nodeQueue.push(child.get());</div>
-<div class="line"><span class="lineno">  421</span>        }</div>
-<div class="line"><span class="lineno">  422</span> </div>
-<div class="line"><span class="lineno">  423</span>        <span class="comment">// process state of node</span></div>
-<div class="line"><span class="lineno">  424</span>        <span class="keywordflow">while</span> (!stateQueue.empty()) {</div>
-<div class="line"><span class="lineno">  425</span>            <span class="keyword">const</span> <a class="code hl_class" href="../../d3/d0d/classregen_1_1_state.html">State</a> *state = stateQueue.top();</div>
-<div class="line"><span class="lineno">  426</span>            stateQueue.pop();</div>
-<div class="line"><span class="lineno">  427</span> </div>
-<div class="line"><span class="lineno">  428</span>            <span class="keyword">const</span> <span class="keyword">auto</span> *lp = <span class="keyword">dynamic_cast&lt;</span><span class="keyword">const </span><a class="code hl_class" href="../../da/d7b/classregen_1_1_light_pass.html">LightPass</a>*<span class="keyword">&gt;</span>(state);</div>
-<div class="line"><span class="lineno">  429</span>            <span class="keywordflow">if</span> (lp) {</div>
-<div class="line"><span class="lineno">  430</span>                <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;light: lp-&gt;lights()) {</div>
-<div class="line"><span class="lineno">  431</span>                    stateQueue.push(light.light.get());</div>
-<div class="line"><span class="lineno">  432</span>                }</div>
-<div class="line"><span class="lineno">  433</span>            }</div>
-<div class="line"><span class="lineno">  434</span> </div>
-<div class="line"><span class="lineno">  435</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;ni: state-&gt;inputs()) {</div>
-<div class="line"><span class="lineno">  436</span>                <span class="keyword">auto</span> input = ni.in_;</div>
-<div class="line"><span class="lineno">  437</span>                <span class="keywordflow">if</span> (visited.find(input.get()) != visited.end()) {</div>
-<div class="line"><span class="lineno">  438</span>                    <span class="keywordflow">continue</span>; <span class="comment">// already processed</span></div>
-<div class="line"><span class="lineno">  439</span>                }</div>
-<div class="line"><span class="lineno">  440</span>                visited.insert(input.get());</div>
-<div class="line"><span class="lineno">  441</span> </div>
-<div class="line"><span class="lineno">  442</span>                <a class="code hl_class" href="../../d2/d62/classregen_1_1ref__ptr.html">ref_ptr&lt;BufferBlock&gt;</a> bufferBlock = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a6f8262da7cfcc72e62f2d1032c4d4086">ref_ptr&lt;BufferBlock&gt;::dynamicCast</a>(input);</div>
-<div class="line"><span class="lineno">  443</span>                <span class="keywordflow">if</span> (bufferBlock.<a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a0fdbbfa2e08f5572c0daa9228c8c1c5a">get</a>() &amp;&amp; bufferBlock-&gt;stagingUpdateHint().frequency &lt;= <a class="code hl_enumvalue" href="../../d1/dc3/namespaceregen.html#aba11468fbc9d8cac260c6bed3bc3dd09a7551a54f0f09e2abed455a7b17cbbc18">BUFFER_UPDATE_PER_FRAME</a>) {</div>
-<div class="line"><span class="lineno">  444</span>                    bufferBlock-&gt;update();</div>
-<div class="line"><span class="lineno">  445</span>                }</div>
-<div class="line"><span class="lineno">  446</span>            }</div>
-<div class="line"><span class="lineno">  447</span> </div>
-<div class="line"><span class="lineno">  448</span>            <span class="keyword">auto</span> joined = state-&gt;<a class="code hl_function" href="../../d3/d0d/classregen_1_1_state.html#a86231eacf872311d7f80b158c1466585">joined</a>();</div>
-<div class="line"><span class="lineno">  449</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;x: *joined.get()) {</div>
-<div class="line"><span class="lineno">  450</span>                stateQueue.push(x.get());</div>
-<div class="line"><span class="lineno">  451</span>            }</div>
-<div class="line"><span class="lineno">  452</span>        }</div>
-<div class="line"><span class="lineno">  453</span>    }</div>
-<div class="line"><span class="lineno">  454</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00406">406</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  406</span>                      {</div>
+<div class="line"><span class="lineno">  407</span>    std::stack&lt;const StateNode*&gt; nodeQueue;</div>
+<div class="line"><span class="lineno">  408</span>    std::stack&lt;const State*&gt; stateQueue;</div>
+<div class="line"><span class="lineno">  409</span>    std::set&lt;const ShaderInput*&gt; visited;</div>
+<div class="line"><span class="lineno">  410</span>    nodeQueue.push(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>.get());</div>
+<div class="line"><span class="lineno">  411</span> </div>
+<div class="line"><span class="lineno">  412</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;anim : <a class="code hl_class" href="../../d7/d32/classregen_1_1_animation_manager.html">AnimationManager</a>::get().gpuAnimations()) {</div>
+<div class="line"><span class="lineno">  413</span>        <span class="keywordflow">if</span>(anim-&gt;animationState().get() != <span class="keyword">nullptr</span>)</div>
+<div class="line"><span class="lineno">  414</span>            stateQueue.push(anim-&gt;animationState().get());</div>
+<div class="line"><span class="lineno">  415</span>    }</div>
+<div class="line"><span class="lineno">  416</span> </div>
+<div class="line"><span class="lineno">  417</span>    <span class="keywordflow">while</span> (!nodeQueue.empty()) {</div>
+<div class="line"><span class="lineno">  418</span>        <span class="keyword">const</span> <a class="code hl_class" href="../../d5/da0/classregen_1_1_state_node.html">StateNode</a> *node = nodeQueue.top();</div>
+<div class="line"><span class="lineno">  419</span>        nodeQueue.pop();</div>
+<div class="line"><span class="lineno">  420</span>        stateQueue.push(node-&gt;<a class="code hl_function" href="../../d5/da0/classregen_1_1_state_node.html#a2c510ade2bd5493bde3b4d085cedb3f3">state</a>().get());</div>
+<div class="line"><span class="lineno">  421</span> </div>
+<div class="line"><span class="lineno">  422</span>        <span class="comment">// push node children to the queue</span></div>
+<div class="line"><span class="lineno">  423</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;child: node-&gt;childs()) {</div>
+<div class="line"><span class="lineno">  424</span>            nodeQueue.push(child.get());</div>
+<div class="line"><span class="lineno">  425</span>        }</div>
+<div class="line"><span class="lineno">  426</span> </div>
+<div class="line"><span class="lineno">  427</span>        <span class="comment">// process state of node</span></div>
+<div class="line"><span class="lineno">  428</span>        <span class="keywordflow">while</span> (!stateQueue.empty()) {</div>
+<div class="line"><span class="lineno">  429</span>            <span class="keyword">const</span> <a class="code hl_class" href="../../d3/d0d/classregen_1_1_state.html">State</a> *state = stateQueue.top();</div>
+<div class="line"><span class="lineno">  430</span>            stateQueue.pop();</div>
+<div class="line"><span class="lineno">  431</span> </div>
+<div class="line"><span class="lineno">  432</span>            <span class="keyword">const</span> <span class="keyword">auto</span> *lp = <span class="keyword">dynamic_cast&lt;</span><span class="keyword">const </span><a class="code hl_class" href="../../da/d7b/classregen_1_1_light_pass.html">LightPass</a>*<span class="keyword">&gt;</span>(state);</div>
+<div class="line"><span class="lineno">  433</span>            <span class="keywordflow">if</span> (lp) {</div>
+<div class="line"><span class="lineno">  434</span>                <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;light: lp-&gt;lights()) {</div>
+<div class="line"><span class="lineno">  435</span>                    stateQueue.push(light.light.get());</div>
+<div class="line"><span class="lineno">  436</span>                }</div>
+<div class="line"><span class="lineno">  437</span>            }</div>
+<div class="line"><span class="lineno">  438</span> </div>
+<div class="line"><span class="lineno">  439</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;ni: state-&gt;inputs()) {</div>
+<div class="line"><span class="lineno">  440</span>                <span class="keyword">auto</span> input = ni.in_;</div>
+<div class="line"><span class="lineno">  441</span>                <span class="keywordflow">if</span> (visited.find(input.get()) != visited.end()) {</div>
+<div class="line"><span class="lineno">  442</span>                    <span class="keywordflow">continue</span>; <span class="comment">// already processed</span></div>
+<div class="line"><span class="lineno">  443</span>                }</div>
+<div class="line"><span class="lineno">  444</span>                visited.insert(input.get());</div>
+<div class="line"><span class="lineno">  445</span> </div>
+<div class="line"><span class="lineno">  446</span>                <a class="code hl_class" href="../../d2/d62/classregen_1_1ref__ptr.html">ref_ptr&lt;BufferBlock&gt;</a> bufferBlock = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a6f8262da7cfcc72e62f2d1032c4d4086">ref_ptr&lt;BufferBlock&gt;::dynamicCast</a>(input);</div>
+<div class="line"><span class="lineno">  447</span>                <span class="keywordflow">if</span> (bufferBlock.<a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a0fdbbfa2e08f5572c0daa9228c8c1c5a">get</a>() &amp;&amp; bufferBlock-&gt;stagingUpdateHint().frequency &lt;= <a class="code hl_enumvalue" href="../../d1/dc3/namespaceregen.html#aba11468fbc9d8cac260c6bed3bc3dd09a7551a54f0f09e2abed455a7b17cbbc18">BUFFER_UPDATE_PER_FRAME</a>) {</div>
+<div class="line"><span class="lineno">  448</span>                    bufferBlock-&gt;update();</div>
+<div class="line"><span class="lineno">  449</span>                }</div>
+<div class="line"><span class="lineno">  450</span>            }</div>
+<div class="line"><span class="lineno">  451</span> </div>
+<div class="line"><span class="lineno">  452</span>            <span class="keyword">auto</span> joined = state-&gt;<a class="code hl_function" href="../../d3/d0d/classregen_1_1_state.html#a86231eacf872311d7f80b158c1466585">joined</a>();</div>
+<div class="line"><span class="lineno">  453</span>            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;x: *joined.get()) {</div>
+<div class="line"><span class="lineno">  454</span>                stateQueue.push(x.get());</div>
+<div class="line"><span class="lineno">  455</span>            }</div>
+<div class="line"><span class="lineno">  456</span>        }</div>
+<div class="line"><span class="lineno">  457</span>    }</div>
+<div class="line"><span class="lineno">  458</span>}</div>
 <div class="ttc" id="aclassregen_1_1_animation_manager_html"><div class="ttname"><a href="../../d7/d32/classregen_1_1_animation_manager.html">regen::AnimationManager</a></div><div class="ttdoc">Manages multiple glAnimations in a separate thread.</div><div class="ttdef"><b>Definition</b> <a href="../../de/d94/animation-manager_8h_source.html#l00012">animation-manager.h:12</a></div></div>
 <div class="ttc" id="aclassregen_1_1_light_pass_html"><div class="ttname"><a href="../../da/d7b/classregen_1_1_light_pass.html">regen::LightPass</a></div><div class="ttdoc">Deferred shading pass.</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3e/light-pass_8h_source.html#l00013">light-pass.h:13</a></div></div>
 <div class="ttc" id="aclassregen_1_1_state_html"><div class="ttname"><a href="../../d3/d0d/classregen_1_1_state.html">regen::State</a></div><div class="ttdoc">Base class for states.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d3b/state_8h_source.html#l00027">state.h:27</a></div></div>
@@ -2245,14 +2250,14 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Used to advance the GL state. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00471">471</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  471</span>                     {</div>
-<div class="line"><span class="lineno">  472</span>    <span class="comment">// Note: make sure to bind to local variable here. When using</span></div>
-<div class="line"><span class="lineno">  473</span>    <span class="comment">// `timeDelta_-&gt;getVertex(0).r` as argument, then maybe the lock is not lifted</span></div>
-<div class="line"><span class="lineno">  474</span>    <span class="comment">// before postRender starts blocking until scene loading is done.</span></div>
-<div class="line"><span class="lineno">  475</span>    <span class="keywordtype">float</span> dt_ms = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>-&gt;getVertex(0).r;</div>
-<div class="line"><span class="lineno">  476</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;postRender(<span class="keyword">static_cast&lt;</span><span class="keywordtype">double</span><span class="keyword">&gt;</span>(dt_ms));</div>
-<div class="line"><span class="lineno">  477</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00475">475</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  475</span>                     {</div>
+<div class="line"><span class="lineno">  476</span>    <span class="comment">// Note: make sure to bind to local variable here. When using</span></div>
+<div class="line"><span class="lineno">  477</span>    <span class="comment">// `timeDelta_-&gt;getVertex(0).r` as argument, then maybe the lock is not lifted</span></div>
+<div class="line"><span class="lineno">  478</span>    <span class="comment">// before postRender starts blocking until scene loading is done.</span></div>
+<div class="line"><span class="lineno">  479</span>    <span class="keywordtype">float</span> dt_ms = <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>-&gt;getVertex(0).r;</div>
+<div class="line"><span class="lineno">  480</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a4ca5613786745ba2bf4977445ba08f98">renderTree_</a>-&gt;postRender(<span class="keyword">static_cast&lt;</span><span class="keywordtype">double</span><span class="keyword">&gt;</span>(dt_ms));</div>
+<div class="line"><span class="lineno">  481</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2308,19 +2313,19 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Updates the time. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00380">380</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  380</span>                       {</div>
-<div class="line"><span class="lineno">  381</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a2ba694573c09a541afd3dafa9cab68ff">isTimeInitialized_</a>) {</div>
-<div class="line"><span class="lineno">  382</span>        <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#a0f4e6de099dd777001f0830eb18f046c">setTime</a>();</div>
-<div class="line"><span class="lineno">  383</span>    }</div>
-<div class="line"><span class="lineno">  384</span>    boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());</div>
-<div class="line"><span class="lineno">  385</span>    <span class="keyword">auto</span> dt = (t - <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a>).total_microseconds();</div>
-<div class="line"><span class="lineno">  386</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>-&gt;setVertex(0, ((<span class="keywordtype">float</span>) dt)/1000.0f);</div>
-<div class="line"><span class="lineno">  387</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#aef06e1033369261519f4df7eba63154b">in</a>-&gt;setVertex(0, t.time_of_day().total_microseconds() / 1e+6);</div>
-<div class="line"><span class="lineno">  388</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a> = t;</div>
-<div class="line"><span class="lineno">  389</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#a2d2a8a66339bacd528f4dcd61afc7914">p_time</a> += boost::posix_time::milliseconds(<span class="keyword">static_cast&lt;</span><span class="keywordtype">long</span><span class="keyword">&gt;</span>((dt/1000.0) * <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aaeb85ee91291056d152c98ec0d6387f6">scale</a>));</div>
-<div class="line"><span class="lineno">  390</span>}</div>
-<div class="ttc" id="aclassregen_1_1_scene_html_a0f4e6de099dd777001f0830eb18f046c"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a0f4e6de099dd777001f0830eb18f046c">regen::Scene::setTime</a></div><div class="ttdeci">void setTime()</div><div class="ttdef"><b>Definition</b> <a href="../../da/d33/scene_8cpp_source.html#l00318">scene.cpp:318</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00384">384</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  384</span>                       {</div>
+<div class="line"><span class="lineno">  385</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a2ba694573c09a541afd3dafa9cab68ff">isTimeInitialized_</a>) {</div>
+<div class="line"><span class="lineno">  386</span>        <a class="code hl_function" href="../../d1/dd5/classregen_1_1_scene.html#a0f4e6de099dd777001f0830eb18f046c">setTime</a>();</div>
+<div class="line"><span class="lineno">  387</span>    }</div>
+<div class="line"><span class="lineno">  388</span>    boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());</div>
+<div class="line"><span class="lineno">  389</span>    <span class="keyword">auto</span> dt = (t - <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a>).total_microseconds();</div>
+<div class="line"><span class="lineno">  390</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ad6ae5d42d2eb661be4c63845787ec88a">timeDelta_</a>-&gt;setVertex(0, ((<span class="keywordtype">float</span>) dt)/1000.0f);</div>
+<div class="line"><span class="lineno">  391</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#aef06e1033369261519f4df7eba63154b">in</a>-&gt;setVertex(0, t.time_of_day().total_microseconds() / 1e+6);</div>
+<div class="line"><span class="lineno">  392</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a42bf631a8a8240c9c6daa4ef8a55d039">systemTime_</a>.<a class="code hl_variable" href="../../d6/dee/structregen_1_1_system_time.html#a87378528efa60152068dd33803dc7cfa">p_time</a> = t;</div>
+<div class="line"><span class="lineno">  393</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#a2d2a8a66339bacd528f4dcd61afc7914">p_time</a> += boost::posix_time::milliseconds(<span class="keyword">static_cast&lt;</span><span class="keywordtype">long</span><span class="keyword">&gt;</span>((dt/1000.0) * <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#ab9bf3c745599fef041a362bc89290409">worldTime_</a>.<a class="code hl_variable" href="../../d5/dee/structregen_1_1_world_time.html#aaeb85ee91291056d152c98ec0d6387f6">scale</a>));</div>
+<div class="line"><span class="lineno">  394</span>}</div>
+<div class="ttc" id="aclassregen_1_1_scene_html_a0f4e6de099dd777001f0830eb18f046c"><div class="ttname"><a href="../../d1/dd5/classregen_1_1_scene.html#a0f4e6de099dd777001f0830eb18f046c">regen::Scene::setTime</a></div><div class="ttdeci">void setTime()</div><div class="ttdef"><b>Definition</b> <a href="../../da/d33/scene_8cpp_source.html#l00322">scene.cpp:322</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2346,21 +2351,21 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00500">500</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  500</span>                                               {</div>
-<div class="line"><span class="lineno">  501</span>    <span class="keyword">auto</span> anim = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;FunctionCallWithGL&gt;::alloc</a>(f);</div>
-<div class="line"><span class="lineno">  502</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.emplace_back(anim);</div>
-<div class="line"><span class="lineno">  503</span>    anim-&gt;connect(<a class="code hl_variable" href="../../d1/dc3/classregen_1_1_animation.html#a0e36eb595e1b4936aa5e91fa8ddf98e5">Animation::ANIMATION_STOPPED</a>, <a class="code hl_class" href="../../d2/d62/classregen_1_1ref__ptr.html">ref_ptr&lt;LambdaEventHandler&gt;::alloc</a>(</div>
-<div class="line"><span class="lineno">  504</span>            [<span class="keyword">this</span>](<a class="code hl_class" href="../../d4/dc6/classregen_1_1_event_object.html">EventObject</a> *emitter, <a class="code hl_class" href="../../d2/da8/classregen_1_1_event_data.html">EventData</a> *data) {</div>
-<div class="line"><span class="lineno">  505</span>                <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;it: <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>) {</div>
-<div class="line"><span class="lineno">  506</span>                    <span class="keywordflow">if</span> (it.get() == emitter) {</div>
-<div class="line"><span class="lineno">  507</span>                        <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.erase(std::remove(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.begin(), <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.end(), it), <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.end());</div>
-<div class="line"><span class="lineno">  508</span>                        <span class="keywordflow">break</span>;</div>
-<div class="line"><span class="lineno">  509</span>                    }</div>
-<div class="line"><span class="lineno">  510</span>                }</div>
-<div class="line"><span class="lineno">  511</span>            }));</div>
-<div class="line"><span class="lineno">  512</span>    anim-&gt;startAnimation();</div>
-<div class="line"><span class="lineno">  513</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d33/scene_8cpp_source.html#l00504">504</a> of file <a class="el" href="../../da/d33/scene_8cpp_source.html">scene.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  504</span>                                               {</div>
+<div class="line"><span class="lineno">  505</span>    <span class="keyword">auto</span> anim = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;FunctionCallWithGL&gt;::alloc</a>(f);</div>
+<div class="line"><span class="lineno">  506</span>    <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.emplace_back(anim);</div>
+<div class="line"><span class="lineno">  507</span>    anim-&gt;connect(<a class="code hl_variable" href="../../d1/dc3/classregen_1_1_animation.html#a0e36eb595e1b4936aa5e91fa8ddf98e5">Animation::ANIMATION_STOPPED</a>, <a class="code hl_class" href="../../d2/d62/classregen_1_1ref__ptr.html">ref_ptr&lt;LambdaEventHandler&gt;::alloc</a>(</div>
+<div class="line"><span class="lineno">  508</span>            [<span class="keyword">this</span>](<a class="code hl_class" href="../../d4/dc6/classregen_1_1_event_object.html">EventObject</a> *emitter, <a class="code hl_class" href="../../d2/da8/classregen_1_1_event_data.html">EventData</a> *data) {</div>
+<div class="line"><span class="lineno">  509</span>                <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;it: <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>) {</div>
+<div class="line"><span class="lineno">  510</span>                    <span class="keywordflow">if</span> (it.get() == emitter) {</div>
+<div class="line"><span class="lineno">  511</span>                        <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.erase(std::remove(<a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.begin(), <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.end(), it), <a class="code hl_variable" href="../../d1/dd5/classregen_1_1_scene.html#a0218a010801b2d1ac37744242a63ee23">glCalls_</a>.end());</div>
+<div class="line"><span class="lineno">  512</span>                        <span class="keywordflow">break</span>;</div>
+<div class="line"><span class="lineno">  513</span>                    }</div>
+<div class="line"><span class="lineno">  514</span>                }</div>
+<div class="line"><span class="lineno">  515</span>            }));</div>
+<div class="line"><span class="lineno">  516</span>    anim-&gt;startAnimation();</div>
+<div class="line"><span class="lineno">  517</span>}</div>
 <div class="ttc" id="aclassregen_1_1_animation_html_a0e36eb595e1b4936aa5e91fa8ddf98e5"><div class="ttname"><a href="../../d1/dc3/classregen_1_1_animation.html#a0e36eb595e1b4936aa5e91fa8ddf98e5">regen::Animation::ANIMATION_STOPPED</a></div><div class="ttdeci">static uint32_t ANIMATION_STOPPED</div><div class="ttdef"><b>Definition</b> <a href="../../dd/d87/animation_8h_source.html#l00017">animation.h:17</a></div></div>
 <div class="ttc" id="aclassregen_1_1_event_data_html"><div class="ttname"><a href="../../d2/da8/classregen_1_1_event_data.html">regen::EventData</a></div><div class="ttdoc">Data passed from event emitter to event handlers.</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d40/event-object_8h_source.html#l00018">event-object.h:18</a></div></div>
 <div class="ttc" id="aclassregen_1_1_event_object_html"><div class="ttname"><a href="../../d4/dc6/classregen_1_1_event_object.html">regen::EventObject</a></div><div class="ttdoc">Allows to integrate events into subclasses.</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d40/event-object_8h_source.html#l00035">event-object.h:35</a></div></div>

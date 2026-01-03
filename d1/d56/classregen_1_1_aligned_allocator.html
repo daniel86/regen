@@ -137,7 +137,7 @@ class regen::AlignedAllocator&lt; T, Alignment &gt;</div><p>A custom allocator t
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00033">33</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00031">31</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="aaa0e4772dff6a05250b8e803bc4ea433" name="aaa0e4772dff6a05250b8e803bc4ea433"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaa0e4772dff6a05250b8e803bc4ea433">&#9670;&#160;</a></span>value_type</h2>
@@ -153,7 +153,7 @@ template&lt;typename T , std::size_t Alignment&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00035">35</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00033">33</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
 
 </div>
 </div>
@@ -213,8 +213,8 @@ template&lt;typename U &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00040">40</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   40</span>{}</div>
+<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00038">38</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   38</span>{}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -258,14 +258,14 @@ template&lt;typename T , std::size_t Alignment&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00048">48</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   48</span>                                               {</div>
-<div class="line"><span class="lineno">   49</span>            <span class="keywordtype">void</span>* ptr = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   50</span>            <span class="keywordflow">if</span> (posix_memalign(&amp;ptr, Alignment, n * <span class="keyword">sizeof</span>(T)) != 0) {</div>
-<div class="line"><span class="lineno">   51</span>                <span class="keywordflow">throw</span> std::bad_alloc();</div>
-<div class="line"><span class="lineno">   52</span>            }</div>
-<div class="line"><span class="lineno">   53</span>            <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T*<span class="keyword">&gt;</span>(ptr);</div>
-<div class="line"><span class="lineno">   54</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00046">46</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   46</span>                                               {</div>
+<div class="line"><span class="lineno">   47</span>            <span class="keywordtype">void</span>* ptr = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   48</span>            <span class="keywordflow">if</span> (posix_memalign(&amp;ptr, Alignment, n * <span class="keyword">sizeof</span>(T)) != 0) {</div>
+<div class="line"><span class="lineno">   49</span>                <span class="keywordflow">throw</span> std::bad_alloc();</div>
+<div class="line"><span class="lineno">   50</span>            }</div>
+<div class="line"><span class="lineno">   51</span>            <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T*<span class="keyword">&gt;</span>(ptr);</div>
+<div class="line"><span class="lineno">   52</span>        }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -305,10 +305,10 @@ template&lt;typename T , std::size_t Alignment&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00056">56</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   56</span>                                                  {</div>
-<div class="line"><span class="lineno">   57</span>            std::free(p);</div>
-<div class="line"><span class="lineno">   58</span>        }</div>
+<p class="definition">Definition at line <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html#l00054">54</a> of file <a class="el" href="../../d8/ddc/aligned-allocator_8h_source.html">aligned-allocator.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   54</span>                                                  {</div>
+<div class="line"><span class="lineno">   55</span>            std::free(p);</div>
+<div class="line"><span class="lineno">   56</span>        }</div>
 </div><!-- fragment -->
 </div>
 </div>

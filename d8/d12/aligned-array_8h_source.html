@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('d8/d12/aligned-array_8h_source.html','
 <a href="../../d8/d12/aligned-array_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef REGEN_ALIGNED_ARRAY_H_</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define REGEN_ALIGNED_ARRAY_H_</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;cstdlib&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdlib&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;<a class="code" href="../../d8/de1/simd_8h.html">regen/compute/simd.h</a>&gt;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../d1/dc3/namespaceregen.html">regen</a> {</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
@@ -167,7 +167,7 @@ $(document).ready(function(){initNavTree('d8/d12/aligned-array_8h_source.html','
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        uint32_t capacity_;</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        uint32_t allocatedSize_ = 0;</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>        <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> Alignment = 32;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>        <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> Alignment = simd::RegisterWidth * 4;</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        <span class="keywordtype">void</span> allocate(<span class="keywordtype">size_t</span> count) {</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>            <span class="keyword">const</span> <span class="keywordtype">size_t</span> totalSize = count * <span class="keyword">sizeof</span>(T);</div>
@@ -189,6 +189,7 @@ $(document).ready(function(){initNavTree('d8/d12/aligned-array_8h_source.html','
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="preprocessor">#endif </span><span class="comment">/* REGEN_ALIGNED_ARRAY_H_ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="anamespaceregen_html"><div class="ttname"><a href="../../d1/dc3/namespaceregen.html">regen</a></div><div class="ttdef"><b>Definition</b> <a href="../../d0/dfe/animation-channel_8cpp_source.html#l00004">animation-channel.cpp:4</a></div></div>
+<div class="ttc" id="asimd_8h_html"><div class="ttname"><a href="../../d8/de1/simd_8h.html">simd.h</a></div></div>
 <div class="ttc" id="astructregen_1_1_aligned_array_html"><div class="ttname"><a href="../../d7/d7a/structregen_1_1_aligned_array.html">regen::AlignedArray</a></div><div class="ttdoc">A dynamically resizable array with 32-byte alignment. This class provides a simple array-like interfa...</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d12/aligned-array_8h_source.html#l00020">aligned-array.h:20</a></div></div>
 <div class="ttc" id="astructregen_1_1_aligned_array_html_a2bc352f2fb18af048d4757cd90564196"><div class="ttname"><a href="../../d7/d7a/structregen_1_1_aligned_array.html#a2bc352f2fb18af048d4757cd90564196">regen::AlignedArray::size</a></div><div class="ttdeci">uint32_t size() const</div><div class="ttdoc">Returns the number of elements in the array.</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d12/aligned-array_8h_source.html#l00088">aligned-array.h:88</a></div></div>
 <div class="ttc" id="astructregen_1_1_aligned_array_html_a2f53b90300f16d0b68123c25eb8c1d19"><div class="ttname"><a href="../../d7/d7a/structregen_1_1_aligned_array.html#a2f53b90300f16d0b68123c25eb8c1d19">regen::AlignedArray::AlignedArray</a></div><div class="ttdeci">AlignedArray(size_t maxElements)</div><div class="ttdoc">Constructs an AlignedArray with a specified maximum number of elements.</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d12/aligned-array_8h_source.html#l00026">aligned-array.h:26</a></div></div>

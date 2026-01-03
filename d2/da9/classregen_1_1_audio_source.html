@@ -143,6 +143,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a500bf67aa1f4c34b321bd21384b308fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af275d7273bdc55c8ddb87583c541c9cb" id="r_af275d7273bdc55c8ddb87583c541c9cb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html#af275d7273bdc55c8ddb87583c541c9cb">~AudioSource</a> () override</td></tr>
 <tr class="separator:af275d7273bdc55c8ddb87583c541c9cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f454aad7f399146b419b731847872db" id="r_a2f454aad7f399146b419b731847872db"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html#a2f454aad7f399146b419b731847872db">AudioSource</a> (const <a class="el" href="../../d2/da9/classregen_1_1_audio_source.html">AudioSource</a> &amp;)=delete</td></tr>
+<tr class="separator:a2f454aad7f399146b419b731847872db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82c5518bf35fbaf15a65b19da017f9ee" id="r_a82c5518bf35fbaf15a65b19da017f9ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html">AudioSource</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html#a82c5518bf35fbaf15a65b19da017f9ee">operator=</a> (const <a class="el" href="../../d2/da9/classregen_1_1_audio_source.html">AudioSource</a> &amp;)=delete</td></tr>
+<tr class="separator:a82c5518bf35fbaf15a65b19da017f9ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae24875b535ed7407b97ea23610a21c23" id="r_ae24875b535ed7407b97ea23610a21c23"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html#ae24875b535ed7407b97ea23610a21c23">id</a> () const</td></tr>
 <tr class="separator:ae24875b535ed7407b97ea23610a21c23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51f6925bb096831769b3fd6187ebdd4a" id="r_a51f6925bb096831769b3fd6187ebdd4a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html#a51f6925bb096831769b3fd6187ebdd4a">elapsedTime</a> () const</td></tr>
@@ -250,10 +254,10 @@ Protected Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Source of audio in 3D space. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00096">96</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00094">94</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2450c6d9ff22c238a01638ca6c62851e" name="a2450c6d9ff22c238a01638ca6c62851e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2450c6d9ff22c238a01638ca6c62851e">&#9670;&#160;</a></span>AudioSource() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2450c6d9ff22c238a01638ca6c62851e">&#9670;&#160;</a></span>AudioSource() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -298,18 +302,18 @@ Protected Attributes</h2></td></tr>
 <div class="line"><span class="lineno">  228</span>    alGenSources(1, &amp;<a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">id_</a>);</div>
 <div class="line"><span class="lineno">  229</span>}</div>
 <div class="ttc" id="aclassregen_1_1_audio_library_html_af96c88d2f1cf4de5a70c169da2362613"><div class="ttname"><a href="../../d3/d33/classregen_1_1_audio_library.html#af96c88d2f1cf4de5a70c169da2362613">regen::AudioLibrary::initializeAL</a></div><div class="ttdeci">static void initializeAL()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/ddc/audio_8cpp_source.html#l00145">audio.cpp:145</a></div></div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_a049bf84805534a3cc0fb8cfd3bb9122f"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a049bf84805534a3cc0fb8cfd3bb9122f">regen::AudioSource::rate_</a></div><div class="ttdeci">ALint rate_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00212">audio.h:212</a></div></div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_a520ca002339a0b9a8684a4c98bce1f5b"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">regen::AudioSource::id_</a></div><div class="ttdeci">ALuint id_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00208">audio.h:208</a></div></div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_a8513a5bdea189bf756f4627daac69950"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a8513a5bdea189bf756f4627daac69950">regen::AudioSource::alChannelLayout_</a></div><div class="ttdeci">ALenum alChannelLayout_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00210">audio.h:210</a></div></div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_a9be6fb92cfff8b7863622f52f27b5885"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a9be6fb92cfff8b7863622f52f27b5885">regen::AudioSource::elapsedTime_</a></div><div class="ttdeci">double elapsedTime_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00213">audio.h:213</a></div></div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_ad8dbf36af9fa1da450782d810bfde580"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#ad8dbf36af9fa1da450782d810bfde580">regen::AudioSource::alType_</a></div><div class="ttdeci">ALenum alType_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00209">audio.h:209</a></div></div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_af407114da66c8609858d89937210fb87"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#af407114da66c8609858d89937210fb87">regen::AudioSource::alFormat_</a></div><div class="ttdeci">ALenum alFormat_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00211">audio.h:211</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_a049bf84805534a3cc0fb8cfd3bb9122f"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a049bf84805534a3cc0fb8cfd3bb9122f">regen::AudioSource::rate_</a></div><div class="ttdeci">ALint rate_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00214">audio.h:214</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_a520ca002339a0b9a8684a4c98bce1f5b"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">regen::AudioSource::id_</a></div><div class="ttdeci">ALuint id_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00210">audio.h:210</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_a8513a5bdea189bf756f4627daac69950"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a8513a5bdea189bf756f4627daac69950">regen::AudioSource::alChannelLayout_</a></div><div class="ttdeci">ALenum alChannelLayout_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00212">audio.h:212</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_a9be6fb92cfff8b7863622f52f27b5885"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a9be6fb92cfff8b7863622f52f27b5885">regen::AudioSource::elapsedTime_</a></div><div class="ttdeci">double elapsedTime_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00215">audio.h:215</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_ad8dbf36af9fa1da450782d810bfde580"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#ad8dbf36af9fa1da450782d810bfde580">regen::AudioSource::alType_</a></div><div class="ttdeci">ALenum alType_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00211">audio.h:211</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_af407114da66c8609858d89937210fb87"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#af407114da66c8609858d89937210fb87">regen::AudioSource::alFormat_</a></div><div class="ttdeci">ALenum alFormat_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00213">audio.h:213</a></div></div>
 <div class="ttc" id="aclassregen_1_1_audio_video_stream_html"><div class="ttname"><a href="../../da/def/classregen_1_1_audio_video_stream.html">regen::AudioVideoStream</a></div><div class="ttdoc">Baseclass for ffmpeg streams.</div><div class="ttdef"><b>Definition</b> <a href="../../da/d4a/av-stream_8h_source.html#l00018">av-stream.h:18</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
 <a id="a500bf67aa1f4c34b321bd21384b308fc" name="a500bf67aa1f4c34b321bd21384b308fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a500bf67aa1f4c34b321bd21384b308fc">&#9670;&#160;</a></span>AudioSource() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a500bf67aa1f4c34b321bd21384b308fc">&#9670;&#160;</a></span>AudioSource() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -405,6 +409,32 @@ Protected Attributes</h2></td></tr>
 <div class="line"><span class="lineno">  257</span>}</div>
 <div class="ttc" id="aclassregen_1_1_audio_source_html_a09d34a0f83ae8102cfb2c0b7eddde2bf"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a09d34a0f83ae8102cfb2c0b7eddde2bf">regen::AudioSource::doClearQueue</a></div><div class="ttdeci">void doClearQueue()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/ddc/audio_8cpp_source.html#l00388">audio.cpp:388</a></div></div>
 </div><!-- fragment -->
+</div>
+</div>
+<a id="a2f454aad7f399146b419b731847872db" name="a2f454aad7f399146b419b731847872db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f454aad7f399146b419b731847872db">&#9670;&#160;</a></span>AudioSource() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">regen::AudioSource::AudioSource </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d2/da9/classregen_1_1_audio_source.html">AudioSource</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -653,8 +683,8 @@ Protected Attributes</h2></td></tr>
 </div><div class="memdoc">
 <dl class="section return"><dt>Returns</dt><dd>elapsed time of last finished audio frame. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00132">132</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  132</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a9be6fb92cfff8b7863622f52f27b5885">elapsedTime_</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00134">134</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  134</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a9be6fb92cfff8b7863622f52f27b5885">elapsedTime_</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -729,12 +759,13 @@ Protected Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/ddc/audio_8cpp_source.html#l00283">283</a> of file <a class="el" href="../../d1/ddc/audio_8cpp_source.html">audio.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">  283</span>                                              {</div>
-<div class="line"><span class="lineno">  284</span>    <a class="code hl_class" href="../../dd/da3/structregen_1_1_vec3.html">Vec3f</a> v;</div>
+<div class="line"><span class="lineno">  284</span>    <a class="code hl_class" href="../../dd/da3/structregen_1_1_vec3.html">Vec3f</a> v = <a class="code hl_function" href="../../dd/da3/structregen_1_1_vec3.html#a8d4e744ec9221c8f94ff771dfd287e60">Vec3f::zero</a>();</div>
 <div class="line"><span class="lineno">  285</span>    alGetSourcef(<a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">id_</a>, p, &amp;v.<a class="code hl_variable" href="../../dd/da3/structregen_1_1_vec3.html#a0a7f156c1aa3e5caa959109e96d761ed">x</a>);</div>
 <div class="line"><span class="lineno">  286</span>    <span class="keywordflow">return</span> v;</div>
 <div class="line"><span class="lineno">  287</span>}</div>
 <div class="ttc" id="astructregen_1_1_vec3_html"><div class="ttname"><a href="../../dd/da3/structregen_1_1_vec3.html">regen::Vec3&lt; float &gt;</a></div></div>
 <div class="ttc" id="astructregen_1_1_vec3_html_a0a7f156c1aa3e5caa959109e96d761ed"><div class="ttname"><a href="../../dd/da3/structregen_1_1_vec3.html#a0a7f156c1aa3e5caa959109e96d761ed">regen::Vec3::x</a></div><div class="ttdeci">T x</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l00253">vector.h:253</a></div></div>
+<div class="ttc" id="astructregen_1_1_vec3_html_a8d4e744ec9221c8f94ff771dfd287e60"><div class="ttname"><a href="../../dd/da3/structregen_1_1_vec3.html#a8d4e744ec9221c8f94ff771dfd287e60">regen::Vec3&lt; float &gt;::zero</a></div><div class="ttdeci">static constexpr const Vec3 &amp; zero()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d68/vector_8h_source.html#l00588">vector.h:588</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -762,8 +793,8 @@ Protected Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The audio source ID. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00127">127</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  127</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">id_</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00129">129</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  129</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">id_</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -878,6 +909,32 @@ Protected Attributes</h2></td></tr>
 </div><!-- fragment -->
 </div>
 </div>
+<a id="a82c5518bf35fbaf15a65b19da017f9ee" name="a82c5518bf35fbaf15a65b19da017f9ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82c5518bf35fbaf15a65b19da017f9ee">&#9670;&#160;</a></span>operator=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d2/da9/classregen_1_1_audio_source.html">AudioSource</a> &amp; regen::AudioSource::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d2/da9/classregen_1_1_audio_source.html">AudioSource</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7090a834909c8d705787c53ef3f11955" name="a7090a834909c8d705787c53ef3f11955"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7090a834909c8d705787c53ef3f11955">&#9670;&#160;</a></span>pause()</h2>
 
@@ -946,7 +1003,7 @@ Protected Attributes</h2></td></tr>
 <div class="line"><span class="lineno">  312</span>    alSourceUnqueueBuffers(<a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a520ca002339a0b9a8684a4c98bce1f5b">id_</a>, 1, &amp;buffer-&gt;id_);</div>
 <div class="line"><span class="lineno">  313</span>    <a class="code hl_variable" href="../../d2/da9/classregen_1_1_audio_source.html#a36129ab5c33aa72a9be581aeeede74dc">queued_</a>.pop();</div>
 <div class="line"><span class="lineno">  314</span>}</div>
-<div class="ttc" id="aclassregen_1_1_audio_source_html_a36129ab5c33aa72a9be581aeeede74dc"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a36129ab5c33aa72a9be581aeeede74dc">regen::AudioSource::queued_</a></div><div class="ttdeci">Stack&lt; ref_ptr&lt; AudioBuffer &gt; &gt; queued_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00215">audio.h:215</a></div></div>
+<div class="ttc" id="aclassregen_1_1_audio_source_html_a36129ab5c33aa72a9be581aeeede74dc"><div class="ttname"><a href="../../d2/da9/classregen_1_1_audio_source.html#a36129ab5c33aa72a9be581aeeede74dc">regen::AudioSource::queued_</a></div><div class="ttdeci">Stack&lt; ref_ptr&lt; AudioBuffer &gt; &gt; queued_</div><div class="ttdef"><b>Definition</b> <a href="../../da/d09/audio_8h_source.html#l00217">audio.h:217</a></div></div>
 <div class="ttc" id="aclassregen_1_1ref__ptr_html"><div class="ttname"><a href="../../d2/d62/classregen_1_1ref__ptr.html">regen::ref_ptr</a></div><div class="ttdoc">Reference counter template class.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db5/ref-ptr_8h_source.html#l00013">ref-ptr.h:13</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -1145,7 +1202,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00210">210</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00212">212</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>
@@ -1169,7 +1226,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00211">211</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00213">213</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>
@@ -1193,7 +1250,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00209">209</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00211">211</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>
@@ -1217,7 +1274,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00213">213</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00215">215</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>
@@ -1241,7 +1298,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00208">208</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00210">210</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>
@@ -1265,7 +1322,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00215">215</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00217">217</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>
@@ -1289,7 +1346,7 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00212">212</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d09/audio_8h_source.html#l00214">214</a> of file <a class="el" href="../../da/d09/audio_8h_source.html">audio.h</a>.</p>
 
 </div>
 </div>

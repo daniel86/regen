@@ -10,7 +10,6 @@ var classregen_1_1_cull_shape =
     [ "instanceBuffer", "d0/da5/classregen_1_1_cull_shape.html#a45390e195b3404feeea3c9afd8869899", null ],
     [ "instanceSortMode", "d0/da5/classregen_1_1_cull_shape.html#ad6f632874153c6ad8549cfe2b151d6da", null ],
     [ "isIndexShape", "d0/da5/classregen_1_1_cull_shape.html#ab367812852b2e0015cadf54123797e16", null ],
-    [ "numInstances", "d0/da5/classregen_1_1_cull_shape.html#ac3f5f7bd71a194df0035fedc76bb56db", null ],
     [ "parts", "d0/da5/classregen_1_1_cull_shape.html#a90b27971f6d0b4bb68193ac178af6811", null ],
     [ "setIndirectDrawBuffers", "d0/da5/classregen_1_1_cull_shape.html#a6c26c7f45c2f425e76c36e5c1272cbf9", null ],
     [ "setInstanceBuffer", "d0/da5/classregen_1_1_cull_shape.html#a9b7edb4760484f5072894c6aef0faab4", null ],
@@ -21,7 +20,6 @@ var classregen_1_1_cull_shape =
     [ "indirectDrawBuffers_", "d0/da5/classregen_1_1_cull_shape.html#a5c53120456f2a8240c70344e3530bf7d", null ],
     [ "instanceBuffer_", "d0/da5/classregen_1_1_cull_shape.html#a04c0d0a997ed46cdef4a434b99618267", null ],
     [ "instanceSortMode_", "d0/da5/classregen_1_1_cull_shape.html#afbd591b82ca896b768906815957fbe6d", null ],
-    [ "numInstances_", "d0/da5/classregen_1_1_cull_shape.html#a272dbccbfa5372c67038486af7767c26", null ],
     [ "parts_", "d0/da5/classregen_1_1_cull_shape.html#ac433f426d57b02b6ae67d32a5121259a", null ],
     [ "shapeName_", "d0/da5/classregen_1_1_cull_shape.html#a3bdf221bebf41c24148e32c459af22e8", null ],
     [ "spatialIndex_", "d0/da5/classregen_1_1_cull_shape.html#a855b3dfc886264dbcc31f1488823fc22", null ]

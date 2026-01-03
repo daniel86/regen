@@ -108,7 +108,7 @@ var searchData=
   ['maxnumneighbors_5f_105',['maxNumNeighbors_',['../da/d6e/classregen_1_1_boid_simulation.html#a9860c42bd08dc367fc7b9dcd9175130f',1,'regen::BoidSimulation']]],
   ['maxpickedobjects_5f_106',['maxPickedObjects_',['../d1/d30/classregen_1_1_geom_picking.html#a9f0643944abf4f3fb8d05544a3300bf1',1,'regen::GeomPicking']]],
   ['maxposition_5f_107',['maxPosition_',['../df/dee/classregen_1_1_mesh.html#a5cac67c1cc01a1071d8d1b4dc6a74e1d',1,'regen::Mesh']]],
-  ['maxringsegments_5f_108',['maxRingSegments_',['../d2/d44/classregen_1_1_staging_buffer.html#ad40755c9967818c92cf7acb8e256521d',1,'regen::StagingBuffer']]],
+  ['maxringsegments_5f_108',['maxringsegments_',['../d2/d44/classregen_1_1_staging_buffer.html#ad40755c9967818c92cf7acb8e256521d',1,'regen::StagingBuffer::maxRingSegments_'],['../da/d2b/classregen_1_1_staging_system.html#a272c5e4b363c0a98af0eb6b96cfb304a',1,'regen::StagingSystem::maxRingSegments_']]],
   ['maxshaderstoragebuffers_5f_109',['maxShaderStorageBuffers_',['../df/d53/classregen_1_1_render_state.html#ab88091954de317acc5ba56c1f045aff9',1,'regen::RenderState']]],
   ['maxsize_5f_110',['maxSize_',['../dc/df3/classregen_1_1_allocator_pool.html#af3b375370c1a2bbb8b4c999b122c0f7c',1,'regen::AllocatorPool']]],
   ['maxspace_111',['maxSpace',['../dc/d83/structregen_1_1_buddy_allocator_1_1_buddy_node.html#a8e036e96ef28d32f36125a00d0029a7d',1,'regen::BuddyAllocator::BuddyNode']]],

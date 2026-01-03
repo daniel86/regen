@@ -33,7 +33,7 @@ var searchData=
   ['wrapping_30',['wrapping',['../d2/da9/structregen_1_1_image_data.html#a52031504528d9ff3f69054ff8dc48cc4',1,'regen::ImageData']]],
   ['wrappingmode_5f_31',['wrappingMode_',['../d6/d95/classregen_1_1_texture.html#a9e6c5bcaf1fe4e02d1673de6762edd81',1,'regen::Texture']]],
   ['writeallpending_5f_32',['writeAllPending_',['../d8/d49/classregen_1_1_client_buffer.html#a2361d2ee92f877d2f2e26eca33e047f2',1,'regen::ClientBuffer']]],
-  ['writebufferindex_5f_33',['writeBufferIndex_',['../d2/d44/classregen_1_1_staging_buffer.html#ab1000f3195c91b5daac837e1dc7cf391',1,'regen::StagingBuffer']]],
+  ['writebufferindex_5f_33',['writebufferindex_',['../d2/d44/classregen_1_1_staging_buffer.html#ab1000f3195c91b5daac837e1dc7cf391',1,'regen::StagingBuffer::writeBufferIndex_'],['../da/d2b/classregen_1_1_staging_system.html#abe530ff6870dddd2e696d1dc53f83080',1,'regen::StagingSystem::writeBufferIndex_']]],
   ['writerflags_5f_34',['writerFlags_',['../d8/d49/classregen_1_1_client_buffer.html#a15c9293df751309d51924bcf4eebe120',1,'regen::ClientBuffer']]],
   ['writerthreads_5f_35',['writerThreads_',['../d8/d49/classregen_1_1_client_buffer.html#a6be2924301641864f3d696e94ccaf0d4',1,'regen::ClientBuffer']]]
 ];

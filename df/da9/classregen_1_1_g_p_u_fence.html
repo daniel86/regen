@@ -264,10 +264,10 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Get the stall rate, which is the percentage of frames that had a stall. </p><dl class="section return"><dt>Returns</dt><dd>the stall rate as a float, where 0.0 means no stalls and 1.0 means all frames had stalls. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html#l00110">110</a> of file <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html">gpu-fence.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  110</span>                                   {</div>
-<div class="line"><span class="lineno">  111</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(stallCount_) * f_stallRange_;</div>
-<div class="line"><span class="lineno">  112</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html#l00114">114</a> of file <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html">gpu-fence.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  114</span>                                   {</div>
+<div class="line"><span class="lineno">  115</span>    <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(stallCount_) * f_stallRange_;</div>
+<div class="line"><span class="lineno">  116</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -287,25 +287,25 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Check if the fence is signaled, non-blocking. </p><dl class="section return"><dt>Returns</dt><dd>true if the fence is signaled, false otherwise. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html#l00092">92</a> of file <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html">gpu-fence.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   92</span>                          {</div>
-<div class="line"><span class="lineno">   93</span>    <span class="keywordflow">if</span> (!fence_) {</div>
-<div class="line"><span class="lineno">   94</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// No fence to check</span></div>
-<div class="line"><span class="lineno">   95</span>    }</div>
-<div class="line"><span class="lineno">   96</span>    GLenum status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 0);</div>
-<div class="line"><span class="lineno">   97</span>    <span class="keywordflow">if</span> (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED) {</div>
-<div class="line"><span class="lineno">   98</span>        glDeleteSync(fence_);</div>
-<div class="line"><span class="lineno">   99</span>        fence_ = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">  100</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// Fence is signaled</span></div>
-<div class="line"><span class="lineno">  101</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (status == GL_TIMEOUT_EXPIRED) {</div>
-<div class="line"><span class="lineno">  102</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// Fence not signaled yet</span></div>
-<div class="line"><span class="lineno">  103</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  104</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Unknown fence status: &quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot; (0x&quot;</span> &lt;&lt; std::hex &lt;&lt; status &lt;&lt; std::dec &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>);</div>
-<div class="line"><span class="lineno">  105</span>        <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
-<div class="line"><span class="lineno">  106</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// Error in checking fence status</span></div>
-<div class="line"><span class="lineno">  107</span>    }</div>
-<div class="line"><span class="lineno">  108</span>}</div>
-<div class="ttc" id="agl-util_8h_html_a5f979e45877702b772812ef4ac296682"><div class="ttname"><a href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a></div><div class="ttdeci">#define GL_ERROR_LOG()</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/gl-util_8h_source.html#l00025">gl-util.h:25</a></div></div>
+<p class="definition">Definition at line <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html#l00096">96</a> of file <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html">gpu-fence.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   96</span>                          {</div>
+<div class="line"><span class="lineno">   97</span>    <span class="keywordflow">if</span> (!fence_) {</div>
+<div class="line"><span class="lineno">   98</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// No fence to check</span></div>
+<div class="line"><span class="lineno">   99</span>    }</div>
+<div class="line"><span class="lineno">  100</span>    GLenum status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 0);</div>
+<div class="line"><span class="lineno">  101</span>    <span class="keywordflow">if</span> (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED) {</div>
+<div class="line"><span class="lineno">  102</span>        glDeleteSync(fence_);</div>
+<div class="line"><span class="lineno">  103</span>        fence_ = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">  104</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// Fence is signaled</span></div>
+<div class="line"><span class="lineno">  105</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (status == GL_TIMEOUT_EXPIRED) {</div>
+<div class="line"><span class="lineno">  106</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// Fence not signaled yet</span></div>
+<div class="line"><span class="lineno">  107</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  108</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Unknown fence status: &quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot; (0x&quot;</span> &lt;&lt; std::hex &lt;&lt; status &lt;&lt; std::dec &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>);</div>
+<div class="line"><span class="lineno">  109</span>        <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
+<div class="line"><span class="lineno">  110</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// Error in checking fence status</span></div>
+<div class="line"><span class="lineno">  111</span>    }</div>
+<div class="line"><span class="lineno">  112</span>}</div>
+<div class="ttc" id="agl-util_8h_html_a5f979e45877702b772812ef4ac296682"><div class="ttname"><a href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a></div><div class="ttdeci">#define GL_ERROR_LOG()</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/gl-util_8h_source.html#l00014">gl-util.h:14</a></div></div>
 <div class="ttc" id="alogging_8h_html_ae0e9cd021b6ad8d86a62a7d02b4a5b36"><div class="ttname"><a href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a></div><div class="ttdeci">#define REGEN_WARN(...)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d77/logging_8h_source.html#l00044">logging.h:44</a></div></div>
 </div><!-- fragment -->
 </div>
@@ -349,12 +349,12 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Reset the stall history, clearing the array of stalled frames. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html#l00114">114</a> of file <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html">gpu-fence.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  114</span>                                 {</div>
-<div class="line"><span class="lineno">  115</span>    stallCount_ = 0;</div>
-<div class="line"><span class="lineno">  116</span>    stallIdx_ = 0;</div>
-<div class="line"><span class="lineno">  117</span>    std::fill(stalledFrames_, stalledFrames_ + stallRange_, <span class="keyword">false</span>);</div>
-<div class="line"><span class="lineno">  118</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html#l00118">118</a> of file <a class="el" href="../../d5/d93/gpu-fence_8cpp_source.html">gpu-fence.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  118</span>                                 {</div>
+<div class="line"><span class="lineno">  119</span>    stallCount_ = 0;</div>
+<div class="line"><span class="lineno">  120</span>    stallIdx_ = 0;</div>
+<div class="line"><span class="lineno">  121</span>    std::fill(stalledFrames_, stalledFrames_ + stallRange_, <span class="keyword">false</span>);</div>
+<div class="line"><span class="lineno">  122</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -421,32 +421,36 @@ Static Public Attributes</h2></td></tr>
 <div class="line"><span class="lineno">   62</span>    }</div>
 <div class="line"><span class="lineno">   63</span>    <span class="comment">// poll the fence status</span></div>
 <div class="line"><span class="lineno">   64</span>    GLenum status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 0);</div>
-<div class="line"><span class="lineno">   65</span>    <span class="keywordflow">if</span> (allowFrameDropping) {</div>
-<div class="line"><span class="lineno">   66</span>        <span class="keywordflow">if</span> (status == GL_TIMEOUT_EXPIRED) {</div>
-<div class="line"><span class="lineno">   67</span>            setStalledFrame(<span class="keyword">true</span>);</div>
-<div class="line"><span class="lineno">   68</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// Frame dropped</span></div>
-<div class="line"><span class="lineno">   69</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">   70</span>            setStalledFrame(<span class="keyword">false</span>);</div>
-<div class="line"><span class="lineno">   71</span>        }</div>
-<div class="line"><span class="lineno">   72</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">   73</span>        <span class="comment">// keep waiting and polling until the fence is signaled or an error occurs.</span></div>
-<div class="line"><span class="lineno">   74</span>        <span class="comment">// Note: we use a wait timeout here to avoid wasting too much time in the loop.</span></div>
-<div class="line"><span class="lineno">   75</span>        setStalledFrame(status == GL_TIMEOUT_EXPIRED);</div>
-<div class="line"><span class="lineno">   76</span>        <span class="keywordflow">while</span> (status == GL_TIMEOUT_EXPIRED) {</div>
-<div class="line"><span class="lineno">   77</span>            status = glClientWaitSync(fence_,</div>
-<div class="line"><span class="lineno">   78</span>                                      GL_SYNC_FLUSH_COMMANDS_BIT, <a class="code hl_variable" href="../../df/da9/classregen_1_1_g_p_u_fence.html#a709a1d6717129b80abd29bc672b66337">WAIT_TIMEOUT</a>);</div>
-<div class="line"><span class="lineno">   79</span>        }</div>
-<div class="line"><span class="lineno">   80</span>    }</div>
-<div class="line"><span class="lineno">   81</span> </div>
-<div class="line"><span class="lineno">   82</span>    <span class="keywordflow">if</span> (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED) {</div>
-<div class="line"><span class="lineno">   83</span>        glDeleteSync(fence_);</div>
-<div class="line"><span class="lineno">   84</span>        fence_ = <span class="keyword">nullptr</span>;</div>
-<div class="line"><span class="lineno">   85</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">   86</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Unknown fence status: &quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot; (0x&quot;</span> &lt;&lt; std::hex &lt;&lt; status &lt;&lt; std::dec &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>);</div>
-<div class="line"><span class="lineno">   87</span>        <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
-<div class="line"><span class="lineno">   88</span>    }</div>
-<div class="line"><span class="lineno">   89</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">   90</span>}</div>
+<div class="line"><span class="lineno">   65</span>    <span class="keywordflow">if</span> (status == GL_WAIT_FAILED) {</div>
+<div class="line"><span class="lineno">   66</span>        <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
+<div class="line"><span class="lineno">   67</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   68</span>    }</div>
+<div class="line"><span class="lineno">   69</span> </div>
+<div class="line"><span class="lineno">   70</span>    <span class="keywordflow">if</span> (allowFrameDropping) {</div>
+<div class="line"><span class="lineno">   71</span>        <span class="keywordflow">if</span> (status == GL_TIMEOUT_EXPIRED) {</div>
+<div class="line"><span class="lineno">   72</span>            setStalledFrame(<span class="keyword">true</span>);</div>
+<div class="line"><span class="lineno">   73</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// Frame dropped</span></div>
+<div class="line"><span class="lineno">   74</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">   75</span>            setStalledFrame(<span class="keyword">false</span>);</div>
+<div class="line"><span class="lineno">   76</span>        }</div>
+<div class="line"><span class="lineno">   77</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">   78</span>        <span class="comment">// keep waiting and polling until the fence is signaled or an error occurs.</span></div>
+<div class="line"><span class="lineno">   79</span>        <span class="comment">// Note: we use a wait timeout here to avoid wasting too much time in the loop.</span></div>
+<div class="line"><span class="lineno">   80</span>        setStalledFrame(status == GL_TIMEOUT_EXPIRED);</div>
+<div class="line"><span class="lineno">   81</span>        <span class="keywordflow">while</span> (status == GL_TIMEOUT_EXPIRED) {</div>
+<div class="line"><span class="lineno">   82</span>            status = glClientWaitSync(fence_, 0, <a class="code hl_variable" href="../../df/da9/classregen_1_1_g_p_u_fence.html#a709a1d6717129b80abd29bc672b66337">WAIT_TIMEOUT</a>);</div>
+<div class="line"><span class="lineno">   83</span>        }</div>
+<div class="line"><span class="lineno">   84</span>    }</div>
+<div class="line"><span class="lineno">   85</span> </div>
+<div class="line"><span class="lineno">   86</span>    <span class="keywordflow">if</span> (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED) {</div>
+<div class="line"><span class="lineno">   87</span>        glDeleteSync(fence_);</div>
+<div class="line"><span class="lineno">   88</span>        fence_ = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   89</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">   90</span>        <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Unknown fence status: &quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot; (0x&quot;</span> &lt;&lt; std::hex &lt;&lt; status &lt;&lt; std::dec &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>);</div>
+<div class="line"><span class="lineno">   91</span>        <a class="code hl_define" href="../../de/dae/gl-util_8h.html#a5f979e45877702b772812ef4ac296682">GL_ERROR_LOG</a>();</div>
+<div class="line"><span class="lineno">   92</span>    }</div>
+<div class="line"><span class="lineno">   93</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">   94</span>}</div>
 <div class="ttc" id="aclassregen_1_1_g_p_u_fence_html_a709a1d6717129b80abd29bc672b66337"><div class="ttname"><a href="../../df/da9/classregen_1_1_g_p_u_fence.html#a709a1d6717129b80abd29bc672b66337">regen::GPUFence::WAIT_TIMEOUT</a></div><div class="ttdeci">static uint64_t WAIT_TIMEOUT</div><div class="ttdef"><b>Definition</b> <a href="../../df/db4/gpu-fence_8h_source.html#l00017">gpu-fence.h:17</a></div></div>
 </div><!-- fragment -->
 </div>

@@ -229,168 +229,168 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="../../da/d18/classregen_1_1scene_1_1_state_processor.html#a47042f22631804831fb614fdb6a1b441">regen::scene::StateProcessor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d61/shape-processor_8cpp_source.html#l00367">367</a> of file <a class="el" href="../../d9/d61/shape-processor_8cpp_source.html">shape-processor.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  371</span>                                           {</div>
-<div class="line"><span class="lineno">  372</span>    <span class="keyword">auto</span> transformID = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>(<span class="stringliteral">&quot;transform-id&quot;</span>);</div>
-<div class="line"><span class="lineno">  373</span>    <span class="keyword">auto</span> mesh = getMesh(scene, input);</div>
-<div class="line"><span class="lineno">  374</span>    <span class="keyword">auto</span> parts = getParts(scene, input);</div>
-<div class="line"><span class="lineno">  375</span>    <span class="comment">// read flags for target of shape</span></div>
-<div class="line"><span class="lineno">  376</span>    <span class="keyword">auto</span> isMeshShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;mesh&quot;</span>, 0u);</div>
-<div class="line"><span class="lineno">  377</span>    <span class="keyword">auto</span> isIndexShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;index&quot;</span>, 0u);</div>
-<div class="line"><span class="lineno">  378</span>    <span class="keyword">auto</span> isGPUShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;gpu&quot;</span>, 0u);</div>
-<div class="line"><span class="lineno">  379</span>    <span class="keyword">auto</span> isPhysicalShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;physics&quot;</span>, 0u);</div>
-<div class="line"><span class="lineno">  380</span>    <span class="keyword">auto</span> isCullShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;cull&quot;</span>, 0u);</div>
-<div class="line"><span class="lineno">  381</span>    <span class="keyword">auto</span> useLocalStamp = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;<span class="keywordtype">bool</span>&gt;(<span class="stringliteral">&quot;local-stamp&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><span class="lineno">  382</span>    <span class="keywordflow">if</span> (!isIndexShape &amp;&amp; !isGPUShape &amp;&amp; !isPhysicalShape) {</div>
-<div class="line"><span class="lineno">  383</span>        isMeshShape = 1;</div>
-<div class="line"><span class="lineno">  384</span>    }</div>
-<div class="line"><span class="lineno">  385</span>    <span class="keyword">auto</span> numInstances = 1u;</div>
-<div class="line"><span class="lineno">  386</span>    <span class="keyword">auto</span> shapeName = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">getName</a>();</div>
-<div class="line"><span class="lineno">  387</span> </div>
-<div class="line"><span class="lineno">  388</span>    <a class="code hl_class" href="../../d2/d62/classregen_1_1ref__ptr.html">ref_ptr&lt;HeightMap&gt;</a> heightMap;</div>
-<div class="line"><span class="lineno">  389</span>    <span class="keywordflow">if</span> (input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">hasAttribute</a>(<span class="stringliteral">&quot;height-map&quot;</span>)) {</div>
-<div class="line"><span class="lineno">  390</span>        <span class="keyword">auto</span> heightMap2D = scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#a7df0c0018e9c93174f24dd49a2573530">getResources</a>()-&gt;getTexture2D(scene, input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>(<span class="stringliteral">&quot;height-map&quot;</span>));</div>
-<div class="line"><span class="lineno">  391</span>        <span class="keywordflow">if</span> (heightMap2D.get()) {</div>
-<div class="line"><span class="lineno">  392</span>            heightMap = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a6f8262da7cfcc72e62f2d1032c4d4086">ref_ptr&lt;HeightMap&gt;::dynamicCast</a>(heightMap2D);</div>
-<div class="line"><span class="lineno">  393</span>            <span class="keywordflow">if</span> (!heightMap) {</div>
-<div class="line"><span class="lineno">  394</span>                <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Texture for height map is not a height map for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot;.&quot;</span>);</div>
-<div class="line"><span class="lineno">  395</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  396</span>                heightMap-&gt;ensureTextureData();</div>
-<div class="line"><span class="lineno">  397</span>            }</div>
-<div class="line"><span class="lineno">  398</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">hasAttribute</a>(<span class="stringliteral">&quot;height-map&quot;</span>)) {</div>
-<div class="line"><span class="lineno">  399</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Ignoring height map for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without texture.&quot;</span>);</div>
-<div class="line"><span class="lineno">  400</span>        }</div>
-<div class="line"><span class="lineno">  401</span>    }</div>
-<div class="line"><span class="lineno">  402</span> </div>
-<div class="line"><span class="lineno">  403</span>    uint32_t traversalMask = 1;</div>
-<div class="line"><span class="lineno">  404</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;child: input.getChildren(<span class="stringliteral">&quot;traversal-bit&quot;</span>)) {</div>
-<div class="line"><span class="lineno">  405</span>        <span class="keyword">auto</span> bit = child-&gt;getValue&lt;uint32_t&gt;(<span class="stringliteral">&quot;value&quot;</span>, 0u);</div>
-<div class="line"><span class="lineno">  406</span>        <span class="keywordflow">if</span> (child-&gt;getValue&lt;<span class="keywordtype">bool</span>&gt;(<span class="stringliteral">&quot;enabled&quot;</span>, <span class="keyword">true</span>)) {</div>
-<div class="line"><span class="lineno">  407</span>            traversalMask |= (1 &lt;&lt; bit);</div>
-<div class="line"><span class="lineno">  408</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  409</span>            traversalMask &amp;= ~(1 &lt;&lt; bit);</div>
-<div class="line"><span class="lineno">  410</span>        }</div>
-<div class="line"><span class="lineno">  411</span>    }</div>
-<div class="line"><span class="lineno">  412</span> </div>
-<div class="line"><span class="lineno">  413</span>    <span class="keyword">auto</span> transform = scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#adf4bd8a36ffd2dfde103997eb3d98b3d">getResource</a>&lt;<a class="code hl_class" href="../../d5/d69/classregen_1_1_model_transformation.html">ModelTransformation</a>&gt;(transformID);</div>
-<div class="line"><span class="lineno">  414</span>    <span class="keywordflow">if</span> (transform.get()) {</div>
-<div class="line"><span class="lineno">  415</span>        numInstances = transform-&gt;<a class="code hl_function" href="../../d3/d0d/classregen_1_1_state.html#a744671a17060130a840b354855afa79c">numInstances</a>();</div>
-<div class="line"><span class="lineno">  416</span>    }</div>
-<div class="line"><span class="lineno">  417</span>    <span class="keywordflow">if</span> (input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">hasAttribute</a>(<span class="stringliteral">&quot;num-instances&quot;</span>)) {</div>
-<div class="line"><span class="lineno">  418</span>        numInstances = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;num-instances&quot;</span>, numInstances);</div>
-<div class="line"><span class="lineno">  419</span>    }</div>
-<div class="line"><span class="lineno">  420</span>    numInstances = std::max(numInstances, 1u);</div>
-<div class="line"><span class="lineno">  421</span> </div>
-<div class="line"><span class="lineno">  422</span>    <span class="keywordflow">if</span> (isPhysicalShape) {</div>
-<div class="line"><span class="lineno">  423</span>        <span class="comment">// add shape to physics engine</span></div>
-<div class="line"><span class="lineno">  424</span>        <span class="keywordflow">if</span> (numInstances == 1) {</div>
-<div class="line"><span class="lineno">  425</span>            <span class="keyword">auto</span> motion = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;ModelMatrixMotion&gt;::alloc</a>(transform, 0);</div>
-<div class="line"><span class="lineno">  426</span>            <span class="keyword">auto</span> physicalProps = createPhysicalProps(input, mesh, motion);</div>
-<div class="line"><span class="lineno">  427</span>            <span class="keyword">auto</span> physicalObject = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;PhysicalObject&gt;::alloc</a>(physicalProps);</div>
-<div class="line"><span class="lineno">  428</span>            mesh-&gt;addPhysicalObject(physicalObject);</div>
-<div class="line"><span class="lineno">  429</span>            scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#a0387153daf88cb9ceb8bf461b7c3aaff">getPhysics</a>()-&gt;addObject(physicalObject);</div>
-<div class="line"><span class="lineno">  430</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  431</span>            <span class="keyword">auto</span> motionAnim = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;ModelMatrixUpdater&gt;::alloc</a>(transform);</div>
-<div class="line"><span class="lineno">  432</span>            <span class="keywordflow">for</span> (uint32_t i = 0; i &lt; numInstances; ++i) {</div>
-<div class="line"><span class="lineno">  433</span>                <span class="keyword">auto</span> motion = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;Mat4fMotion&gt;::alloc</a>(motionAnim, i);</div>
-<div class="line"><span class="lineno">  434</span>                <span class="keyword">auto</span> physicalProps = createPhysicalProps(input, mesh, motion);</div>
-<div class="line"><span class="lineno">  435</span>                <span class="keyword">auto</span> physicalObject = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;PhysicalObject&gt;::alloc</a>(physicalProps);</div>
-<div class="line"><span class="lineno">  436</span>                mesh-&gt;addPhysicalObject(physicalObject);</div>
-<div class="line"><span class="lineno">  437</span>                scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#a0387153daf88cb9ceb8bf461b7c3aaff">getPhysics</a>()-&gt;addObject(physicalObject);</div>
-<div class="line"><span class="lineno">  438</span>            }</div>
-<div class="line"><span class="lineno">  439</span>            motionAnim-&gt;startAnimation();</div>
-<div class="line"><span class="lineno">  440</span>            mesh-&gt;addAnimation(motionAnim);</div>
-<div class="line"><span class="lineno">  441</span>        }</div>
-<div class="line"><span class="lineno">  442</span>    }</div>
-<div class="line"><span class="lineno">  443</span> </div>
-<div class="line"><span class="lineno">  444</span>    <span class="keywordflow">if</span> (isIndexShape) {</div>
-<div class="line"><span class="lineno">  445</span>        <span class="comment">// add shape to spatial index</span></div>
-<div class="line"><span class="lineno">  446</span>        <span class="keyword">auto</span> spatialIndex = getSpatialIndex(scene, input);</div>
-<div class="line"><span class="lineno">  447</span>        <span class="keywordflow">if</span> (spatialIndex.get()) {</div>
-<div class="line"><span class="lineno">  448</span>            <span class="keywordflow">for</span> (uint32_t i = 0; i &lt; numInstances; ++i) {</div>
-<div class="line"><span class="lineno">  449</span>                <span class="keyword">auto</span> shape = createShape(input, mesh, parts);</div>
-<div class="line"><span class="lineno">  450</span>                <span class="keywordflow">if</span> (!shape.get()) {</div>
-<div class="line"><span class="lineno">  451</span>                    <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Skipping shape node &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without shape.&quot;</span>);</div>
-<div class="line"><span class="lineno">  452</span>                    <span class="keywordflow">continue</span>;</div>
-<div class="line"><span class="lineno">  453</span>                }</div>
-<div class="line"><span class="lineno">  454</span>                shape-&gt;setUseLocalStamp(useLocalStamp);</div>
-<div class="line"><span class="lineno">  455</span>                shape-&gt;setName(shapeName);</div>
-<div class="line"><span class="lineno">  456</span>                shape-&gt;setInstanceID(i);</div>
-<div class="line"><span class="lineno">  457</span>                shape-&gt;setTraversalMask(traversalMask);</div>
-<div class="line"><span class="lineno">  458</span>                <span class="keywordflow">if</span> (transform.get()) {</div>
-<div class="line"><span class="lineno">  459</span>                    shape-&gt;setTransform(transform, transform-&gt;numInstances() &gt; 1 ? i : 0);</div>
-<div class="line"><span class="lineno">  460</span>                }</div>
-<div class="line"><span class="lineno">  461</span>                <span class="keywordflow">if</span> (heightMap.<a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a0fdbbfa2e08f5572c0daa9228c8c1c5a">get</a>()) {</div>
-<div class="line"><span class="lineno">  462</span>                    <span class="comment">// translate to half height of height map</span></div>
-<div class="line"><span class="lineno">  463</span>                    shape-&gt;setBaseOffset(<a class="code hl_typedef" href="../../d1/dc3/namespaceregen.html#a2e30b2ec4b8cb69945e8ba33c4695622">Vec3f</a>(0.0f, 0.5f*heightMap-&gt;mapFactor(), 0.0f));</div>
-<div class="line"><span class="lineno">  464</span>                }</div>
-<div class="line"><span class="lineno">  465</span>                spatialIndex-&gt;insert(shape);</div>
-<div class="line"><span class="lineno">  466</span>            }</div>
-<div class="line"><span class="lineno">  467</span> </div>
-<div class="line"><span class="lineno">  468</span>            <span class="keyword">auto</span> indexedShapes = spatialIndex-&gt;getShapes(shapeName);</div>
-<div class="line"><span class="lineno">  469</span>            <span class="keywordflow">if</span> (indexedShapes.get()) {</div>
-<div class="line"><span class="lineno">  470</span>                <span class="keywordflow">if</span> (mesh.get()) {</div>
-<div class="line"><span class="lineno">  471</span>                    mesh-&gt;setIndexedShapes(indexedShapes);</div>
-<div class="line"><span class="lineno">  472</span>                }</div>
-<div class="line"><span class="lineno">  473</span>                <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
-<div class="line"><span class="lineno">  474</span>                    part-&gt;setIndexedShapes(indexedShapes);</div>
-<div class="line"><span class="lineno">  475</span>                }</div>
-<div class="line"><span class="lineno">  476</span>            }</div>
-<div class="line"><span class="lineno">  477</span> </div>
-<div class="line"><span class="lineno">  478</span>            <span class="keywordflow">if</span> (isCullShape) {</div>
-<div class="line"><span class="lineno">  479</span>                <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;Creating CPU cull shape for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot;.&quot;</span>);</div>
-<div class="line"><span class="lineno">  480</span>                <span class="keyword">auto</span> cullShape = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;CullShape&gt;::alloc</a>(spatialIndex, input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">getName</a>());</div>
-<div class="line"><span class="lineno">  481</span>                <span class="keywordflow">if</span> (mesh.get()) {</div>
-<div class="line"><span class="lineno">  482</span>                    mesh-&gt;setCullShape(cullShape);</div>
-<div class="line"><span class="lineno">  483</span>                }</div>
-<div class="line"><span class="lineno">  484</span>                <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
-<div class="line"><span class="lineno">  485</span>                    part-&gt;setCullShape(cullShape);</div>
-<div class="line"><span class="lineno">  486</span>                }</div>
-<div class="line"><span class="lineno">  487</span>            }</div>
-<div class="line"><span class="lineno">  488</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  489</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Skipping shape node &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without spatial index.&quot;</span>);</div>
-<div class="line"><span class="lineno">  490</span>        }</div>
-<div class="line"><span class="lineno">  491</span>        <span class="keywordflow">if</span> (mesh.get() &amp;&amp; !mesh-&gt;hasBoundingShape()) {</div>
-<div class="line"><span class="lineno">  492</span>            <span class="comment">// also create a shape without instances for the mesh bounding box</span></div>
-<div class="line"><span class="lineno">  493</span>            isMeshShape = 1;</div>
-<div class="line"><span class="lineno">  494</span>        }</div>
-<div class="line"><span class="lineno">  495</span>    }</div>
-<div class="line"><span class="lineno">  496</span> </div>
-<div class="line"><span class="lineno">  497</span>    <span class="keywordflow">if</span> (isGPUShape || isMeshShape) {</div>
-<div class="line"><span class="lineno">  498</span>        <span class="keyword">auto</span> shape = createShape(input, mesh, parts);</div>
-<div class="line"><span class="lineno">  499</span>        <span class="keywordflow">if</span> (shape.get()) {</div>
-<div class="line"><span class="lineno">  500</span>            shape-&gt;setName(shapeName);</div>
-<div class="line"><span class="lineno">  501</span>            <span class="keywordflow">if</span> (mesh.get()) {</div>
-<div class="line"><span class="lineno">  502</span>                mesh-&gt;setBoundingShape(shape);</div>
-<div class="line"><span class="lineno">  503</span>            }</div>
-<div class="line"><span class="lineno">  504</span>            <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
-<div class="line"><span class="lineno">  505</span>                part-&gt;setBoundingShape(shape);</div>
-<div class="line"><span class="lineno">  506</span>            }</div>
-<div class="line"><span class="lineno">  507</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  508</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Skipping shape node &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without shape.&quot;</span>);</div>
-<div class="line"><span class="lineno">  509</span>        }</div>
-<div class="line"><span class="lineno">  510</span>        <span class="keywordflow">if</span> (transform.get()) {</div>
-<div class="line"><span class="lineno">  511</span>            shape-&gt;setTransform(transform);</div>
-<div class="line"><span class="lineno">  512</span>        }</div>
-<div class="line"><span class="lineno">  513</span>        <span class="keywordflow">if</span> (isGPUShape &amp;&amp; isCullShape) {</div>
-<div class="line"><span class="lineno">  514</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;Creating GPU cull shape for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot;.&quot;</span>);</div>
-<div class="line"><span class="lineno">  515</span>            <span class="keyword">auto</span> cullShape = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;CullShape&gt;::alloc</a>(shape, input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">getName</a>());</div>
-<div class="line"><span class="lineno">  516</span>            <span class="keywordflow">if</span> (mesh.get()) {</div>
-<div class="line"><span class="lineno">  517</span>                mesh-&gt;setCullShape(cullShape);</div>
-<div class="line"><span class="lineno">  518</span>            }</div>
-<div class="line"><span class="lineno">  519</span>            <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
-<div class="line"><span class="lineno">  520</span>                part-&gt;setCullShape(cullShape);</div>
-<div class="line"><span class="lineno">  521</span>            }</div>
-<div class="line"><span class="lineno">  522</span>        }</div>
-<div class="line"><span class="lineno">  523</span>    }</div>
-<div class="line"><span class="lineno">  524</span>}</div>
+<p class="definition">Definition at line <a class="el" href="../../d9/d61/shape-processor_8cpp_source.html#l00365">365</a> of file <a class="el" href="../../d9/d61/shape-processor_8cpp_source.html">shape-processor.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  369</span>                                           {</div>
+<div class="line"><span class="lineno">  370</span>    <span class="keyword">auto</span> transformID = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>(<span class="stringliteral">&quot;transform-id&quot;</span>);</div>
+<div class="line"><span class="lineno">  371</span>    <span class="keyword">auto</span> mesh = getMesh(scene, input);</div>
+<div class="line"><span class="lineno">  372</span>    <span class="keyword">auto</span> parts = getParts(scene, input);</div>
+<div class="line"><span class="lineno">  373</span>    <span class="comment">// read flags for target of shape</span></div>
+<div class="line"><span class="lineno">  374</span>    <span class="keyword">auto</span> isMeshShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;mesh&quot;</span>, 0u);</div>
+<div class="line"><span class="lineno">  375</span>    <span class="keyword">auto</span> isIndexShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;index&quot;</span>, 0u);</div>
+<div class="line"><span class="lineno">  376</span>    <span class="keyword">auto</span> isGPUShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;gpu&quot;</span>, 0u);</div>
+<div class="line"><span class="lineno">  377</span>    <span class="keyword">auto</span> isPhysicalShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;physics&quot;</span>, 0u);</div>
+<div class="line"><span class="lineno">  378</span>    <span class="keyword">auto</span> isCullShape = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;cull&quot;</span>, 0u);</div>
+<div class="line"><span class="lineno">  379</span>    <span class="keyword">auto</span> useLocalStamp = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;<span class="keywordtype">bool</span>&gt;(<span class="stringliteral">&quot;local-stamp&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><span class="lineno">  380</span>    <span class="keywordflow">if</span> (!isIndexShape &amp;&amp; !isGPUShape &amp;&amp; !isPhysicalShape) {</div>
+<div class="line"><span class="lineno">  381</span>        isMeshShape = 1;</div>
+<div class="line"><span class="lineno">  382</span>    }</div>
+<div class="line"><span class="lineno">  383</span>    <span class="keyword">auto</span> numInstances = 1u;</div>
+<div class="line"><span class="lineno">  384</span>    <span class="keyword">auto</span> shapeName = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">getName</a>();</div>
+<div class="line"><span class="lineno">  385</span> </div>
+<div class="line"><span class="lineno">  386</span>    <a class="code hl_class" href="../../d2/d62/classregen_1_1ref__ptr.html">ref_ptr&lt;HeightMap&gt;</a> heightMap;</div>
+<div class="line"><span class="lineno">  387</span>    <span class="keywordflow">if</span> (input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">hasAttribute</a>(<span class="stringliteral">&quot;height-map&quot;</span>)) {</div>
+<div class="line"><span class="lineno">  388</span>        <span class="keyword">auto</span> heightMap2D = scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#a7df0c0018e9c93174f24dd49a2573530">getResources</a>()-&gt;getTexture2D(scene, input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>(<span class="stringliteral">&quot;height-map&quot;</span>));</div>
+<div class="line"><span class="lineno">  389</span>        <span class="keywordflow">if</span> (heightMap2D.get()) {</div>
+<div class="line"><span class="lineno">  390</span>            heightMap = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a6f8262da7cfcc72e62f2d1032c4d4086">ref_ptr&lt;HeightMap&gt;::dynamicCast</a>(heightMap2D);</div>
+<div class="line"><span class="lineno">  391</span>            <span class="keywordflow">if</span> (!heightMap) {</div>
+<div class="line"><span class="lineno">  392</span>                <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Texture for height map is not a height map for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot;.&quot;</span>);</div>
+<div class="line"><span class="lineno">  393</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  394</span>                heightMap-&gt;ensureTextureData();</div>
+<div class="line"><span class="lineno">  395</span>            }</div>
+<div class="line"><span class="lineno">  396</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">hasAttribute</a>(<span class="stringliteral">&quot;height-map&quot;</span>)) {</div>
+<div class="line"><span class="lineno">  397</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Ignoring height map for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without texture.&quot;</span>);</div>
+<div class="line"><span class="lineno">  398</span>        }</div>
+<div class="line"><span class="lineno">  399</span>    }</div>
+<div class="line"><span class="lineno">  400</span> </div>
+<div class="line"><span class="lineno">  401</span>    uint32_t traversalMask = 1;</div>
+<div class="line"><span class="lineno">  402</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;child: input.getChildren(<span class="stringliteral">&quot;traversal-bit&quot;</span>)) {</div>
+<div class="line"><span class="lineno">  403</span>        <span class="keyword">auto</span> bit = child-&gt;getValue&lt;uint32_t&gt;(<span class="stringliteral">&quot;value&quot;</span>, 0u);</div>
+<div class="line"><span class="lineno">  404</span>        <span class="keywordflow">if</span> (child-&gt;getValue&lt;<span class="keywordtype">bool</span>&gt;(<span class="stringliteral">&quot;enabled&quot;</span>, <span class="keyword">true</span>)) {</div>
+<div class="line"><span class="lineno">  405</span>            traversalMask |= (1 &lt;&lt; bit);</div>
+<div class="line"><span class="lineno">  406</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  407</span>            traversalMask &amp;= ~(1 &lt;&lt; bit);</div>
+<div class="line"><span class="lineno">  408</span>        }</div>
+<div class="line"><span class="lineno">  409</span>    }</div>
+<div class="line"><span class="lineno">  410</span> </div>
+<div class="line"><span class="lineno">  411</span>    <span class="keyword">auto</span> transform = scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#adf4bd8a36ffd2dfde103997eb3d98b3d">getResource</a>&lt;<a class="code hl_class" href="../../d5/d69/classregen_1_1_model_transformation.html">ModelTransformation</a>&gt;(transformID);</div>
+<div class="line"><span class="lineno">  412</span>    <span class="keywordflow">if</span> (transform.get()) {</div>
+<div class="line"><span class="lineno">  413</span>        numInstances = transform-&gt;<a class="code hl_function" href="../../d3/d0d/classregen_1_1_state.html#a744671a17060130a840b354855afa79c">numInstances</a>();</div>
+<div class="line"><span class="lineno">  414</span>    }</div>
+<div class="line"><span class="lineno">  415</span>    <span class="keywordflow">if</span> (input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">hasAttribute</a>(<span class="stringliteral">&quot;num-instances&quot;</span>)) {</div>
+<div class="line"><span class="lineno">  416</span>        numInstances = input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">getValue</a>&lt;uint32_t&gt;(<span class="stringliteral">&quot;num-instances&quot;</span>, numInstances);</div>
+<div class="line"><span class="lineno">  417</span>    }</div>
+<div class="line"><span class="lineno">  418</span>    numInstances = std::max(numInstances, 1u);</div>
+<div class="line"><span class="lineno">  419</span> </div>
+<div class="line"><span class="lineno">  420</span>    <span class="keywordflow">if</span> (isPhysicalShape) {</div>
+<div class="line"><span class="lineno">  421</span>        <span class="comment">// add shape to physics engine</span></div>
+<div class="line"><span class="lineno">  422</span>        <span class="keywordflow">if</span> (numInstances == 1) {</div>
+<div class="line"><span class="lineno">  423</span>            <span class="keyword">auto</span> motion = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;ModelMatrixMotion&gt;::alloc</a>(transform, 0);</div>
+<div class="line"><span class="lineno">  424</span>            <span class="keyword">auto</span> physicalProps = createPhysicalProps(input, mesh, motion);</div>
+<div class="line"><span class="lineno">  425</span>            <span class="keyword">auto</span> physicalObject = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;PhysicalObject&gt;::alloc</a>(physicalProps);</div>
+<div class="line"><span class="lineno">  426</span>            mesh-&gt;addPhysicalObject(physicalObject);</div>
+<div class="line"><span class="lineno">  427</span>            scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#a0387153daf88cb9ceb8bf461b7c3aaff">getPhysics</a>()-&gt;addObject(physicalObject);</div>
+<div class="line"><span class="lineno">  428</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  429</span>            <span class="keyword">auto</span> motionAnim = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;ModelMatrixUpdater&gt;::alloc</a>(transform);</div>
+<div class="line"><span class="lineno">  430</span>            <span class="keywordflow">for</span> (uint32_t i = 0; i &lt; numInstances; ++i) {</div>
+<div class="line"><span class="lineno">  431</span>                <span class="keyword">auto</span> motion = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;Mat4fMotion&gt;::alloc</a>(motionAnim, i);</div>
+<div class="line"><span class="lineno">  432</span>                <span class="keyword">auto</span> physicalProps = createPhysicalProps(input, mesh, motion);</div>
+<div class="line"><span class="lineno">  433</span>                <span class="keyword">auto</span> physicalObject = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;PhysicalObject&gt;::alloc</a>(physicalProps);</div>
+<div class="line"><span class="lineno">  434</span>                mesh-&gt;addPhysicalObject(physicalObject);</div>
+<div class="line"><span class="lineno">  435</span>                scene-&gt;<a class="code hl_function" href="../../dd/d99/classregen_1_1scene_1_1_scene_loader.html#a0387153daf88cb9ceb8bf461b7c3aaff">getPhysics</a>()-&gt;addObject(physicalObject);</div>
+<div class="line"><span class="lineno">  436</span>            }</div>
+<div class="line"><span class="lineno">  437</span>            motionAnim-&gt;startAnimation();</div>
+<div class="line"><span class="lineno">  438</span>            mesh-&gt;addAnimation(motionAnim);</div>
+<div class="line"><span class="lineno">  439</span>        }</div>
+<div class="line"><span class="lineno">  440</span>    }</div>
+<div class="line"><span class="lineno">  441</span> </div>
+<div class="line"><span class="lineno">  442</span>    <span class="keywordflow">if</span> (isIndexShape) {</div>
+<div class="line"><span class="lineno">  443</span>        <span class="comment">// add shape to spatial index</span></div>
+<div class="line"><span class="lineno">  444</span>        <span class="keyword">auto</span> spatialIndex = getSpatialIndex(scene, input);</div>
+<div class="line"><span class="lineno">  445</span>        <span class="keywordflow">if</span> (spatialIndex.get()) {</div>
+<div class="line"><span class="lineno">  446</span>            <span class="keywordflow">for</span> (uint32_t i = 0; i &lt; numInstances; ++i) {</div>
+<div class="line"><span class="lineno">  447</span>                <span class="keyword">auto</span> shape = createShape(input, mesh, parts);</div>
+<div class="line"><span class="lineno">  448</span>                <span class="keywordflow">if</span> (!shape.get()) {</div>
+<div class="line"><span class="lineno">  449</span>                    <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Skipping shape node &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without shape.&quot;</span>);</div>
+<div class="line"><span class="lineno">  450</span>                    <span class="keywordflow">continue</span>;</div>
+<div class="line"><span class="lineno">  451</span>                }</div>
+<div class="line"><span class="lineno">  452</span>                shape-&gt;setUseLocalStamp(useLocalStamp);</div>
+<div class="line"><span class="lineno">  453</span>                shape-&gt;setName(shapeName);</div>
+<div class="line"><span class="lineno">  454</span>                shape-&gt;setInstanceID(i);</div>
+<div class="line"><span class="lineno">  455</span>                shape-&gt;setTraversalMask(traversalMask);</div>
+<div class="line"><span class="lineno">  456</span>                <span class="keywordflow">if</span> (transform.get()) {</div>
+<div class="line"><span class="lineno">  457</span>                    shape-&gt;setTransform(transform, transform-&gt;numInstances() &gt; 1 ? i : 0);</div>
+<div class="line"><span class="lineno">  458</span>                }</div>
+<div class="line"><span class="lineno">  459</span>                <span class="keywordflow">if</span> (heightMap.<a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a0fdbbfa2e08f5572c0daa9228c8c1c5a">get</a>()) {</div>
+<div class="line"><span class="lineno">  460</span>                    <span class="comment">// translate to half height of height map</span></div>
+<div class="line"><span class="lineno">  461</span>                    shape-&gt;setBaseOffset(<a class="code hl_typedef" href="../../d1/dc3/namespaceregen.html#a2e30b2ec4b8cb69945e8ba33c4695622">Vec3f</a>(0.0f, 0.5f*heightMap-&gt;mapFactor(), 0.0f));</div>
+<div class="line"><span class="lineno">  462</span>                }</div>
+<div class="line"><span class="lineno">  463</span>                spatialIndex-&gt;insert(shape);</div>
+<div class="line"><span class="lineno">  464</span>            }</div>
+<div class="line"><span class="lineno">  465</span> </div>
+<div class="line"><span class="lineno">  466</span>            <span class="keyword">auto</span> indexedShapes = spatialIndex-&gt;getShapes(shapeName);</div>
+<div class="line"><span class="lineno">  467</span>            <span class="keywordflow">if</span> (indexedShapes.get()) {</div>
+<div class="line"><span class="lineno">  468</span>                <span class="keywordflow">if</span> (mesh.get()) {</div>
+<div class="line"><span class="lineno">  469</span>                    mesh-&gt;setIndexedShapes(indexedShapes);</div>
+<div class="line"><span class="lineno">  470</span>                }</div>
+<div class="line"><span class="lineno">  471</span>                <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
+<div class="line"><span class="lineno">  472</span>                    part-&gt;setIndexedShapes(indexedShapes);</div>
+<div class="line"><span class="lineno">  473</span>                }</div>
+<div class="line"><span class="lineno">  474</span>            }</div>
+<div class="line"><span class="lineno">  475</span> </div>
+<div class="line"><span class="lineno">  476</span>            <span class="keywordflow">if</span> (isCullShape) {</div>
+<div class="line"><span class="lineno">  477</span>                <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;Creating CPU cull shape for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot;.&quot;</span>);</div>
+<div class="line"><span class="lineno">  478</span>                <span class="keyword">auto</span> cullShape = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;CullShape&gt;::alloc</a>(spatialIndex, input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">getName</a>());</div>
+<div class="line"><span class="lineno">  479</span>                <span class="keywordflow">if</span> (mesh.get()) {</div>
+<div class="line"><span class="lineno">  480</span>                    mesh-&gt;setCullShape(cullShape);</div>
+<div class="line"><span class="lineno">  481</span>                }</div>
+<div class="line"><span class="lineno">  482</span>                <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
+<div class="line"><span class="lineno">  483</span>                    part-&gt;setCullShape(cullShape);</div>
+<div class="line"><span class="lineno">  484</span>                }</div>
+<div class="line"><span class="lineno">  485</span>            }</div>
+<div class="line"><span class="lineno">  486</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  487</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Skipping shape node &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without spatial index.&quot;</span>);</div>
+<div class="line"><span class="lineno">  488</span>        }</div>
+<div class="line"><span class="lineno">  489</span>        <span class="keywordflow">if</span> (mesh.get() &amp;&amp; !mesh-&gt;hasBoundingShape()) {</div>
+<div class="line"><span class="lineno">  490</span>            <span class="comment">// also create a shape without instances for the mesh bounding box</span></div>
+<div class="line"><span class="lineno">  491</span>            isMeshShape = 1;</div>
+<div class="line"><span class="lineno">  492</span>        }</div>
+<div class="line"><span class="lineno">  493</span>    }</div>
+<div class="line"><span class="lineno">  494</span> </div>
+<div class="line"><span class="lineno">  495</span>    <span class="keywordflow">if</span> (isGPUShape || isMeshShape) {</div>
+<div class="line"><span class="lineno">  496</span>        <span class="keyword">auto</span> shape = createShape(input, mesh, parts);</div>
+<div class="line"><span class="lineno">  497</span>        <span class="keywordflow">if</span> (shape.get()) {</div>
+<div class="line"><span class="lineno">  498</span>            shape-&gt;setName(shapeName);</div>
+<div class="line"><span class="lineno">  499</span>            <span class="keywordflow">if</span> (mesh.get()) {</div>
+<div class="line"><span class="lineno">  500</span>                mesh-&gt;setBoundingShape(shape);</div>
+<div class="line"><span class="lineno">  501</span>            }</div>
+<div class="line"><span class="lineno">  502</span>            <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
+<div class="line"><span class="lineno">  503</span>                part-&gt;setBoundingShape(shape);</div>
+<div class="line"><span class="lineno">  504</span>            }</div>
+<div class="line"><span class="lineno">  505</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  506</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#ae0e9cd021b6ad8d86a62a7d02b4a5b36">REGEN_WARN</a>(<span class="stringliteral">&quot;Skipping shape node &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot; without shape.&quot;</span>);</div>
+<div class="line"><span class="lineno">  507</span>        }</div>
+<div class="line"><span class="lineno">  508</span>        <span class="keywordflow">if</span> (transform.get()) {</div>
+<div class="line"><span class="lineno">  509</span>            shape-&gt;setTransform(transform);</div>
+<div class="line"><span class="lineno">  510</span>        }</div>
+<div class="line"><span class="lineno">  511</span>        <span class="keywordflow">if</span> (isGPUShape &amp;&amp; isCullShape) {</div>
+<div class="line"><span class="lineno">  512</span>            <a class="code hl_define" href="../../d5/d77/logging_8h.html#af37c3663d880a041eac6d9038b2dbe0e">REGEN_DEBUG</a>(<span class="stringliteral">&quot;Creating GPU cull shape for &quot;</span> &lt;&lt; input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">getDescription</a>() &lt;&lt; <span class="stringliteral">&quot;.&quot;</span>);</div>
+<div class="line"><span class="lineno">  513</span>            <span class="keyword">auto</span> cullShape = <a class="code hl_function" href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">ref_ptr&lt;CullShape&gt;::alloc</a>(shape, input.<a class="code hl_function" href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">getName</a>());</div>
+<div class="line"><span class="lineno">  514</span>            <span class="keywordflow">if</span> (mesh.get()) {</div>
+<div class="line"><span class="lineno">  515</span>                mesh-&gt;setCullShape(cullShape);</div>
+<div class="line"><span class="lineno">  516</span>            }</div>
+<div class="line"><span class="lineno">  517</span>            <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;part: parts) {</div>
+<div class="line"><span class="lineno">  518</span>                part-&gt;setCullShape(cullShape);</div>
+<div class="line"><span class="lineno">  519</span>            }</div>
+<div class="line"><span class="lineno">  520</span>        }</div>
+<div class="line"><span class="lineno">  521</span>    }</div>
+<div class="line"><span class="lineno">  522</span>}</div>
 <div class="ttc" id="aclassregen_1_1_model_transformation_html"><div class="ttname"><a href="../../d5/d69/classregen_1_1_model_transformation.html">regen::ModelTransformation</a></div><div class="ttdoc">matrix that transforms for model space to world space.</div><div class="ttdef"><b>Definition</b> <a href="../../d0/de5/model-transformation_8h_source.html#l00017">model-transformation.h:17</a></div></div>
 <div class="ttc" id="aclassregen_1_1_state_html_a744671a17060130a840b354855afa79c"><div class="ttname"><a href="../../d3/d0d/classregen_1_1_state.html#a744671a17060130a840b354855afa79c">regen::State::numInstances</a></div><div class="ttdeci">int32_t numInstances() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/da4/state_8cpp_source.html#l00054">state.cpp:54</a></div></div>
 <div class="ttc" id="aclassregen_1_1ref__ptr_html"><div class="ttname"><a href="../../d2/d62/classregen_1_1ref__ptr.html">regen::ref_ptr</a></div><div class="ttdoc">Reference counter template class.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db5/ref-ptr_8h_source.html#l00013">ref-ptr.h:13</a></div></div>
 <div class="ttc" id="aclassregen_1_1ref__ptr_html_a0fdbbfa2e08f5572c0daa9228c8c1c5a"><div class="ttname"><a href="../../d2/d62/classregen_1_1ref__ptr.html#a0fdbbfa2e08f5572c0daa9228c8c1c5a">regen::ref_ptr::get</a></div><div class="ttdeci">T * get() const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db5/ref-ptr_8h_source.html#l00181">ref-ptr.h:181</a></div></div>
 <div class="ttc" id="aclassregen_1_1ref__ptr_html_a27904a98f6de7cd04f70617b4fcea6c2"><div class="ttname"><a href="../../d2/d62/classregen_1_1ref__ptr.html#a27904a98f6de7cd04f70617b4fcea6c2">regen::ref_ptr::alloc</a></div><div class="ttdeci">static ref_ptr&lt; T &gt; alloc()</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db5/ref-ptr_8h_source.html#l00053">ref-ptr.h:53</a></div></div>
 <div class="ttc" id="aclassregen_1_1ref__ptr_html_a6f8262da7cfcc72e62f2d1032c4d4086"><div class="ttname"><a href="../../d2/d62/classregen_1_1ref__ptr.html#a6f8262da7cfcc72e62f2d1032c4d4086">regen::ref_ptr::dynamicCast</a></div><div class="ttdeci">static ref_ptr&lt; T &gt; dynamicCast(ref_ptr&lt; K &gt; v)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db5/ref-ptr_8h_source.html#l00039">ref-ptr.h:39</a></div></div>
-<div class="ttc" id="aclassregen_1_1scene_1_1_scene_input_node_html_a2cff3c1ef822993dde23094cce74c26e"><div class="ttname"><a href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">regen::scene::SceneInputNode::hasAttribute</a></div><div class="ttdeci">bool hasAttribute(const std::string &amp;key)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db0/scene-input_8cpp_source.html#l00142">scene-input.cpp:142</a></div></div>
+<div class="ttc" id="aclassregen_1_1scene_1_1_scene_input_node_html_a2cff3c1ef822993dde23094cce74c26e"><div class="ttname"><a href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a2cff3c1ef822993dde23094cce74c26e">regen::scene::SceneInputNode::hasAttribute</a></div><div class="ttdeci">bool hasAttribute(const std::string &amp;key)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db0/scene-input_8cpp_source.html#l00140">scene-input.cpp:140</a></div></div>
 <div class="ttc" id="aclassregen_1_1scene_1_1_scene_input_node_html_a5465d0699f0bfdc8a296969841d63fbd"><div class="ttname"><a href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a5465d0699f0bfdc8a296969841d63fbd">regen::scene::SceneInputNode::getName</a></div><div class="ttdeci">virtual std::string getName() const =0</div></div>
 <div class="ttc" id="aclassregen_1_1scene_1_1_scene_input_node_html_a8612ce7c9eacab6115a192e6dfa763a8"><div class="ttname"><a href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#a8612ce7c9eacab6115a192e6dfa763a8">regen::scene::SceneInputNode::getDescription</a></div><div class="ttdeci">std::string getDescription()</div><div class="ttdef"><b>Definition</b> <a href="../../d5/db0/scene-input_8cpp_source.html#l00042">scene-input.cpp:42</a></div></div>
 <div class="ttc" id="aclassregen_1_1scene_1_1_scene_input_node_html_adf7ba9f565721b63a57ee6c947ba139c"><div class="ttname"><a href="../../d1/d75/classregen_1_1scene_1_1_scene_input_node.html#adf7ba9f565721b63a57ee6c947ba139c">regen::scene::SceneInputNode::getValue</a></div><div class="ttdeci">const std::string &amp; getValue(const std::string &amp;key)</div></div>

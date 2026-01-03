@@ -11,6 +11,7 @@ var classregen_1_1_allocator_pool =
     [ "chooseAllocator", "dc/df3/classregen_1_1_allocator_pool.html#a04d24b30faf62db6bc5647af705c6227", null ],
     [ "clear", "dc/df3/classregen_1_1_allocator_pool.html#a0f261e239b116d1a07204f73790b6fe1", null ],
     [ "createAllocator", "dc/df3/classregen_1_1_allocator_pool.html#ad8add2adc0e144521a94f7c88e20d5bd", null ],
+    [ "deletePoolMemory", "dc/df3/classregen_1_1_allocator_pool.html#a53237febf0a00c35ef33992682082145", null ],
     [ "free", "dc/df3/classregen_1_1_allocator_pool.html#a0a7e03d29a5216c15054d39aac0f274d", null ],
     [ "index", "dc/df3/classregen_1_1_allocator_pool.html#a8bea9f8797dd2981214f5b79b595910c", null ],
     [ "set_alignment", "dc/df3/classregen_1_1_allocator_pool.html#a88ad9c7dd8698d620b7eccf258532879", null ],
