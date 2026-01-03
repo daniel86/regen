@@ -186,7 +186,7 @@ void StagingBuffer::resetStallRate() {
 }
 
 void StagingBuffer::pushToFlushQueue(const BufferRange2ui *dirtySegments, uint32_t numDirtySegments) {
-	if constexpr(REGEN_STAGING_USE_DIRECT_FLUSHING) {
+	if constexpr(!REGEN_STAGING_USE_DIRECT_FLUSHING) {
 		if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
 			RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
 			const uint32_t totalDirtySegments = writeSegment.numDirtySegments + numDirtySegments;
@@ -328,7 +328,7 @@ void StagingBuffer::endMappedWrite(
 	}
 
 	if (flags_.useExplicitStaging()) {
-		if constexpr(REGEN_STAGING_USE_DIRECT_FLUSHING) {
+		if constexpr(!REGEN_STAGING_USE_DIRECT_FLUSHING) {
 			// Make sure the last write to current readBuffer is flushed before we copy the data.
 			if (accessFlags_ & MAP_FLUSH_EXPLICIT) {
 				for (uint32_t flushIdx = 0; flushIdx < readSegment.numDirtySegments; ++flushIdx) {
