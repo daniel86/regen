@@ -52,8 +52,13 @@ BufferSizeClass StagingBuffer::getBufferSizeClass(uint32_t size) {
 	}
 }
 
-BufferPool* StagingBuffer::getStagingAllocator(BufferStorageMode storageMode) {
+BufferPool **StagingBuffer::stagingPools() {
 	static std::array<BufferPool*,(int)BUFFER_STORAGE_MODE_LAST> bufferPools;
+	return bufferPools.data();
+}
+
+BufferPool* StagingBuffer::getStagingAllocator(BufferStorageMode storageMode) {
+	auto *bufferPools = StagingBuffer::stagingPools();
 	BufferPool *stagingAllocator = bufferPools[(int)storageMode];
 	if (stagingAllocator == nullptr) {
 		stagingAllocator = new BufferPool();
@@ -63,6 +68,15 @@ BufferPool* StagingBuffer::getStagingAllocator(BufferStorageMode storageMode) {
 		bufferPools[static_cast<int>(storageMode)] = stagingAllocator;
 	}
 	return stagingAllocator;
+}
+
+void StagingBuffer::resetMemoryPools() {
+	// delete all memory pools, they are re-created on demand
+	auto *bufferPools = StagingBuffer::stagingPools();
+	for (int i = 0; i < (int) BUFFER_STORAGE_MODE_LAST; ++i) {
+		delete bufferPools[i];
+		bufferPools[i] = nullptr;
+	}
 }
 
 bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments) {

@@ -71,6 +71,11 @@ namespace regen {
 		StagingBuffer(const StagingBuffer &) = delete;
 
 		/**
+		 * Delete allocated memory pools for staging buffers.
+		 */
+		static void resetMemoryPools();
+
+		/**
 		 * @return the buffer flags used for staging.
 		 */
 		const BufferFlags &stagingFlags() const { return flags_; }
@@ -316,6 +321,8 @@ namespace regen {
 		byte *stagingReadData_ = nullptr;
 		uint32_t readBufferIndex_ = 0u;
 		uint32_t writeBufferIndex_ = 0u;
+
+		static BufferPool **stagingPools();
 
 		static BufferPool *getStagingAllocator(BufferStorageMode storageMode);
 
