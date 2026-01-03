@@ -197,7 +197,6 @@ void main() {
                 if(lookAheadValue > value) {
                     dst = volumeTransfer(lookAheadValue);
                     value = lookAheadValue;
-                    i = j; // advance main loop
                 }
             }
             break;
@@ -320,7 +319,6 @@ void main() {
                 if(lookAheadValue > value) {
                     density = lookAheadValue;
                     value = lookAheadValue;
-                    i = j; // advance main loop
                 } else {
                     break;
                 }
